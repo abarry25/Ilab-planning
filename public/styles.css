@@ -75,6 +75,19 @@ body {
   margin: 18px 0 6px;
   flex-wrap: wrap;
 }
+
+.week-cell { position: relative; }
+.day-cell.flagged::after,
+.week-cell.flagged::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rust);
+}
 .btn {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 12.5px;

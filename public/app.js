@@ -278,6 +278,7 @@ function setSaveStatus(text, isError) {
   const el = document.getElementById("saveStatus");
   if (!el) return;
   el.textContent = text;
+   el.title = text; // full message on hover, in case it's truncated
   el.classList.toggle("save-error", !!isError);
 }
 

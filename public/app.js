@@ -13,7 +13,7 @@ DEFAULT_TASKS.forEach(t => DEFAULT_TASK_BY_ID[t.id] = t);
 let TASKS = [];
 let TASKS_BY_GROUP = {};
 let dragState = null; // { taskId, value } while a click-and-drag is in progress
-let summaryMode = false; // add near the other `let` state declarations
+let summaryMode = false;
 
 function rebuildIndex() {
   TASKS = STATE.tasksList;
@@ -77,6 +77,7 @@ let saveTimer = null;
 let saving = false;
 let undoTimer = null;
 let saveState = "saved"; // "saved" | "dirty" | "saving" | "error"
+let lastMeta = null;
 
 function currentTerm() { return TERMS[currentTermIdx]; }
 
@@ -161,8 +162,9 @@ function ensureState(term) {
     STATE.tasksList = seedDefaultTasksList();
   }
   migrateGroupStructure();
-   injectNewTasks();          // <-- add this line
+  injectNewTasks();
   if (!STATE.selected) STATE.selected = {};
+  if (!STATE.reviewFlags) STATE.reviewFlags = {};
   if (!Array.isArray(STATE.exportRows)) STATE.exportRows = [];
   STATE.tasksList.forEach(t => {
     if (!STATE.tasks[t.id]) {
@@ -279,7 +281,7 @@ function setSaveStatus(text, isError) {
   const el = document.getElementById("saveStatus");
   if (!el) return;
   el.textContent = text;
-   el.title = text; // full message on hover, in case it's truncated
+  el.title = text; // full message on hover, in case it's truncated
   el.classList.toggle("save-error", !!isError);
 }
 
@@ -504,23 +506,48 @@ function taskRowMarkup(t) {
       cell.setAttribute("aria-pressed", st.active[i] ? "true" : "false");
       cell.title = fmtShort(dt);
       if (st.active[i]) cell.style.background = color;
-const setDay = (val) => {
-  if (st.active[i] === val) return;
-  st.active[i] = val;
-  cell.setAttribute("aria-pressed", val ? "true" : "false");
-  cell.style.background = val ? color : "";
-  updateGroupCount(t.group);
-  updateRowCount(t.id, st);
-  queueSave();
-};
-cell.addEventListener("mousedown", (e) => {
-  e.preventDefault();
-  dragState = { taskId: t.id, value: !st.active[i] };
-  setDay(dragState.value);
-});
-cell.addEventListener("mouseenter", () => {
-  if (dragState && dragState.taskId === t.id) setDay(dragState.value);
-});
+
+      // ---- review flag: set up ONCE per cell, not inside setDay ----
+      const flagKey = reviewKey(t.id, i);
+      if (STATE.reviewFlags[flagKey]) {
+        cell.classList.add("flagged");
+        cell.title = "Review: " + STATE.reviewFlags[flagKey];
+      }
+
+      const setDay = (val) => {
+        if (st.active[i] === val) return;
+        st.active[i] = val;
+        cell.setAttribute("aria-pressed", val ? "true" : "false");
+        cell.style.background = val ? color : "";
+        updateGroupCount(t.group);
+        updateRowCount(t.id, st);
+        queueSave();
+      };
+      cell.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        dragState = { taskId: t.id, value: !st.active[i] };
+        setDay(dragState.value);
+      });
+      cell.addEventListener("mouseenter", () => {
+        if (dragState && dragState.taskId === t.id) setDay(dragState.value);
+      });
+      cell.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        const existing = STATE.reviewFlags[flagKey] || "";
+        const noteText = window.prompt("Review note for " + fmtShort(dt) + ":", existing);
+        if (noteText === null) return; // cancelled
+        if (noteText.trim()) {
+          STATE.reviewFlags[flagKey] = noteText.trim();
+          cell.classList.add("flagged");
+          cell.title = "Review: " + noteText.trim();
+        } else {
+          delete STATE.reviewFlags[flagKey];
+          cell.classList.remove("flagged");
+          cell.title = fmtShort(dt);
+        }
+        queueSave();
+      });
+
       track.appendChild(cell);
     }
   } else {
@@ -536,6 +563,10 @@ cell.addEventListener("mouseenter", () => {
       cell.title = fmtShort(dateForDay(term, grp[0])) + " – " + fmtShort(dateForDay(term, grp[grp.length - 1]));
       if (full) cell.style.background = color;
       else if (partial) cell.style.background = `linear-gradient(90deg, ${color} 50%, transparent 50%)`;
+
+      const flaggedInWeek = grp.some(di => STATE.reviewFlags[reviewKey(t.id, di)]);
+      if (flaggedInWeek) cell.classList.add("flagged");
+
       cell.addEventListener("click", () => {
         const turnOn = activeInWeek < grp.length;
         grp.forEach(di => { st.active[di] = turnOn; });
@@ -592,7 +623,7 @@ function syncHeaderScroll() {
 }
 
 function renderBoard() {
-   if (summaryMode) { renderSummaryBoard(); return; }   // <-- add this line
+  if (summaryMode) { renderSummaryBoard(); return; }
   const namesRoot = document.getElementById("namesBoard");
   const cellsRoot = document.getElementById("board");
   namesRoot.innerHTML = "";
@@ -831,6 +862,7 @@ function fmtDateTime(d, hour, minute) {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${h12}:${pad2(minute)} ${ampm}`;
 }
 function exportRowKey(taskId, startIso, endIso) { return taskId + "__" + startIso + "__" + endIso; }
+function reviewKey(taskId, dayIdx) { return taskId + "::" + dayIdx; }
 
 function buildExportRows() {
   const term = currentTerm();
@@ -839,42 +871,42 @@ function buildExportRows() {
     setSaveStatus("Check at least one row first", true);
     return;
   }
-const existingKeys = new Set(STATE.exportRows.map(r => exportRowKey(r.taskId, r.date, r.endDate || r.date)));
-let added = 0;
-selectedIds.forEach(taskId => {
-  const task = TASKS.find(t => t.id === taskId);
-  const st = STATE.tasks[taskId];
-  if (!task || !st) return;
-  const group = GROUP_BY_ID[task.group];
-  getActiveRuns(st.active).forEach(run => {
-    const first = dateForDay(term, run[0]);
-    const last = dateForDay(term, run[run.length - 1]);
-    const isoFirst = first.getFullYear() + "-" + pad2(first.getMonth() + 1) + "-" + pad2(first.getDate());
-    const isoLast = last.getFullYear() + "-" + pad2(last.getMonth() + 1) + "-" + pad2(last.getDate());
-    const key = exportRowKey(taskId, isoFirst, isoLast);
-    if (existingKeys.has(key)) return;
-    existingKeys.add(key);
-    const rangeLabel = run.length > 1
-      ? fmtShort(first) + " – " + fmtShort(last) + " (" + run.length + " days)"
-      : fmtShort(first);
-    STATE.exportRows.push({
-      id: "exp-" + Math.random().toString(36).slice(2, 9),
-      taskId, date: isoFirst, endDate: isoLast,
-      taskName: task.label + " – " + rangeLabel,
-      assignee: st.owner || "",
-      start: fmtDateTime(first, 10, 0),
-      end: fmtDateTime(last, 11, 0),
-      summary: task.label,
-      description: st.note || "",
-      format: "",
-      location: "",
-      zoomLink: "",
-      audience: group.audience || "",
-      list: group.name
+  const existingKeys = new Set(STATE.exportRows.map(r => exportRowKey(r.taskId, r.date, r.endDate || r.date)));
+  let added = 0;
+  selectedIds.forEach(taskId => {
+    const task = TASKS.find(t => t.id === taskId);
+    const st = STATE.tasks[taskId];
+    if (!task || !st) return;
+    const group = GROUP_BY_ID[task.group];
+    getActiveRuns(st.active).forEach(run => {
+      const first = dateForDay(term, run[0]);
+      const last = dateForDay(term, run[run.length - 1]);
+      const isoFirst = first.getFullYear() + "-" + pad2(first.getMonth() + 1) + "-" + pad2(first.getDate());
+      const isoLast = last.getFullYear() + "-" + pad2(last.getMonth() + 1) + "-" + pad2(last.getDate());
+      const key = exportRowKey(taskId, isoFirst, isoLast);
+      if (existingKeys.has(key)) return;
+      existingKeys.add(key);
+      const rangeLabel = run.length > 1
+        ? fmtShort(first) + " – " + fmtShort(last) + " (" + run.length + " days)"
+        : fmtShort(first);
+      STATE.exportRows.push({
+        id: "exp-" + Math.random().toString(36).slice(2, 9),
+        taskId, date: isoFirst, endDate: isoLast,
+        taskName: task.label + " – " + rangeLabel,
+        assignee: st.owner || "",
+        start: fmtDateTime(first, 10, 0),
+        end: fmtDateTime(last, 11, 0),
+        summary: task.label,
+        description: st.note || "",
+        format: "",
+        location: "",
+        zoomLink: "",
+        audience: group.audience || "",
+        list: group.name
+      });
+      added++;
     });
-    added++;
   });
-});
   queueSave();
   renderExportPanel();
   setSaveStatus(added ? `Added ${added} row${added > 1 ? "s" : ""} to the export` : "Those dates are already in the export", false);
@@ -1004,6 +1036,29 @@ function clearExportRows() {
   renderExportPanel();
 }
 
+/* ===== Review flags: quick copy-out list ===== */
+function copyFlaggedNotes() {
+  const term = currentTerm();
+  const entries = Object.entries(STATE.reviewFlags || {});
+  if (!entries.length) { setSaveStatus("No review flags on this board", false); return; }
+  const lines = ["i-lab " + term.label + " — flagged for review", ""];
+  entries.forEach(([key, note]) => {
+    const [taskId, dayIdxStr] = key.split("::");
+    const task = TASKS.find(t => t.id === taskId);
+    if (!task) return;
+    const d = dateForDay(term, Number(dayIdxStr));
+    lines.push("- " + task.label + " (" + fmtShort(d) + "): " + note);
+  });
+  const text = lines.join("\n");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      setSaveStatus("Flagged list copied to clipboard", false);
+    }).catch(() => {
+      setSaveStatus("Couldn't copy — try selecting manually", true);
+    });
+  }
+}
+
 function announceLoadStatus() {
   if (lastMeta && lastMeta.updatedAt) {
     const when = new Date(lastMeta.updatedAt).toLocaleString();
@@ -1060,11 +1115,19 @@ async function init() {
   document.getElementById("clearExportBtn").addEventListener("click", clearExportRows);
   document.getElementById("floatingSaveBtn").addEventListener("click", forceSaveNow);
   document.addEventListener("mouseup", () => { dragState = null; });
-  document.getElementById("summaryToggleBtn").addEventListener("click", () => {
-  summaryMode = !summaryMode;
-  document.getElementById("summaryToggleBtn").textContent = summaryMode ? "Show full detail" : "Bucket summary view";
-  renderBoard();
-});
+
+  const summaryBtn = document.getElementById("summaryToggleBtn");
+  if (summaryBtn) {
+    summaryBtn.addEventListener("click", () => {
+      summaryMode = !summaryMode;
+      summaryBtn.textContent = summaryMode ? "Show full detail" : "Bucket summary view";
+      renderBoard();
+    });
+  }
+
+  const flagsBtn = document.getElementById("flagsBtn");
+  if (flagsBtn) flagsBtn.addEventListener("click", copyFlaggedNotes);
+
   setFloatingSave("saved");
   announceLoadStatus();
 

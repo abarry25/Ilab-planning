@@ -13,6 +13,7 @@ DEFAULT_TASKS.forEach(t => DEFAULT_TASK_BY_ID[t.id] = t);
 let TASKS = [];
 let TASKS_BY_GROUP = {};
 let dragState = null; // { taskId, value } while a click-and-drag is in progress
+let summaryMode = false; // add near the other `let` state declarations
 
 function rebuildIndex() {
   TASKS = STATE.tasksList;
@@ -591,6 +592,7 @@ function syncHeaderScroll() {
 }
 
 function renderBoard() {
+   if (summaryMode) { renderSummaryBoard(); return; }   // <-- add this line
   const namesRoot = document.getElementById("namesBoard");
   const cellsRoot = document.getElementById("board");
   namesRoot.innerHTML = "";
@@ -742,6 +744,83 @@ function copyPlanAsText() {
       setSaveStatus("Couldn't copy — try selecting manually", true);
     });
   }
+}
+
+function groupUnionActive(groupId) {
+  const dayCount = deriveTerm(currentTerm()).dayCount;
+  const union = new Array(dayCount).fill(false);
+  TASKS_BY_GROUP[groupId].forEach(t => {
+    const st = STATE.tasks[t.id];
+    if (!st) return;
+    st.active.forEach((v, i) => { if (v) union[i] = true; });
+  });
+  return union;
+}
+
+function renderSummaryBoard() {
+  const namesRoot = document.getElementById("namesBoard");
+  const cellsRoot = document.getElementById("board");
+  namesRoot.innerHTML = "";
+  cellsRoot.innerHTML = "";
+  const term = currentTerm();
+  const trackWidthCss = `calc(${colCount(term)} * var(--cell-w))`;
+
+  GROUPS.forEach(g => {
+    const left = document.createElement("div");
+    left.className = "group-header";
+    left.style.setProperty("--gcolor", g.color);
+    left.innerHTML = `
+      <span class="group-tab" style="background:${g.color}"></span>
+      <div class="group-header-text">
+        <div class="ghr-line1">
+          <span class="group-tag">${g.tag}</span>
+          <span class="group-name">${g.name}</span>
+        </div>
+      </div>`;
+    namesRoot.appendChild(left);
+
+    const right = document.createElement("div");
+    right.className = "task-cells";
+    right.style.width = trackWidthCss;
+
+    const track = document.createElement("div");
+    track.className = "summary-track";
+    track.style.width = trackWidthCss;
+
+    // faint gridlines behind the bars, reusing existing day/week cell styling
+    const n = colCount(term);
+    for (let i = 0; i < n; i++) {
+      const bg = document.createElement("div");
+      bg.className = "week-cell";
+      bg.style.position = "absolute";
+      bg.style.left = `calc(${i} * var(--cell-w))`;
+      bg.style.width = "var(--cell-w)";
+      bg.style.top = "0";
+      bg.style.bottom = "0";
+      bg.style.cursor = "default";
+      track.appendChild(bg);
+    }
+
+    // merge this group's active days into runs, using day-level union
+    // projected onto whichever view (day/week) is currently active
+    const dayUnion = groupUnionActive(g.id);
+    const colUnion = new Array(n).fill(false);
+    dayUnion.forEach((v, di) => { if (v) colUnion[colIndexForDayIndex(term, di)] = true; });
+    getActiveRuns(colUnion).forEach(run => {
+      const bar = document.createElement("div");
+      bar.className = "summary-bar";
+      bar.style.background = g.color;
+      bar.style.left = `calc(${run[0]} * var(--cell-w))`;
+      bar.style.width = `calc(${run.length} * var(--cell-w))`;
+      bar.textContent = g.name.toUpperCase();
+      track.appendChild(bar);
+    });
+
+    right.appendChild(track);
+    cellsRoot.appendChild(right);
+  });
+
+  syncRowHeights();
 }
 
 /* ===== ClickUp export ===== */
@@ -981,6 +1060,11 @@ async function init() {
   document.getElementById("clearExportBtn").addEventListener("click", clearExportRows);
   document.getElementById("floatingSaveBtn").addEventListener("click", forceSaveNow);
   document.addEventListener("mouseup", () => { dragState = null; });
+  document.getElementById("summaryToggleBtn").addEventListener("click", () => {
+  summaryMode = !summaryMode;
+  document.getElementById("summaryToggleBtn").textContent = summaryMode ? "Show full detail" : "Bucket summary view";
+  renderBoard();
+});
   setFloatingSave("saved");
   announceLoadStatus();
 

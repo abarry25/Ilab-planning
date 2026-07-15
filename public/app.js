@@ -59,7 +59,7 @@ function paintCell(cell, isActive, isFlagged, color) {
 
 const TERMS = [
   {
-    id: "fall2026", label: "Fall 2026", start: "2026-08-031", end: "2026-12-31",
+    id: "fall2026", label: "Fall 2026", start: "2026-08-01", end: "2026-12-31",
     key: "ilab-plan-fall2026-v1", deadline: "Draft due Tues, Aug 4",
     milestones: [
       { date: "2026-08-04", label: "Planning drafts due", kind: "deadline" },

@@ -41,7 +41,7 @@ const WEEKDAY_LETTERS = ["S","M","T","W","T","F","S"];
 
 const TERMS = [
   {
-    id: "fall2026", label: "Fall 2026", start: "2026-08-03", end: "2026-12-19",
+    id: "fall2026", label: "Fall 2026", start: "2026-08-03", end: "2026-12-31",
     key: "ilab-plan-fall2026-v1", deadline: "Draft due Mon, Aug 4",
     milestones: [
       { date: "2026-08-04", label: "Planning drafts due", kind: "deadline" },

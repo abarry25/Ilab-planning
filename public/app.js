@@ -12,6 +12,8 @@ DEFAULT_TASKS.forEach(t => DEFAULT_TASK_BY_ID[t.id] = t);
 // whenever the task list changes (rename doesn't change these, add/remove does).
 let TASKS = [];
 let TASKS_BY_GROUP = {};
+let dragState = null; // { taskId, value } while a click-and-drag is in progress
+
 function rebuildIndex() {
   TASKS = STATE.tasksList;
   TASKS_BY_GROUP = {};
@@ -500,14 +502,23 @@ function taskRowMarkup(t) {
       cell.setAttribute("aria-pressed", st.active[i] ? "true" : "false");
       cell.title = fmtShort(dt);
       if (st.active[i]) cell.style.background = color;
-      cell.addEventListener("click", () => {
-        st.active[i] = !st.active[i];
-        cell.setAttribute("aria-pressed", st.active[i] ? "true" : "false");
-        cell.style.background = st.active[i] ? color : "";
-        updateGroupCount(t.group);
-        updateRowCount(t.id, st);
-        queueSave();
-      });
+const setDay = (val) => {
+  if (st.active[i] === val) return;
+  st.active[i] = val;
+  cell.setAttribute("aria-pressed", val ? "true" : "false");
+  cell.style.background = val ? color : "";
+  updateGroupCount(t.group);
+  updateRowCount(t.id, st);
+  queueSave();
+};
+cell.addEventListener("mousedown", (e) => {
+  e.preventDefault();
+  dragState = { taskId: t.id, value: !st.active[i] };
+  setDay(dragState.value);
+});
+cell.addEventListener("mouseenter", () => {
+  if (dragState && dragState.taskId === t.id) setDay(dragState.value);
+});
       track.appendChild(cell);
     }
   } else {
@@ -739,7 +750,7 @@ function fmtDateTime(d, hour, minute) {
   const ampm = hour < 12 ? "AM" : "PM";
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${h12}:${pad2(minute)} ${ampm}`;
 }
-function exportRowKey(taskId, iso) { return taskId + "__" + iso; }
+function exportRowKey(taskId, startIso, endIso) { return taskId + "__" + startIso + "__" + endIso; }
 
 function buildExportRows() {
   const term = currentTerm();
@@ -748,42 +759,60 @@ function buildExportRows() {
     setSaveStatus("Check at least one row first", true);
     return;
   }
-  const existingKeys = new Set(STATE.exportRows.map(r => exportRowKey(r.taskId, r.date)));
-  let added = 0;
-  selectedIds.forEach(taskId => {
-    const task = TASKS.find(t => t.id === taskId);
-    const st = STATE.tasks[taskId];
-    if (!task || !st) return;
-    const group = GROUP_BY_ID[task.group];
-    st.active.forEach((isActive, i) => {
-      if (!isActive) return;
-      const d = dateForDay(term, i);
-      const iso = d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
-      const key = exportRowKey(taskId, iso);
-      if (existingKeys.has(key)) return;
-      existingKeys.add(key);
-      STATE.exportRows.push({
-        id: "exp-" + Math.random().toString(36).slice(2, 9),
-        taskId, date: iso,
-        taskName: task.label + " – " + fmtShort(d),
-        assignee: st.owner || "",
-        start: fmtDateTime(d, 10, 0),
-        end: fmtDateTime(d, 11, 0),
-        summary: task.label,
-        description: st.note || "",
-        format: "",
-        location: "",
-        zoomLink: "",
-        audience: group.audience || "",
-        list: group.name
-      });
-      added++;
+const existingKeys = new Set(STATE.exportRows.map(r => exportRowKey(r.taskId, r.date, r.endDate || r.date)));
+let added = 0;
+selectedIds.forEach(taskId => {
+  const task = TASKS.find(t => t.id === taskId);
+  const st = STATE.tasks[taskId];
+  if (!task || !st) return;
+  const group = GROUP_BY_ID[task.group];
+  getActiveRuns(st.active).forEach(run => {
+    const first = dateForDay(term, run[0]);
+    const last = dateForDay(term, run[run.length - 1]);
+    const isoFirst = first.getFullYear() + "-" + pad2(first.getMonth() + 1) + "-" + pad2(first.getDate());
+    const isoLast = last.getFullYear() + "-" + pad2(last.getMonth() + 1) + "-" + pad2(last.getDate());
+    const key = exportRowKey(taskId, isoFirst, isoLast);
+    if (existingKeys.has(key)) return;
+    existingKeys.add(key);
+    const rangeLabel = run.length > 1
+      ? fmtShort(first) + " – " + fmtShort(last) + " (" + run.length + " days)"
+      : fmtShort(first);
+    STATE.exportRows.push({
+      id: "exp-" + Math.random().toString(36).slice(2, 9),
+      taskId, date: isoFirst, endDate: isoLast,
+      taskName: task.label + " – " + rangeLabel,
+      assignee: st.owner || "",
+      start: fmtDateTime(first, 10, 0),
+      end: fmtDateTime(last, 11, 0),
+      summary: task.label,
+      description: st.note || "",
+      format: "",
+      location: "",
+      zoomLink: "",
+      audience: group.audience || "",
+      list: group.name
     });
+    added++;
   });
+});
   queueSave();
   renderExportPanel();
   setSaveStatus(added ? `Added ${added} row${added > 1 ? "s" : ""} to the export` : "Those dates are already in the export", false);
   document.getElementById("exportPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function getActiveRuns(activeArr) {
+  const runs = [];
+  let run = null;
+  activeArr.forEach((isActive, i) => {
+    if (isActive) {
+      if (!run) { run = []; runs.push(run); }
+      run.push(i);
+    } else {
+      run = null;
+    }
+  });
+  return runs;
 }
 
 const EXPORT_COLUMNS = [
@@ -950,6 +979,7 @@ async function init() {
   document.getElementById("copyCsvBtn").addEventListener("click", copyExportCsv);
   document.getElementById("clearExportBtn").addEventListener("click", clearExportRows);
   document.getElementById("floatingSaveBtn").addEventListener("click", forceSaveNow);
+  document.addEventListener("mouseup", () => { dragState = null; });
   setFloatingSave("saved");
   announceLoadStatus();
 

@@ -39,17 +39,37 @@ function seedDefaultTasksList() {
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const WEEKDAY_LETTERS = ["S","M","T","W","T","F","S"];
 
+// A muted/washed-out version of a group's hex color, used to tint flagged
+// cells that aren't otherwise marked active — same hue, low opacity, so it
+// reads as "needs a look" rather than "confirmed."
+function mutedBg(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, 0.28)`;
+}
+// Centralizes the background rule for a day cell so active/flagged states
+// never fight each other: active always wins (full color), flagged-only
+// gets the muted tint, neither gets a clean background.
+function paintCell(cell, isActive, isFlagged, color) {
+  if (isActive) cell.style.background = color;
+  else if (isFlagged) cell.style.background = mutedBg(color);
+  else cell.style.background = "";
+}
+
 const TERMS = [
   {
-    id: "fall2026", label: "Fall 2026", start: "2026-08-01", end: "2026-12-31",
-    key: "ilab-plan-fall2026-v1", deadline: "Draft due Mon, Aug 4",
+    id: "fall2026", label: "Fall 2026", start: "2026-08-031", end: "2026-12-31",
+    key: "ilab-plan-fall2026-v1", deadline: "Draft due Tues, Aug 4",
     milestones: [
       { date: "2026-08-04", label: "Planning drafts due", kind: "deadline" },
       { date: "2026-09-02", label: "Fall term begins", kind: "term" },
       { date: "2026-09-07", label: "Labor Day", kind: "holiday" },
       { date: "2026-10-12", label: "Indigenous Peoples' Day", kind: "holiday" },
       { date: "2026-11-11", label: "Veterans Day", kind: "holiday" },
+      { date: "2026-11-25", label: "Thanksgiving recess", kind: "holiday" },
       { date: "2026-11-26", label: "Thanksgiving", kind: "holiday" },
+      { date: "2026-04-10", label: "Last day of classes", kind: "term" },
       { date: "2026-12-10", label: "Finals begin", kind: "term" },
       { date: "2026-12-19", label: "Finals end", kind: "term" }
     ]
@@ -505,20 +525,21 @@ function taskRowMarkup(t) {
       cell.className = "week-cell day-cell" + (dow === 0 || dow === 6 ? " weekend" : "") + (dt.getDate() === 1 ? " month-start" : "");
       cell.setAttribute("aria-pressed", st.active[i] ? "true" : "false");
       cell.title = fmtShort(dt);
-      if (st.active[i]) cell.style.background = color;
 
       // ---- review flag: set up ONCE per cell, not inside setDay ----
       const flagKey = reviewKey(t.id, i);
-      if (STATE.reviewFlags[flagKey]) {
+      let isFlagged = !!STATE.reviewFlags[flagKey];
+      if (isFlagged) {
         cell.classList.add("flagged");
         cell.title = "Review: " + STATE.reviewFlags[flagKey];
       }
+      paintCell(cell, st.active[i], isFlagged, color);
 
       const setDay = (val) => {
         if (st.active[i] === val) return;
         st.active[i] = val;
         cell.setAttribute("aria-pressed", val ? "true" : "false");
-        cell.style.background = val ? color : "";
+        paintCell(cell, val, isFlagged, color);
         updateGroupCount(t.group);
         updateRowCount(t.id, st);
         queueSave();
@@ -538,13 +559,16 @@ function taskRowMarkup(t) {
         if (noteText === null) return; // cancelled
         if (noteText.trim()) {
           STATE.reviewFlags[flagKey] = noteText.trim();
+          isFlagged = true;
           cell.classList.add("flagged");
           cell.title = "Review: " + noteText.trim();
         } else {
           delete STATE.reviewFlags[flagKey];
+          isFlagged = false;
           cell.classList.remove("flagged");
           cell.title = fmtShort(dt);
         }
+        paintCell(cell, st.active[i], isFlagged, color);
         queueSave();
       });
 
@@ -561,11 +585,13 @@ function taskRowMarkup(t) {
       cell.className = "week-cell";
       cell.setAttribute("aria-pressed", full ? "true" : "false");
       cell.title = fmtShort(dateForDay(term, grp[0])) + " – " + fmtShort(dateForDay(term, grp[grp.length - 1]));
-      if (full) cell.style.background = color;
-      else if (partial) cell.style.background = `linear-gradient(90deg, ${color} 50%, transparent 50%)`;
 
       const flaggedInWeek = grp.some(di => STATE.reviewFlags[reviewKey(t.id, di)]);
       if (flaggedInWeek) cell.classList.add("flagged");
+
+      if (full) cell.style.background = color;
+      else if (partial) cell.style.background = `linear-gradient(90deg, ${color} 50%, transparent 50%)`;
+      else if (flaggedInWeek) cell.style.background = mutedBg(color);
 
       cell.addEventListener("click", () => {
         const turnOn = activeInWeek < grp.length;

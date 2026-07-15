@@ -55,7 +55,7 @@ const TERMS = [
     ]
   },
   {
-    id: "spring2027", label: "Spring 2027", start: "2027-01-25", end: "2027-05-15",
+    id: "spring2027", label: "Spring 2027", start: "2027-01-01", end: "2027-05-15",
     key: "ilab-plan-spring2027-v1", deadline: "No deadline yet — plan anytime",
     milestones: [
       { date: "2027-01-18", label: "MLK Day", kind: "holiday" },

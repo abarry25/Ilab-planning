@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Summer 2026 Debrief — Fall Planning Snapshot</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+:root{
+  --ink:#16233F; --ink-soft:#4B5A72; --paper:#EEF1F4; --paper-line:#DCE1E7;
+  --panel:#FFFFFF; --border:#D6DBE1; --rust:#B24C3D;
+  --asis:#2A7F7F; --adjust:#C98A2B; --nodata:#8C93A1;
+  --c-fund:#1E7A5F; --c-inc:#A63E85; --c-acc:#6B3FA0; --c-comm:#2A7F7F; --c-siff:#8C3B4A;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Inter',-apple-system,sans-serif;
+  color:var(--ink);
+  background:var(--paper);
+  font-size:12px;
+  line-height:1.32;
+}
+.page{
+  width:1500px;
+  margin:0 auto;
+  padding:26px 30px 20px;
+  background:var(--paper);
+}
+.banner{
+  background:var(--ink);
+  color:#EDF1F7;
+  border-radius:12px;
+  padding:16px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+  margin-bottom:14px;
+}
+.banner-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;letter-spacing:-0.01em;}
+.banner-sub{color:#B7C2D6;font-size:11.5px;margin-top:3px;max-width:640px;}
+.banner-tag{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:#B7C2D6;
+  border:1px solid #3A4A6B;border-radius:8px;padding:8px 14px;white-space:nowrap;
+}
+.banner-tag b{color:#fff;font-family:'Space Grotesk',sans-serif;}
+
+.legend{
+  display:flex; gap:18px; align-items:center; font-family:'IBM Plex Mono',monospace;
+  font-size:10.5px; color:var(--ink-soft); margin-bottom:12px; flex-wrap:wrap;
+}
+.legend b{color:var(--ink);}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px;position:relative;top:1px;}
+
+.grid{
+  display:grid;
+  grid-template-columns: 300px 320px 320px 1fr;
+  gap:14px;
+  align-items:start;
+}
+.col-title{
+  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px;
+  display:flex; align-items:center; gap:8px; margin-bottom:8px;
+}
+.col-count{
+  font-family:'IBM Plex Mono',monospace; font-weight:400; font-size:10px; color:var(--ink-soft);
+}
+.card{
+  background:var(--panel); border:1px solid var(--border); border-left-width:4px;
+  border-radius:8px; padding:9px 11px; margin-bottom:7px;
+}
+.card-name{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12px; margin-bottom:3px;}
+.card-why{color:var(--ink-soft); font-size:10.8px; line-height:1.35;}
+.card-tag{
+  font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.04em;
+  color:#fff; padding:1px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;
+}
+
+.col-nodata .card{border-left-color:var(--nodata); background:#F6F6F7;}
+.col-nodata .card-why{font-style:italic;}
+
+.note-strip{
+  grid-column:1/5;
+  background:#F7F8FA; border:1px dashed var(--border); border-radius:8px;
+  padding:8px 12px; font-size:11px; color:var(--ink-soft); margin-top:2px;
+}
+.note-strip b{color:var(--ink);}
+
+.map-panel{
+  background:var(--panel); border:1px solid var(--border); border-radius:10px;
+  padding:12px 14px 6px; position:relative;
+}
+.map-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; margin-bottom:2px; padding-right:80px;}
+.map-sub{font-size:10.3px; color:var(--ink-soft); margin-bottom:6px;}
+
+.expand-btn{
+  position:absolute; top:10px; right:12px;
+  font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:500;
+  color:var(--ink-soft); background:var(--panel); border:1px solid var(--border);
+  border-radius:7px; padding:5px 10px; cursor:pointer; display:flex; align-items:center; gap:5px;
+  transition:background .12s, border-color .12s;
+}
+.expand-btn:hover{ background:#F5F7F9; border-color:var(--ink-soft); color:var(--ink); }
+.expand-btn svg{ width:11px; height:11px; }
+
+.map-panel.is-expanded{
+  position:fixed; inset:18px; z-index:100;
+  padding:22px 26px 18px;
+  display:flex; flex-direction:column;
+  box-shadow:0 20px 60px rgba(22,35,63,0.35);
+}
+.map-panel.is-expanded .map-title{ font-size:19px; padding-right:110px; }
+.map-panel.is-expanded .map-sub{ font-size:13px; margin-bottom:12px; }
+.map-panel.is-expanded svg{ flex:1 1 auto; height:100%; max-height:100%; }
+.map-panel.is-expanded .expand-btn{ top:20px; right:24px; font-size:12px; padding:7px 14px; }
+
+.map-scrim{
+  display:none; position:fixed; inset:0; background:rgba(22,35,63,0.45); z-index:90;
+}
+.map-scrim.is-visible{ display:block; }
+
+@media print{
+  .expand-btn{ display:none; }
+  .site-nav{ display:none; }
+}
+
+.site-nav{
+  display:flex; align-items:center; gap:2px;
+  background:var(--ink); padding:0 30px; height:46px;
+  font-family:'Space Grotesk',sans-serif;
+}
+.site-nav .nav-brand{
+  font-weight:700; font-size:13.5px; color:#fff; margin-right:22px;
+  display:flex; align-items:center; gap:7px; white-space:nowrap;
+}
+.site-nav .nav-brand::before{
+  content:""; width:7px; height:7px; border-radius:50%; background:var(--rust); flex:0 0 auto;
+}
+.site-nav a{
+  font-size:12.5px; font-weight:600; color:#B7C2D6; text-decoration:none;
+  padding:14px 14px; border-bottom:2px solid transparent; transition:color .12s, border-color .12s;
+}
+.site-nav a:hover{ color:#fff; }
+.site-nav a.active{ color:#fff; border-bottom-color:var(--rust); }
+@media (max-width:900px){
+  .site-nav{ padding:0 16px; overflow-x:auto; }
+}
+
+.footnote{
+  margin-top:12px; font-size:10px; color:var(--ink-soft); line-height:1.5;
+  border-top:1px solid var(--paper-line); padding-top:8px;
+}
+.footnote b{color:var(--ink);}
+
+@media print{
+  @page{ size: 17in 11in; margin: 0.3in; }
+  body{ background:#fff; }
+  .page{ width:auto; }
+}
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <span class="nav-brand">i-lab Programs</span>
+  <a href="/">Planning Board</a>
+  <a href="/debrief.html" class="active">Fall Debrief Snapshot</a>
+</nav>
+<div class="page">
+
+  <div class="banner">
+    <div>
+      <div class="banner-title">Summer 2026 Debrief → Fall Planning Snapshot</div>
+      <div class="banner-sub">16 programs debriefed · 12 with real feedback, 4 not yet submitted. Built from the one-page debriefs so we can spend today's conversation on decisions, not re-reading.</div>
+    </div>
+    <div class="banner-tag">Discussion date <b>Jul 22, 2026</b></div>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--asis)"></span><b>Run as-is</b> — no real changes needed</span>
+    <span><span class="dot" style="background:var(--adjust)"></span><b>Run with adjustments</b> — worked, but a specific fix identified</span>
+    <span><span class="dot" style="background:var(--nodata)"></span><b>No debrief yet</b> — need this before we can decide</span>
+    <span style="margin-left:auto;">Colors on the map = program family, same as the live planning board</span>
+  </div>
+
+  <div class="grid">
+
+    <div>
+      <div class="col-title"><span class="dot" style="background:var(--asis)"></span>Run as-is <span class="col-count">1 of 16</span></div>
+      <div class="card" style="border-left-color:var(--asis)">
+        <div class="card-name">Pizza &amp; Pitch <span class="card-tag" style="background:var(--c-comm)">Community</span></div>
+        <div class="card-why">Fully met all 3 outcomes. No pain points named — people stayed 30–40 min after it ended to keep connecting.</div>
+      </div>
+
+      <div class="col-title" style="margin-top:12px;"><span class="dot" style="background:var(--nodata)"></span>Needs input <span class="col-count">5 of 16</span></div>
+      <div class="card">
+        <div class="card-name">HiPo / Incubation</div>
+        <div class="card-why">Infrastructure just stood up (intake, coaching, panels) — no recommendation marked yet.</div>
+      </div>
+      <div class="card">
+        <div class="card-name">Summer Accelerator</div>
+        <div class="card-why">4 weeks into a 10-week program — flagged as too early to call.</div>
+      </div>
+      <div class="card">
+        <div class="card-name">Founder Talks</div>
+        <div class="card-why">No debrief submitted — lead's name only.</div>
+      </div>
+      <div class="card">
+        <div class="card-name">MVP Feedback</div>
+        <div class="card-why">No debrief submitted — lead's name only.</div>
+      </div>
+      <div class="card">
+        <div class="card-name">Summer Expert Office Hours</div>
+        <div class="card-why">No debrief submitted at all.</div>
+      </div>
+      <div class="card" style="border-left-color:var(--rust); background:#FBF1EF;">
+        <div class="card-name" style="color:var(--rust)">Worth naming aloud</div>
+        <div class="card-why">Nothing came back marked "do not run again" this summer.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="col-title"><span class="dot" style="background:var(--adjust)"></span>Run with adjustments <span class="col-count">8 of 16</span></div>
+      <div class="card" style="border-left-color:var(--adjust)">
+        <div class="card-name">Virtual Founder Circles <span class="card-tag" style="background:var(--c-comm)">Community</span></div>
+        <div class="card-why">Add an earlier session (3pm ET excluded international members); trim 90→60 min.</div>
+      </div>
+      <div class="card" style="border-left-color:var(--adjust)">
+        <div class="card-name">Summer Kick Off <span class="card-tag" style="background:var(--c-comm)">Community</span></div>
+        <div class="card-why">Right-sized this year (~90 vs ~200 last year) — keep that, add one light connection mechanic beyond name tags.</div>
+      </div>
+      <div class="card" style="border-left-color:var(--adjust)">
+        <div class="card-name">Customer Discovery Email Journey <span class="card-tag" style="background:var(--c-fund)">Fundamentals</span></div>
+        <div class="card-why">Opens stayed strong (50–71%) but task-clicks fell by half at Day 6, never recovered. Fix what "complete" means; add accountability.</div>
+      </div>
+      <div class="card" style="border-left-color:var(--adjust)">
+        <div class="card-name">Customer Discovery Sprint <span class="card-tag" style="background:var(--c-fund)">Fundamentals</span></div>
+        <div class="card-why">Workshop content lands; 1–2 week follow-up support went unused. Needs a shorter on-ramp + built-in cadence.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="col-title" style="visibility:hidden;">spacer <span class="col-count"></span></div>
+      <div class="card" style="border-left-color:var(--adjust)">
+        <div class="card-name">Themed Group Office Hours <span class="card-tag" style="background:var(--c-fund)">Fundamentals</span></div>
+        <div class="card-why">Small (7 people) but genuinely engaged. Move off one-off Eventbrites to a recurring booking page.</div>
+      </div>
+      <div class="card" style="border-left-color:var(--adjust)">
+        <div class="card-name">SIFF <span class="card-tag" style="background:var(--c-siff)">SIFF</span></div>
+        <div class="card-why">Slow applicant volume until deadline extension + targeted emails. Market earlier and to more campus partners next time.</div>
+      </div>
+      <div class="card" style="border-left-color:var(--adjust)">
+        <div class="card-name">Hack-a-thon (B2C) <span class="card-tag" style="background:var(--c-fund)">Fundamentals</span></div>
+        <div class="card-why">Strong initial turnout, follow-up session lost most of the room. Timing of the second session is the open question.</div>
+      </div>
+      <div class="card" style="border-left-color:var(--adjust)">
+        <div class="card-name">Systems Dynamics w/ Mark Fagan <span class="card-tag" style="background:var(--c-fund)">Fundamentals</span></div>
+        <div class="card-why">First run, healthcare-vertical niche. Under target attendance (12 of 20) — needs more hands-on content + marketing + better timing.</div>
+      </div>
+    </div>
+
+    <div class="map-panel" id="mapPanel">
+      <button type="button" class="expand-btn" id="expandBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M9 21H5a2 2 0 0 1-2-2v-4M15 21h4a2 2 0 0 0 2-2v-4"/></svg>
+        <span id="expandBtnLabel">Expand</span>
+      </button>
+      <div class="map-title">Where objectives overlap vs. where we're building unique pockets</div>
+      <div class="map-sub">Same box color = same program family on the planning board. Solid lines = same audience &amp; objective (real overlap). Arrows = intentional pathway. Dashed = standalone, no connection.</div>
+      <svg viewBox="0 0 1480 860" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:auto; font-family:'Inter',sans-serif;">
+
+        <defs>
+          <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7 Z" fill="#4B5A72"/>
+          </marker>
+        </defs>
+
+        <!-- ===== Quadrant 1 (top-left): Overlap cluster ===== -->
+        <text x="30" y="46" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="600" fill="#4B5A72" letter-spacing="0.4">OVERLAP — SAME OBJECTIVE, SAME AUDIENCE</text>
+        <rect x="30" y="56" width="504" height="356" rx="12" fill="#1E7A5F0d" stroke="#1E7A5F" stroke-width="1.4" stroke-dasharray="4 4"/>
+
+        <rect x="54" y="120" width="240" height="48" rx="8" fill="#1E7A5F"/>
+        <text x="174" y="149" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">Customer Discovery Sprint</text>
+
+        <rect x="314" y="120" width="196" height="48" rx="8" fill="#1E7A5F"/>
+        <text x="412" y="140" text-anchor="middle" fill="#fff" font-size="13.5" font-weight="600">Themed Office</text>
+        <text x="412" y="157" text-anchor="middle" fill="#fff" font-size="13.5" font-weight="600">Hours (CD)</text>
+
+        <rect x="172" y="208" width="220" height="58" rx="8" fill="#1E7A5F"/>
+        <text x="282" y="232" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">CD Email</text>
+        <text x="282" y="251" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">Journey</text>
+
+        <line x1="174" y1="168" x2="282" y2="208" stroke="#1E7A5F" stroke-width="1.6"/>
+        <line x1="412" y1="168" x2="282" y2="208" stroke="#1E7A5F" stroke-width="1.6"/>
+
+        <text x="282" y="298" text-anchor="middle" font-size="12" fill="#4B5A72" font-style="italic">3 programs independently teaching customer discovery —</text>
+        <text x="282" y="316" text-anchor="middle" font-size="12" fill="#4B5A72" font-style="italic">worth one owner &amp; one shared cadence?</text>
+
+        <!-- ===== Quadrant 2 (top-right): Intentional pathway ===== -->
+        <text x="570" y="46" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="600" fill="#4B5A72" letter-spacing="0.4">INTENTIONAL PATHWAY — NOT OVERLAP</text>
+        <rect x="570" y="56" width="504" height="356" rx="12" fill="#A63E850d" stroke="#A63E85" stroke-width="1.4" stroke-dasharray="4 4"/>
+
+        <rect x="594" y="150" width="200" height="50" rx="8" fill="#A63E85"/>
+        <text x="694" y="180" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">HiPo (L1–L4)</text>
+
+        <rect x="844" y="146" width="200" height="58" rx="8" fill="#6B3FA0"/>
+        <text x="944" y="170" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">Summer</text>
+        <text x="944" y="189" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">Accelerator</text>
+
+        <line x1="794" y1="175" x2="840" y2="175" stroke="#4B5A72" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+        <text x="944" y="230" text-anchor="middle" font-size="12.5" fill="#4B5A72">→ feeds LLX / Climate Circle</text>
+
+        <text x="819" y="284" text-anchor="middle" font-size="12" fill="#4B5A72" font-style="italic">Sequential stages for the same founder over time —</text>
+        <text x="819" y="302" text-anchor="middle" font-size="12" fill="#4B5A72" font-style="italic">different audience-readiness, by design.</text>
+
+        <!-- ===== Quadrant 3 (bottom-left): Complementary family ===== -->
+        <text x="30" y="464" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="600" fill="#4B5A72" letter-spacing="0.4">COMPLEMENTARY FAMILY — SAME GOAL, DIFFERENT JOB</text>
+        <rect x="30" y="474" width="504" height="356" rx="12" fill="#2A7F7F0d" stroke="#2A7F7F" stroke-width="1.4" stroke-dasharray="4 4"/>
+
+        <rect x="54" y="538" width="200" height="48" rx="8" fill="#2A7F7F"/>
+        <text x="154" y="567" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">Pizza &amp; Pitch</text>
+
+        <rect x="310" y="538" width="200" height="48" rx="8" fill="#2A7F7F"/>
+        <text x="410" y="567" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">Summer Kick Off</text>
+
+        <rect x="172" y="626" width="220" height="58" rx="8" fill="#2A7F7F"/>
+        <text x="282" y="650" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">Virtual Founder</text>
+        <text x="282" y="669" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">Circles</text>
+
+        <path d="M154 586 Q 210 606 268 626" stroke="#2A7F7F" stroke-width="1.4" fill="none" stroke-dasharray="3 4"/>
+        <path d="M410 586 Q 350 606 296 626" stroke="#2A7F7F" stroke-width="1.4" fill="none" stroke-dasharray="3 4"/>
+
+        <text x="282" y="716" text-anchor="middle" font-size="12" fill="#4B5A72" font-style="italic">Big/social, small/in-person, and remote/peer —</text>
+        <text x="282" y="734" text-anchor="middle" font-size="12" fill="#4B5A72" font-style="italic">three different jobs, not competing for the same night.</text>
+
+        <!-- ===== Quadrant 4 (bottom-right): Unique pockets ===== -->
+        <text x="570" y="464" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="600" fill="#4B5A72" letter-spacing="0.4">UNIQUE POCKETS — NO OVERLAP FOUND</text>
+        <rect x="570" y="474" width="504" height="356" rx="12" fill="#8C93A10d" stroke="#8C93A1" stroke-width="1.4" stroke-dasharray="4 4"/>
+
+        <rect x="594" y="538" width="220" height="64" rx="8" fill="#8C3B4A"/>
+        <text x="704" y="564" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">SIFF</text>
+        <text x="704" y="584" text-anchor="middle" fill="#F3D9DD" font-size="11">social-impact vertical</text>
+
+        <rect x="830" y="538" width="220" height="64" rx="8" fill="#1E7A5F"/>
+        <text x="940" y="564" text-anchor="middle" fill="#fff" font-size="13.5" font-weight="600">Hack-a-thon (B2C)</text>
+        <text x="940" y="584" text-anchor="middle" fill="#CFE3DB" font-size="11">tool-literacy skill</text>
+
+        <rect x="702" y="642" width="240" height="74" rx="8" fill="#1E7A5F"/>
+        <text x="822" y="666" text-anchor="middle" fill="#fff" font-size="13.5" font-weight="600">Systems Dynamics</text>
+        <text x="822" y="684" text-anchor="middle" fill="#fff" font-size="13.5" font-weight="600">(Mark Fagan)</text>
+        <text x="822" y="702" text-anchor="middle" fill="#CFE3DB" font-size="11">healthcare vertical</text>
+
+        <text x="822" y="748" text-anchor="middle" font-size="12" fill="#4B5A72" font-style="italic">Three distinct verticals with no shared audience or objective —</text>
+        <text x="822" y="766" text-anchor="middle" font-size="12" fill="#4B5A72" font-style="italic">diversify, don't consolidate.</text>
+
+        <!-- ===== Right column: no debrief yet ===== -->
+        <text x="1110" y="46" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="600" fill="#4B5A72" letter-spacing="0.4">CAN'T PLACE YET</text>
+        <text x="1110" y="66" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="600" fill="#4B5A72" letter-spacing="0.4">— NO DEBRIEF</text>
+        <rect x="1110" y="80" width="340" height="750" rx="12" fill="#8C93A10d" stroke="#8C93A1" stroke-width="1.4" stroke-dasharray="4 4"/>
+
+        <rect x="1130" y="325" width="300" height="46" rx="8" fill="none" stroke="#8C93A1" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <text x="1280" y="353" text-anchor="middle" fill="#4B5A72" font-size="13.5">Founder Talks</text>
+
+        <rect x="1130" y="387" width="300" height="46" rx="8" fill="none" stroke="#8C93A1" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <text x="1280" y="415" text-anchor="middle" fill="#4B5A72" font-size="13.5">MVP Feedback</text>
+
+        <rect x="1130" y="449" width="300" height="46" rx="8" fill="none" stroke="#8C93A1" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <text x="1280" y="477" text-anchor="middle" fill="#4B5A72" font-size="13.5">Summer Expert Office Hours</text>
+
+        <text x="1280" y="540" text-anchor="middle" font-size="12.5" fill="#4B5A72" font-style="italic">Until these come in, we're planning</text>
+        <text x="1280" y="560" text-anchor="middle" font-size="12.5" fill="#4B5A72" font-style="italic">fall skill-building and expert-access</text>
+        <text x="1280" y="580" text-anchor="middle" font-size="12.5" fill="#4B5A72" font-style="italic">with two blind spots. Worth a 5-min</text>
+        <text x="1280" y="600" text-anchor="middle" font-size="12.5" fill="#4B5A72" font-style="italic">ask to each lead this week.</text>
+      </svg>
+    </div>
+
+    <div class="note-strip">
+      <b>For today's conversation:</b> the clearest decision point is the Customer Discovery cluster (top-left) — three separate efforts, one audience, one objective. Everything else is either a genuine "keep going" (Pizza &amp; Pitch), a named fix (the 8 adjustments), a pathway working as designed (HiPo → Accelerator), or a gap we can close with a quick ask this week (the 5 items on the right).
+    </div>
+
+  </div>
+
+  <div class="footnote">
+    Built from the 16 program debrief templates submitted as of Jul 22, 2026 · 12 filled in, 4 with lead name only, no content. Family colors match the live AY26–27 planning board (Fundamentals, Community, Incubation, Acceleration, SIFF) so this can sit alongside it. <b>Not</b> a record of attendance/enrollment figures — see individual debriefs for those.
+  </div>
+
+</div>
+<div class="map-scrim" id="mapScrim"></div>
+<script>
+  (function(){
+    var panel = document.getElementById('mapPanel');
+    var btn = document.getElementById('expandBtn');
+    var label = document.getElementById('expandBtnLabel');
+    var scrim = document.getElementById('mapScrim');
+
+    function setExpanded(on){
+      panel.classList.toggle('is-expanded', on);
+      scrim.classList.toggle('is-visible', on);
+      label.textContent = on ? 'Close' : 'Expand';
+      document.body.style.overflow = on ? 'hidden' : '';
+    }
+    btn.addEventListener('click', function(){
+      setExpanded(!panel.classList.contains('is-expanded'));
+    });
+    scrim.addEventListener('click', function(){ setExpanded(false); });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape') setExpanded(false);
+    });
+  })();
+</script>
+</body>
+</html>

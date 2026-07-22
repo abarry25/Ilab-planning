@@ -29,6 +29,26 @@ body {
 
 .wrap { max-width: 1400px; margin: 0 auto; padding: 28px 28px 60px; }
 
+
+.site-nav{
+  display:flex; align-items:center; gap:2px;
+  background:var(--ink); padding:0 30px; height:46px;
+  font-family:'Space Grotesk',sans-serif;
+}
+.site-nav .nav-brand{
+  font-weight:700; font-size:13.5px; color:#fff; margin-right:22px;
+  display:flex; align-items:center; gap:7px; white-space:nowrap;
+}
+.site-nav .nav-brand::before{
+  content:""; width:7px; height:7px; border-radius:50%; background:var(--rust); flex:0 0 auto;
+}
+.site-nav a{
+  font-size:12.5px; font-weight:600; color:#B7C2D6; text-decoration:none;
+  padding:14px 14px; border-bottom:2px solid transparent; transition:color .12s, border-color .12s;
+}
+.site-nav a:hover{ color:#fff; }
+.site-nav a.active{ color:#fff; border-bottom-color:var(--rust); }
+@media (max-width:900px){ .site-nav{ padding:0 16px; overflow-x:auto; } }
 /* ---- Header ---- */
 .banner {
   background: var(--ink);

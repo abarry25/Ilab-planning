@@ -519,6 +519,13 @@ function taskRowMarkup(t) {
   nameInput.className = "task-name-input";
   nameInput.value = t.label;
   nameInput.spellcheck = false;
+  // Save as-typed so closing the tab/laptop before clicking away doesn't
+  // lose the edit. "change" (blur) still runs to trim whitespace once
+  // they're done.
+  nameInput.addEventListener("input", () => {
+    t.label = nameInput.value;
+    queueSave();
+  });
   nameInput.addEventListener("change", () => {
     t.label = nameInput.value.trim() || t.label;
     nameInput.value = t.label;
@@ -536,14 +543,14 @@ function taskRowMarkup(t) {
   owner.value = st.owner;
   owner.placeholder = "who";
   owner.maxLength = 12;
-  owner.addEventListener("change", () => { st.owner = owner.value; queueSave(); });
+  owner.addEventListener("input", () => { st.owner = owner.value; queueSave(); });
   left.appendChild(owner);
 
   const note = document.createElement("input");
   note.className = "task-note";
   note.value = st.note;
   note.placeholder = "what / cadence / notes…";
-  note.addEventListener("change", () => { st.note = note.value; queueSave(); });
+  note.addEventListener("input", () => { st.note = note.value; queueSave(); });
   left.appendChild(note);
 
   const track = document.createElement("div");
@@ -904,7 +911,7 @@ function renderExportPanel() {
         const inp = document.createElement("input");
         inp.value = r[col.key] || "";
         inp.style.width = col.width + "px";
-        inp.addEventListener("change", () => { r[col.key] = inp.value; queueSave(); });
+        inp.addEventListener("input", () => { r[col.key] = inp.value; queueSave(); });
         td.appendChild(inp);
       }
       tr.appendChild(td);

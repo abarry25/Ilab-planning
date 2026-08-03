@@ -114,15 +114,33 @@ If you want individual logins per person later (rather than one shared
 password), that's a bigger step up — happy to help design that when you're
 ready for it.
 
-## A known limitation worth knowing about
+## Data-loss protections (added after a real incident)
 
-Saves are "last write wins" — there's no conflict resolution if two people
-edit the same term within moments of each other. In practice, most edits
-are people filling in their own rows, so collisions should be rare. If this
-becomes a real problem once more people are using it, the fix is either
-optimistic locking (reject a save if the data changed since you loaded it)
-or splitting the single JSON blob into real per-row database records — both
-doable later without a full rewrite.
+Earlier versions of this app had two ways to silently lose someone's work:
+"last write wins" saves with no conflict detection, and a load failure that
+looked identical to "nothing saved yet," which could lead to a blank board
+getting saved on top of real data. Both are now fixed:
+
+- **Version-checked saves.** Every board row has a `version` number. When
+  you save, the server checks that the version you loaded still matches
+  what's in the database. If someone else saved in between, your save is
+  rejected (HTTP 409) instead of overwriting theirs — the app shows a
+  banner asking you to reload before continuing.
+- **Load failures no longer look like an empty board.** If `GET
+  /api/board/:termKey` fails for any reason other than a genuine 404
+  ("nothing saved yet"), the app now blocks saving entirely and shows a
+  reload banner, rather than quietly falling back to the default template
+  and letting an edit save over real data.
+- **Every save is snapshotted.** The `board_history` table keeps every
+  version of every term's board. Click **Version history** in the app to
+  browse past snapshots and restore one if something ever looks wrong —
+  restoring writes that snapshot back as the current (new) version, and
+  the board's state right before the restore is itself kept in history.
+
+If you're upgrading an existing deployment, run the updated `schema.sql`
+(or just restart the server — `ensureSchema()` runs the same migration
+automatically on startup, including adding the `version` column to an
+existing `boards` table).
 
 ## Local development
 

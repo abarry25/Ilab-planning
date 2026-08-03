@@ -301,6 +301,8 @@ function setFloatingSave(state) {
 }
 
 function queueSave() {
+  renderLoadRow();
+  renderConflictPanel();
   if (!loadOk) {
     setSaveStatus("Not saving — this board didn't load correctly. Reload the page.", true);
     setFloatingSave("error");
@@ -395,6 +397,132 @@ window.addEventListener("beforeunload", (e) => {
     e.returnValue = "";
   }
 });
+
+/* ===== Conflict & load detection =====
+   These are all derived, read-only views over STATE — nothing here is
+   stored; it's recomputed on every render so it's always in sync with
+   whatever's currently checked on the board. */
+
+// Raw count of tasks active on each day.
+function computeDailyEventCount(term) {
+  const dayCount = deriveTerm(term).dayCount;
+  const counts = new Array(dayCount).fill(0);
+  TASKS.forEach(t => {
+    const st = STATE.tasks[t.id];
+    if (!st) return;
+    st.active.forEach((on, i) => { if (on) counts[i]++; });
+  });
+  return counts;
+}
+
+// Smoothed version of the above: each day's value includes activity from
+// `radius` days on either side. This is what actually catches "a cluster
+// of long programs running close together" — a plain per-day count would
+// miss that if the events don't literally share the same date.
+function computeWindowLoad(dailyCounts, radius = 2) {
+  const n = dailyCounts.length;
+  const out = new Array(n).fill(0);
+  for (let i = 0; i < n; i++) {
+    let sum = 0;
+    for (let k = Math.max(0, i - radius); k <= Math.min(n - 1, i + radius); k++) sum += dailyCounts[k];
+    out[i] = sum;
+  }
+  return out;
+}
+
+// Days where 2+ *different* CORE-tagged groups both have something active —
+// the "two flagship programs landed on the same day" case.
+function computeFlagshipOverlaps(term) {
+  const dayCount = deriveTerm(term).dayCount;
+  const overlaps = [];
+  for (let i = 0; i < dayCount; i++) {
+    const activeCore = [];
+    TASKS.forEach(t => {
+      const g = GROUP_BY_ID[t.group];
+      if (!g || g.tag !== "CORE") return;
+      const st = STATE.tasks[t.id];
+      if (st && st.active[i]) activeCore.push({ task: t, group: g });
+    });
+    const distinctGroups = new Set(activeCore.map(x => x.group.id));
+    if (distinctGroups.size >= 2) overlaps.push({ dayIdx: i, items: activeCore });
+  }
+  return overlaps;
+}
+
+function loadColor(intensity) {
+  if (intensity <= 0.02) return "transparent";
+  const alpha = 0.12 + intensity * 0.6;
+  return `rgba(178, 76, 61, ${alpha.toFixed(2)})`; // built on --rust
+}
+
+function renderLoadRow() {
+  const term = currentTerm();
+  const row = document.getElementById("loadRow");
+  if (!row) return;
+  row.innerHTML = "";
+
+  const dailyCounts = computeDailyEventCount(term);
+  const windowLoad = computeWindowLoad(dailyCounts, 2);
+  const overlaps = computeFlagshipOverlaps(term);
+  const overlapDaySet = new Set(overlaps.map(o => o.dayIdx));
+  const maxLoad = Math.max(1, ...windowLoad);
+
+  const track = document.createElement("div");
+  track.className = "week-track load-track";
+  const n = colCount(term);
+  track.style.gridTemplateColumns = `repeat(${n}, var(--cell-w))`;
+
+  if (viewMode === "day") {
+    for (let i = 0; i < n; i++) {
+      const cell = document.createElement("div");
+      cell.className = "load-cell";
+      cell.style.background = loadColor(windowLoad[i] / maxLoad);
+      if (overlapDaySet.has(i)) cell.classList.add("load-conflict");
+      const dt = dateForDay(term, i);
+      cell.title = fmtShort(dt) + ": " + dailyCounts[i] + " active" +
+        (overlapDaySet.has(i) ? " ⚠ flagship overlap" : "");
+      track.appendChild(cell);
+    }
+  } else {
+    const d = deriveTerm(term);
+    d.weekGroups.forEach(grp => {
+      const cell = document.createElement("div");
+      cell.className = "load-cell";
+      const peak = Math.max(...grp.map(di => windowLoad[di]));
+      cell.style.background = loadColor(peak / maxLoad);
+      if (grp.some(di => overlapDaySet.has(di))) cell.classList.add("load-conflict");
+      cell.title = fmtShort(dateForDay(term, grp[0])) + " week — peak load " + peak +
+        (grp.some(di => overlapDaySet.has(di)) ? " ⚠ flagship overlap" : "");
+      track.appendChild(cell);
+    });
+  }
+  row.appendChild(track);
+}
+
+function renderConflictPanel() {
+  const term = currentTerm();
+  const panel = document.getElementById("conflictPanel");
+  if (!panel) return;
+  const countEl = document.getElementById("conflictCount");
+  const list = document.getElementById("conflictList");
+  const overlaps = computeFlagshipOverlaps(term);
+
+  if (!overlaps.length) {
+    panel.classList.add("hidden");
+    return;
+  }
+  panel.classList.remove("hidden");
+  countEl.textContent = overlaps.length + " day" + (overlaps.length > 1 ? "s" : "");
+  list.innerHTML = "";
+  overlaps.forEach(o => {
+    const dt = dateForDay(term, o.dayIdx);
+    const row = document.createElement("div");
+    row.style.cssText = "padding:6px 0;border-bottom:1px solid #F0F2F4;";
+    const names = o.items.map(x => `${x.task.label} <span style="color:var(--ink-soft)">(${x.group.name})</span>`).join(" + ");
+    row.innerHTML = `<b>${fmtShort(dt)}</b> — ${names}`;
+    list.appendChild(row);
+  });
+}
 
 /* ===== Rendering ===== */
 function groupActiveCount(groupId) {
@@ -736,8 +864,10 @@ function renderAll() {
   document.documentElement.style.setProperty("--cell-w", viewMode === "day" ? "22px" : "46px");
   renderMilestoneRow();
   renderWeekHeader();
+  renderLoadRow();
   renderBoard();
   renderExportPanel();
+  renderConflictPanel();
   updateTermTabs();
   updateViewToggle();
   updateDeadlineChip();

@@ -71,6 +71,9 @@ let viewMode = "day"; // "day" | "week"
 let STATE = { tasksList: [], tasks: {}, collapsed: {}, selected: {}, exportRows: [] };
 let saveTimer = null;
 let saving = false;
+let boardVersion = 0;   // version of the board as last loaded/saved — used to detect conflicts
+let loadOk = false;     // true only if the board loaded cleanly (or genuinely has no saves yet)
+let lastMeta = null;
 let undoTimer = null;
 let saveState = "saved"; // "saved" | "dirty" | "saving" | "error"
 
@@ -140,57 +143,12 @@ function migrateGroupStructure() {
   });
 }
 
-// One-time fix: marks made before the Fall term's start date was locked to
-// Aug 3 were saved against an assumed Aug 1 start, so every existing mark
-// reads 2 calendar days later than intended. Runs once per term board (the
-// applied flag is saved to the database, not the browser, so it fires
-// exactly once no matter who opens the board next) and re-bases every
-// mark by -2 days. Safe to leave in permanently — it's a no-op after the
-// first run.
-const LEGACY_START_SHIFT_DAYS = 2;
-function shiftAllActiveMarks(shiftDays) {
-  Object.values(STATE.tasks).forEach(st => {
-    if (!Array.isArray(st.active) || !st.active.length) return;
-    const shifted = new Array(st.active.length).fill(false);
-    st.active.forEach((v, i) => {
-      const target = i - shiftDays;
-      if (v && target >= 0 && target < shifted.length) shifted[target] = true;
-    });
-    st.active = shifted;
-  });
-}
-function applyLegacyStartDateFixOnce() {
-  if (STATE.legacyStartDateFixApplied) return false;
-  shiftAllActiveMarks(LEGACY_START_SHIFT_DAYS);
-  STATE.legacyStartDateFixApplied = true;
-  return true;
-}
-
-// Permanent guard: stamps the term-start date every board's marks were last
-// saved against. If TERMS[...].start is ever edited again in the future,
-// this detects the mismatch on next load and automatically re-bases every
-// mark by the exact gap — instead of silently drifting like this one did.
-function guardTermStartAnchor(term) {
-  if (!STATE.termStartAnchor) {
-    STATE.termStartAnchor = term.start;
-    return true;
-  }
-  if (STATE.termStartAnchor === term.start) return false;
-  const shiftDays = Math.round((parseISO(term.start) - parseISO(STATE.termStartAnchor)) / 86400000);
-  if (shiftDays !== 0) shiftAllActiveMarks(shiftDays);
-  STATE.termStartAnchor = term.start;
-  return true;
-}
-
 function ensureState(term) {
   const dayCount = deriveTerm(term).dayCount;
   if (!Array.isArray(STATE.tasksList) || !STATE.tasksList.length) {
     STATE.tasksList = seedDefaultTasksList();
   }
   migrateGroupStructure();
-  const fixedLegacyShift = applyLegacyStartDateFixOnce();
-  const anchorChanged = guardTermStartAnchor(term);
-  STATE._needsResaveAfterMigration = fixedLegacyShift || anchorChanged;
   if (!STATE.selected) STATE.selected = {};
   if (!Array.isArray(STATE.exportRows)) STATE.exportRows = [];
   STATE.tasksList.forEach(t => {
@@ -207,6 +165,8 @@ function ensureState(term) {
 async function loadTermState(term) {
   STATE = { tasksList: seedDefaultTasksList(), tasks: {}, collapsed: {}, selected: {}, exportRows: [] };
   lastMeta = null;
+  boardVersion = 0;
+  loadOk = false;
   try {
     const res = await fetch("/api/board/" + encodeURIComponent(term.key));
     if (res.ok) {
@@ -219,17 +179,26 @@ async function loadTermState(term) {
         STATE.collapsed = parsed.collapsed || {};
       }
       lastMeta = { updatedBy: json.updatedBy, updatedAt: json.updatedAt };
+      boardVersion = json.version || 0;
+      loadOk = true;
+    } else if (res.status === 404) {
+      // Nothing saved yet for this term — genuinely safe to start from
+      // defaults, and safe to save, since there's nothing to clobber.
+      boardVersion = 0;
+      loadOk = true;
+    } else {
+      // Any other status is a real failure (server error, auth issue,
+      // etc). Do NOT fall through to "use the blank defaults" here —
+      // that's exactly how a network hiccup used to turn into someone's
+      // real data getting silently overwritten on the next save.
+      throw new Error("Unexpected response loading board: " + res.status);
     }
-    // 404 means nothing saved yet for this term — keep the defaults
   } catch (e) {
     console.error("Failed to load board", e);
+    loadOk = false;
   }
   ensureState(term);
   rebuildIndex();
-  if (STATE._needsResaveAfterMigration) {
-    delete STATE._needsResaveAfterMigration;
-    queueSave();
-  }
 }
 
 /* ===== Add / remove rows ===== */
@@ -332,6 +301,11 @@ function setFloatingSave(state) {
 }
 
 function queueSave() {
+  if (!loadOk) {
+    setSaveStatus("Not saving — this board didn't load correctly. Reload the page.", true);
+    setFloatingSave("error");
+    return;
+  }
   setSaveStatus("Saving…", false);
   setFloatingSave("dirty");
   clearTimeout(saveTimer);
@@ -339,6 +313,18 @@ function queueSave() {
 }
 async function doSave() {
   if (saving) { clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 300); return; }
+
+  // If the board never loaded cleanly, refuse to save. Saving now would
+  // mean writing over whatever's actually in the database with a stale or
+  // default copy — the exact failure mode that erases people's work
+  // without anyone noticing.
+  if (!loadOk) {
+    setSaveStatus("Can't save — this board didn't load correctly. Reload the page before making more changes.", true);
+    setFloatingSave("error");
+    showReloadBanner("This board didn't load correctly, so saving is paused to protect existing data. Reload to try again.");
+    return;
+  }
+
   saving = true;
   setFloatingSave("saving");
   const editor = getEditorName();
@@ -346,9 +332,26 @@ async function doSave() {
     const res = await fetch("/api/board/" + encodeURIComponent(currentTerm().key), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data: STATE, updatedBy: editor || null })
+      body: JSON.stringify({ data: STATE, updatedBy: editor || null, version: boardVersion })
     });
+
+    if (res.status === 409) {
+      // Someone else saved since we loaded. Do NOT retry/overwrite —
+      // that would silently discard their changes. Stop and make the
+      // person reload so they can see the newer version first.
+      const conflict = await res.json().catch(() => ({}));
+      loadOk = false;
+      setSaveStatus("Someone else saved this board since you loaded it — your latest change wasn't saved to avoid overwriting theirs.", true);
+      setFloatingSave("error");
+      showReloadBanner(
+        `${conflict.currentUpdatedBy ? conflict.currentUpdatedBy : "Someone"} saved this board more recently than your copy. Reload to see their changes, then redo your edit.`
+      );
+      return;
+    }
+
     if (!res.ok) throw new Error("save failed: " + res.status);
+    const json = await res.json();
+    boardVersion = json.version || boardVersion + 1;
     lastMeta = { updatedBy: editor, updatedAt: new Date().toISOString() };
     setSaveStatus(`Saved${editor ? " by " + editor : ""} · shared with everyone viewing ${currentTerm().label}`, false);
     setFloatingSave("saved");
@@ -358,6 +361,29 @@ async function doSave() {
   } finally {
     saving = false;
   }
+}
+
+function showReloadBanner(message) {
+  let banner = document.getElementById("reloadBanner");
+  if (!banner) {
+    banner = document.createElement("div");
+    banner.id = "reloadBanner";
+    banner.style.cssText =
+      "position:sticky;top:0;z-index:50;background:#7A2318;color:#fff;padding:12px 16px;" +
+      "font-family:'Inter',sans-serif;font-size:13.5px;display:flex;align-items:center;gap:14px;";
+    const wrap = document.querySelector(".wrap");
+    wrap.insertBefore(banner, wrap.firstChild);
+  }
+  banner.innerHTML = "";
+  const text = document.createElement("span");
+  text.textContent = message;
+  text.style.flex = "1";
+  banner.appendChild(text);
+  const btn = document.createElement("button");
+  btn.textContent = "Reload now";
+  btn.style.cssText = "border:1px solid #fff;background:transparent;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;";
+  btn.addEventListener("click", () => window.location.reload());
+  banner.appendChild(btn);
 }
 function forceSaveNow() {
   clearTimeout(saveTimer);
@@ -777,16 +803,6 @@ function fmtDateTime(d, hour, minute) {
 }
 function exportRowKey(taskId, iso) { return taskId + "__" + iso; }
 
-// Best-guess default for the new Program Type column — always editable afterward,
-// this just saves re-picking it by hand on every row.
-function inferProgramType(task, st) {
-  const text = ((task.label || "") + " " + (st.note || "")).toLowerCase();
-  if (text.includes("email journey")) return "Email Journey";
-  if (text.includes("office hour") || text.includes("clinic") || text.includes("oncehub")) return "OH/Clinic";
-  if (text.includes("hackathon") || text.includes("2 workshops") || text.includes("multi-day") || text.includes("weekend")) return "2+ Day Workshop";
-  return "Workshop";
-}
-
 function buildExportRows() {
   const term = currentTerm();
   const selectedIds = Object.keys(STATE.selected).filter(id => STATE.selected[id]);
@@ -812,7 +828,6 @@ function buildExportRows() {
         id: "exp-" + Math.random().toString(36).slice(2, 9),
         taskId, date: iso,
         taskName: task.label + " – " + fmtShort(d),
-        programType: inferProgramType(task, st),
         assignee: st.owner || "",
         start: fmtDateTime(d, 10, 0),
         end: fmtDateTime(d, 11, 0),
@@ -835,7 +850,6 @@ function buildExportRows() {
 
 const EXPORT_COLUMNS = [
   { key: "taskName", label: "Task name", width: 190 },
-  { key: "programType", label: "Program Type", width: 140, select: ["", "Workshop", "2+ Day Workshop", "OH/Clinic", "Email Journey"] },
   { key: "assignee", label: "Assignee", width: 90 },
   { key: "start", label: "Start date w/ time", width: 150 },
   { key: "end", label: "End date w/ time", width: 150 },
@@ -943,7 +957,78 @@ function clearExportRows() {
   renderExportPanel();
 }
 
+/* ===== Version history / recovery ===== */
+async function openHistoryPanel() {
+  let overlay = document.getElementById("historyOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "historyOverlay";
+    overlay.style.cssText =
+      "position:fixed;inset:0;background:rgba(22,35,63,0.45);z-index:60;" +
+      "display:flex;align-items:center;justify-content:center;";
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:14px;max-width:640px;width:92%;max-height:80vh;overflow:auto;padding:20px 22px;font-family:Inter,sans-serif;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;">Version history — ${currentTerm().label}</div>
+        <button id="closeHistoryBtn" style="border:none;background:none;font-size:20px;cursor:pointer;">×</button>
+      </div>
+      <div style="font-size:12.5px;color:#4B5A72;margin-bottom:14px;">Every save is snapshotted. If something looks missing, find the version from before it disappeared and restore it — this replaces the board's current data with that snapshot (also saved as a new version, so nothing is lost either way).</div>
+      <div id="historyList" style="font-size:13px;">Loading…</div>
+    </div>
+  `;
+  overlay.querySelector("#closeHistoryBtn").addEventListener("click", () => overlay.remove());
+
+  try {
+    const res = await fetch("/api/board/" + encodeURIComponent(currentTerm().key) + "/history");
+    const json = await res.json();
+    const list = document.getElementById("historyList");
+    if (!res.ok || !json.history || !json.history.length) {
+      list.textContent = "No history yet for this term.";
+      return;
+    }
+    list.innerHTML = "";
+    json.history.forEach(h => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0F2F4;";
+      const when = new Date(h.updated_at).toLocaleString();
+      row.innerHTML = `<span>v${h.version} — ${when}${h.updated_by ? " · " + h.updated_by : ""}</span>`;
+      const btn = document.createElement("button");
+      btn.textContent = "Restore this version";
+      btn.className = "btn";
+      btn.addEventListener("click", () => restoreHistoryVersion(h.id, h.version));
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+  } catch (e) {
+    document.getElementById("historyList").textContent = "Couldn't load history — check your connection.";
+  }
+}
+
+async function restoreHistoryVersion(historyId, version) {
+  if (!window.confirm(`Restore version ${version}? This replaces the current board with that snapshot (saved as a new version — the board's current state is preserved in history too).`)) return;
+  try {
+    const res = await fetch("/api/board/" + encodeURIComponent(currentTerm().key) + "/restore/" + historyId, { method: "POST" });
+    if (!res.ok) throw new Error("restore failed: " + res.status);
+    document.getElementById("historyOverlay")?.remove();
+    setSaveStatus("Restored version " + version + " — reloading…", false);
+    setTimeout(() => window.location.reload(), 600);
+  } catch (e) {
+    setSaveStatus("Restore failed — check your connection and try again", true);
+  }
+}
+
 function announceLoadStatus() {
+  if (!loadOk) {
+    setSaveStatus("Couldn't load this board — editing is paused to avoid overwriting saved data.", true);
+    setFloatingSave("error");
+    showReloadBanner("This board didn't load correctly (network issue or server hiccup). Reload before making changes — the app won't save on top of a failed load.");
+    return;
+  }
+  const existing = document.getElementById("reloadBanner");
+  if (existing) existing.remove();
   if (lastMeta && lastMeta.updatedAt) {
     const when = new Date(lastMeta.updatedAt).toLocaleString();
     setSaveStatus(`Loaded · last saved${lastMeta.updatedBy ? " by " + lastMeta.updatedBy : ""} on ${when}`, false);
@@ -994,6 +1079,8 @@ async function init() {
   document.getElementById("copyBtn").addEventListener("click", copyPlanAsText);
   document.getElementById("viewToggleBtn").addEventListener("click", toggleView);
   document.getElementById("exportBtn").addEventListener("click", buildExportRows);
+  const historyBtn = document.getElementById("historyBtn");
+  if (historyBtn) historyBtn.addEventListener("click", openHistoryPanel);
   document.getElementById("downloadCsvBtn").addEventListener("click", downloadExportCsv);
   document.getElementById("copyCsvBtn").addEventListener("click", copyExportCsv);
   document.getElementById("clearExportBtn").addEventListener("click", clearExportRows);

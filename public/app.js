@@ -636,7 +636,16 @@ function syncRowHeights() {
   const rightRows = cellsRoot.children;
   const n = Math.min(leftRows.length, rightRows.length);
   for (let i = 0; i < n; i++) {
-    rightRows[i].style.minHeight = leftRows[i].offsetHeight + "px";
+    const leftEl = leftRows[i];
+    // offsetHeight excludes margin. Elements like .add-row-btn use margin
+    // for spacing, so measuring offsetHeight alone under-counts how much
+    // vertical space the left row actually takes up — which drifts the
+    // right-side (day-cell) column out of alignment with the left-side
+    // (name/label) column, worse with every such row above it.
+    const cs = window.getComputedStyle(leftEl);
+    const marginTop = parseFloat(cs.marginTop) || 0;
+    const marginBottom = parseFloat(cs.marginBottom) || 0;
+    rightRows[i].style.minHeight = (leftEl.offsetHeight + marginTop + marginBottom) + "px";
   }
 }
 

@@ -449,10 +449,20 @@ function computeFlagshipOverlaps(term) {
   return overlaps;
 }
 
-function loadColor(intensity) {
-  if (intensity <= 0.02) return "transparent";
-  const alpha = 0.12 + intensity * 0.6;
-  return `rgba(178, 76, 61, ${alpha.toFixed(2)})`; // built on --rust
+// Fixed, absolute breakpoints — deliberately NOT relative to this term's
+// own busiest day. A relative scale means one long-running or overlapping
+// task can dominate the max and wash every other day down to invisible,
+// which is exactly why a quieter term (fewer/shorter overlaps) looked
+// "more colorful" than a busier one. A count of 3 should look the same
+// shade on every term, every time.
+function loadColor(count) {
+  if (count <= 0) return "transparent";
+  if (count === 1) return "rgba(178, 76, 61, 0.14)";
+  if (count === 2) return "rgba(178, 76, 61, 0.28)";
+  if (count === 3) return "rgba(178, 76, 61, 0.42)";
+  if (count === 4) return "rgba(178, 76, 61, 0.56)";
+  if (count === 5) return "rgba(178, 76, 61, 0.70)";
+  return "rgba(178, 76, 61, 0.85)"; // 6+
 }
 
 function renderLoadRow() {
@@ -465,7 +475,6 @@ function renderLoadRow() {
   const windowLoad = computeWindowLoad(dailyCounts, 2);
   const overlaps = computeFlagshipOverlaps(term);
   const overlapDaySet = new Set(overlaps.map(o => o.dayIdx));
-  const maxLoad = Math.max(1, ...windowLoad);
 
   const track = document.createElement("div");
   track.className = "week-track load-track";
@@ -476,7 +485,7 @@ function renderLoadRow() {
     for (let i = 0; i < n; i++) {
       const cell = document.createElement("div");
       cell.className = "load-cell";
-      cell.style.background = loadColor(windowLoad[i] / maxLoad);
+      cell.style.background = loadColor(windowLoad[i]);
       if (overlapDaySet.has(i)) cell.classList.add("load-conflict");
       const dt = dateForDay(term, i);
       cell.title = fmtShort(dt) + ": " + dailyCounts[i] + " active" +
@@ -489,7 +498,7 @@ function renderLoadRow() {
       const cell = document.createElement("div");
       cell.className = "load-cell";
       const peak = Math.max(...grp.map(di => windowLoad[di]));
-      cell.style.background = loadColor(peak / maxLoad);
+      cell.style.background = loadColor(peak);
       if (grp.some(di => overlapDaySet.has(di))) cell.classList.add("load-conflict");
       cell.title = fmtShort(dateForDay(term, grp[0])) + " week — peak load " + peak +
         (grp.some(di => overlapDaySet.has(di)) ? " ⚠ flagship overlap" : "");

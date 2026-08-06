@@ -71,9 +71,6 @@ let viewMode = "day"; // "day" | "week"
 let STATE = { tasksList: [], tasks: {}, collapsed: {}, selected: {}, exportRows: [] };
 let saveTimer = null;
 let saving = false;
-let boardVersion = 0;   // version of the board as last loaded/saved — used to detect conflicts
-let loadOk = false;     // true only if the board loaded cleanly (or genuinely has no saves yet)
-let lastMeta = null;
 let undoTimer = null;
 let saveState = "saved"; // "saved" | "dirty" | "saving" | "error"
 
@@ -165,8 +162,6 @@ function ensureState(term) {
 async function loadTermState(term) {
   STATE = { tasksList: seedDefaultTasksList(), tasks: {}, collapsed: {}, selected: {}, exportRows: [] };
   lastMeta = null;
-  boardVersion = 0;
-  loadOk = false;
   try {
     const res = await fetch("/api/board/" + encodeURIComponent(term.key));
     if (res.ok) {
@@ -179,23 +174,10 @@ async function loadTermState(term) {
         STATE.collapsed = parsed.collapsed || {};
       }
       lastMeta = { updatedBy: json.updatedBy, updatedAt: json.updatedAt };
-      boardVersion = json.version || 0;
-      loadOk = true;
-    } else if (res.status === 404) {
-      // Nothing saved yet for this term — genuinely safe to start from
-      // defaults, and safe to save, since there's nothing to clobber.
-      boardVersion = 0;
-      loadOk = true;
-    } else {
-      // Any other status is a real failure (server error, auth issue,
-      // etc). Do NOT fall through to "use the blank defaults" here —
-      // that's exactly how a network hiccup used to turn into someone's
-      // real data getting silently overwritten on the next save.
-      throw new Error("Unexpected response loading board: " + res.status);
     }
+    // 404 means nothing saved yet for this term — keep the defaults
   } catch (e) {
     console.error("Failed to load board", e);
-    loadOk = false;
   }
   ensureState(term);
   rebuildIndex();
@@ -301,13 +283,6 @@ function setFloatingSave(state) {
 }
 
 function queueSave() {
-  renderLoadRow();
-  renderConflictPanel();
-  if (!loadOk) {
-    setSaveStatus("Not saving — this board didn't load correctly. Reload the page.", true);
-    setFloatingSave("error");
-    return;
-  }
   setSaveStatus("Saving…", false);
   setFloatingSave("dirty");
   clearTimeout(saveTimer);
@@ -315,18 +290,6 @@ function queueSave() {
 }
 async function doSave() {
   if (saving) { clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 300); return; }
-
-  // If the board never loaded cleanly, refuse to save. Saving now would
-  // mean writing over whatever's actually in the database with a stale or
-  // default copy — the exact failure mode that erases people's work
-  // without anyone noticing.
-  if (!loadOk) {
-    setSaveStatus("Can't save — this board didn't load correctly. Reload the page before making more changes.", true);
-    setFloatingSave("error");
-    showReloadBanner("This board didn't load correctly, so saving is paused to protect existing data. Reload to try again.");
-    return;
-  }
-
   saving = true;
   setFloatingSave("saving");
   const editor = getEditorName();
@@ -334,26 +297,9 @@ async function doSave() {
     const res = await fetch("/api/board/" + encodeURIComponent(currentTerm().key), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data: STATE, updatedBy: editor || null, version: boardVersion })
+      body: JSON.stringify({ data: STATE, updatedBy: editor || null })
     });
-
-    if (res.status === 409) {
-      // Someone else saved since we loaded. Do NOT retry/overwrite —
-      // that would silently discard their changes. Stop and make the
-      // person reload so they can see the newer version first.
-      const conflict = await res.json().catch(() => ({}));
-      loadOk = false;
-      setSaveStatus("Someone else saved this board since you loaded it — your latest change wasn't saved to avoid overwriting theirs.", true);
-      setFloatingSave("error");
-      showReloadBanner(
-        `${conflict.currentUpdatedBy ? conflict.currentUpdatedBy : "Someone"} saved this board more recently than your copy. Reload to see their changes, then redo your edit.`
-      );
-      return;
-    }
-
     if (!res.ok) throw new Error("save failed: " + res.status);
-    const json = await res.json();
-    boardVersion = json.version || boardVersion + 1;
     lastMeta = { updatedBy: editor, updatedAt: new Date().toISOString() };
     setSaveStatus(`Saved${editor ? " by " + editor : ""} · shared with everyone viewing ${currentTerm().label}`, false);
     setFloatingSave("saved");
@@ -363,29 +309,6 @@ async function doSave() {
   } finally {
     saving = false;
   }
-}
-
-function showReloadBanner(message) {
-  let banner = document.getElementById("reloadBanner");
-  if (!banner) {
-    banner = document.createElement("div");
-    banner.id = "reloadBanner";
-    banner.style.cssText =
-      "position:sticky;top:0;z-index:50;background:#7A2318;color:#fff;padding:12px 16px;" +
-      "font-family:'Inter',sans-serif;font-size:13.5px;display:flex;align-items:center;gap:14px;";
-    const wrap = document.querySelector(".wrap");
-    wrap.insertBefore(banner, wrap.firstChild);
-  }
-  banner.innerHTML = "";
-  const text = document.createElement("span");
-  text.textContent = message;
-  text.style.flex = "1";
-  banner.appendChild(text);
-  const btn = document.createElement("button");
-  btn.textContent = "Reload now";
-  btn.style.cssText = "border:1px solid #fff;background:transparent;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;";
-  btn.addEventListener("click", () => window.location.reload());
-  banner.appendChild(btn);
 }
 function forceSaveNow() {
   clearTimeout(saveTimer);
@@ -397,141 +320,6 @@ window.addEventListener("beforeunload", (e) => {
     e.returnValue = "";
   }
 });
-
-/* ===== Conflict & load detection =====
-   These are all derived, read-only views over STATE — nothing here is
-   stored; it's recomputed on every render so it's always in sync with
-   whatever's currently checked on the board. */
-
-// Raw count of tasks active on each day.
-function computeDailyEventCount(term) {
-  const dayCount = deriveTerm(term).dayCount;
-  const counts = new Array(dayCount).fill(0);
-  TASKS.forEach(t => {
-    const st = STATE.tasks[t.id];
-    if (!st) return;
-    st.active.forEach((on, i) => { if (on) counts[i]++; });
-  });
-  return counts;
-}
-
-// Smoothed version of the above: each day's value includes activity from
-// `radius` days on either side. This is what actually catches "a cluster
-// of long programs running close together" — a plain per-day count would
-// miss that if the events don't literally share the same date.
-function computeWindowLoad(dailyCounts, radius = 2) {
-  const n = dailyCounts.length;
-  const out = new Array(n).fill(0);
-  for (let i = 0; i < n; i++) {
-    let sum = 0;
-    for (let k = Math.max(0, i - radius); k <= Math.min(n - 1, i + radius); k++) sum += dailyCounts[k];
-    out[i] = sum;
-  }
-  return out;
-}
-
-// Days where 2+ *different* CORE-tagged groups both have something active —
-// the "two flagship programs landed on the same day" case.
-function computeFlagshipOverlaps(term) {
-  const dayCount = deriveTerm(term).dayCount;
-  const overlaps = [];
-  for (let i = 0; i < dayCount; i++) {
-    const activeCore = [];
-    TASKS.forEach(t => {
-      const g = GROUP_BY_ID[t.group];
-      if (!g || g.tag !== "CORE") return;
-      const st = STATE.tasks[t.id];
-      if (st && st.active[i]) activeCore.push({ task: t, group: g });
-    });
-    const distinctGroups = new Set(activeCore.map(x => x.group.id));
-    if (distinctGroups.size >= 2) overlaps.push({ dayIdx: i, items: activeCore });
-  }
-  return overlaps;
-}
-
-// Fixed, absolute breakpoints — deliberately NOT relative to this term's
-// own busiest day. A relative scale means one long-running or overlapping
-// task can dominate the max and wash every other day down to invisible,
-// which is exactly why a quieter term (fewer/shorter overlaps) looked
-// "more colorful" than a busier one. A count of 3 should look the same
-// shade on every term, every time.
-function loadColor(count) {
-  if (count <= 0) return "transparent";
-  if (count === 1) return "rgba(178, 76, 61, 0.14)";
-  if (count === 2) return "rgba(178, 76, 61, 0.28)";
-  if (count === 3) return "rgba(178, 76, 61, 0.42)";
-  if (count === 4) return "rgba(178, 76, 61, 0.56)";
-  if (count === 5) return "rgba(178, 76, 61, 0.70)";
-  return "rgba(178, 76, 61, 0.85)"; // 6+
-}
-
-function renderLoadRow() {
-  const term = currentTerm();
-  const row = document.getElementById("loadRow");
-  if (!row) return;
-  row.innerHTML = "";
-
-  const dailyCounts = computeDailyEventCount(term);
-  const windowLoad = computeWindowLoad(dailyCounts, 2);
-  const overlaps = computeFlagshipOverlaps(term);
-  const overlapDaySet = new Set(overlaps.map(o => o.dayIdx));
-
-  const track = document.createElement("div");
-  track.className = "week-track load-track";
-  const n = colCount(term);
-  track.style.gridTemplateColumns = `repeat(${n}, var(--cell-w))`;
-
-  if (viewMode === "day") {
-    for (let i = 0; i < n; i++) {
-      const cell = document.createElement("div");
-      cell.className = "load-cell";
-      cell.style.background = loadColor(windowLoad[i]);
-      if (overlapDaySet.has(i)) cell.classList.add("load-conflict");
-      const dt = dateForDay(term, i);
-      cell.title = fmtShort(dt) + ": " + dailyCounts[i] + " active" +
-        (overlapDaySet.has(i) ? " ⚠ flagship overlap" : "");
-      track.appendChild(cell);
-    }
-  } else {
-    const d = deriveTerm(term);
-    d.weekGroups.forEach(grp => {
-      const cell = document.createElement("div");
-      cell.className = "load-cell";
-      const peak = Math.max(...grp.map(di => windowLoad[di]));
-      cell.style.background = loadColor(peak);
-      if (grp.some(di => overlapDaySet.has(di))) cell.classList.add("load-conflict");
-      cell.title = fmtShort(dateForDay(term, grp[0])) + " week — peak load " + peak +
-        (grp.some(di => overlapDaySet.has(di)) ? " ⚠ flagship overlap" : "");
-      track.appendChild(cell);
-    });
-  }
-  row.appendChild(track);
-}
-
-function renderConflictPanel() {
-  const term = currentTerm();
-  const panel = document.getElementById("conflictPanel");
-  if (!panel) return;
-  const countEl = document.getElementById("conflictCount");
-  const list = document.getElementById("conflictList");
-  const overlaps = computeFlagshipOverlaps(term);
-
-  if (!overlaps.length) {
-    panel.classList.add("hidden");
-    return;
-  }
-  panel.classList.remove("hidden");
-  countEl.textContent = overlaps.length + " day" + (overlaps.length > 1 ? "s" : "");
-  list.innerHTML = "";
-  overlaps.forEach(o => {
-    const dt = dateForDay(term, o.dayIdx);
-    const row = document.createElement("div");
-    row.style.cssText = "padding:6px 0;border-bottom:1px solid #F0F2F4;";
-    const names = o.items.map(x => `${x.task.label} <span style="color:var(--ink-soft)">(${x.group.name})</span>`).join(" + ");
-    row.innerHTML = `<b>${fmtShort(dt)}</b> — ${names}`;
-    list.appendChild(row);
-  });
-}
 
 /* ===== Rendering ===== */
 function groupActiveCount(groupId) {
@@ -656,13 +444,6 @@ function taskRowMarkup(t) {
   nameInput.className = "task-name-input";
   nameInput.value = t.label;
   nameInput.spellcheck = false;
-  // Save as-typed so closing the tab/laptop before clicking away doesn't
-  // lose the edit. "change" (blur) still runs to trim whitespace once
-  // they're done.
-  nameInput.addEventListener("input", () => {
-    t.label = nameInput.value;
-    queueSave();
-  });
   nameInput.addEventListener("change", () => {
     t.label = nameInput.value.trim() || t.label;
     nameInput.value = t.label;
@@ -680,14 +461,14 @@ function taskRowMarkup(t) {
   owner.value = st.owner;
   owner.placeholder = "who";
   owner.maxLength = 12;
-  owner.addEventListener("input", () => { st.owner = owner.value; queueSave(); });
+  owner.addEventListener("change", () => { st.owner = owner.value; queueSave(); });
   left.appendChild(owner);
 
   const note = document.createElement("input");
   note.className = "task-note";
   note.value = st.note;
   note.placeholder = "what / cadence / notes…";
-  note.addEventListener("input", () => { st.note = note.value; queueSave(); });
+  note.addEventListener("change", () => { st.note = note.value; queueSave(); });
   left.appendChild(note);
 
   const track = document.createElement("div");
@@ -773,16 +554,7 @@ function syncRowHeights() {
   const rightRows = cellsRoot.children;
   const n = Math.min(leftRows.length, rightRows.length);
   for (let i = 0; i < n; i++) {
-    const leftEl = leftRows[i];
-    // offsetHeight excludes margin. Elements like .add-row-btn use margin
-    // for spacing, so measuring offsetHeight alone under-counts how much
-    // vertical space the left row actually takes up — which drifts the
-    // right-side (day-cell) column out of alignment with the left-side
-    // (name/label) column, worse with every such row above it.
-    const cs = window.getComputedStyle(leftEl);
-    const marginTop = parseFloat(cs.marginTop) || 0;
-    const marginBottom = parseFloat(cs.marginBottom) || 0;
-    rightRows[i].style.minHeight = (leftEl.offsetHeight + marginTop + marginBottom) + "px";
+    rightRows[i].style.minHeight = leftRows[i].offsetHeight + "px";
   }
 }
 
@@ -873,10 +645,8 @@ function renderAll() {
   document.documentElement.style.setProperty("--cell-w", viewMode === "day" ? "22px" : "46px");
   renderMilestoneRow();
   renderWeekHeader();
-  renderLoadRow();
   renderBoard();
   renderExportPanel();
-  renderConflictPanel();
   updateTermTabs();
   updateViewToggle();
   updateDeadlineChip();
@@ -947,6 +717,119 @@ function copyPlanAsText() {
       setSaveStatus("Couldn't copy — try selecting manually", true);
     });
   }
+}
+
+/* ===== Day search ===== */
+const WEEKDAYS_LONG = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+function findTermIndexForDate(iso) {
+  for (let i = 0; i < TERMS.length; i++) {
+    if (dayIndexForDate(TERMS[i], iso) !== null) return i;
+  }
+  return -1;
+}
+
+function fmtLong(iso) {
+  const d = parseISO(iso);
+  return WEEKDAYS_LONG[d.getDay()] + ", " + MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+}
+
+async function searchDay() {
+  const input = document.getElementById("daySearchInput");
+  const iso = input.value;
+  if (!iso) {
+    setSaveStatus("Pick a date first", true);
+    return;
+  }
+  const termIdx = findTermIndexForDate(iso);
+  if (termIdx === -1) {
+    renderDaySearchResults(iso, null, [], []);
+    return;
+  }
+  let switchedFrom = null;
+  if (termIdx !== currentTermIdx) {
+    switchedFrom = currentTerm().label;
+    await switchTerm(termIdx);
+  }
+  const term = currentTerm();
+  const dayIdx = dayIndexForDate(term, iso);
+  const results = [];
+  TASKS.forEach(t => {
+    const st = STATE.tasks[t.id];
+    if (st && st.active[dayIdx]) {
+      results.push({ task: t, state: st, group: GROUP_BY_ID[t.group] });
+    }
+  });
+  const milestones = term.milestones.filter(m => m.date === iso);
+  renderDaySearchResults(iso, term, results, milestones, switchedFrom);
+  flashDayColumn(dayIdx);
+}
+
+function renderDaySearchResults(iso, term, results, milestones, switchedFrom) {
+  const panel = document.getElementById("daySearchPanel");
+  const title = document.getElementById("daySearchTitle");
+  const count = document.getElementById("daySearchCount");
+  const list = document.getElementById("daySearchList");
+  panel.classList.remove("hidden");
+  title.textContent = fmtLong(iso);
+  list.innerHTML = "";
+
+  if (!term) {
+    count.textContent = "outside both terms";
+    const empty = document.createElement("div");
+    empty.className = "day-search-empty";
+    empty.textContent = "That date falls outside both Fall 2026 (" + TERMS[0].start + " – " + TERMS[0].end + ") and Spring 2027 (" + TERMS[1].start + " – " + TERMS[1].end + ") — nothing to show.";
+    list.appendChild(empty);
+    return;
+  }
+
+  const total = results.length + milestones.length;
+  count.textContent = total + " item" + (total === 1 ? "" : "s") + " · " + term.label +
+    (switchedFrom ? " (switched from " + switchedFrom + ")" : "");
+
+  if (!total) {
+    const empty = document.createElement("div");
+    empty.className = "day-search-empty";
+    empty.textContent = "Nothing marked for this day yet.";
+    list.appendChild(empty);
+    return;
+  }
+
+  milestones.forEach(m => {
+    const row = document.createElement("div");
+    row.className = "day-search-item day-search-milestone";
+    row.innerHTML = `<span class="day-search-dot" style="background:#B24C3D"></span>
+      <span class="day-search-name">${m.label}</span>
+      <span class="day-search-tag">MILESTONE</span>
+      <span class="day-search-meta">FAS Registrar calendar</span>`;
+    list.appendChild(row);
+  });
+
+  results.forEach(r => {
+    const row = document.createElement("div");
+    row.className = "day-search-item";
+    const subStr = r.task.sub ? ` <span class="day-search-sub">(${r.task.sub})</span>` : "";
+    const ownerStr = r.state.owner ? " · " + r.state.owner : "";
+    const noteStr = r.state.note ? " — " + r.state.note : "";
+    row.innerHTML = `<span class="day-search-dot" style="background:${r.group.color}"></span>
+      <span class="day-search-name">${r.task.label}${subStr}</span>
+      <span class="day-search-tag">${r.group.tag}</span>
+      <span class="day-search-meta">${r.group.name}${ownerStr}${noteStr}</span>`;
+    list.appendChild(row);
+  });
+}
+
+function closeDaySearch() {
+  document.getElementById("daySearchPanel").classList.add("hidden");
+}
+
+function flashDayColumn(dayIdx) {
+  if (viewMode !== "day") return;
+  const boardScroll = document.getElementById("boardScroll");
+  if (!boardScroll) return;
+  const cellW = 22; // matches --cell-w set for day view in renderAll()
+  const targetLeft = Math.max(0, dayIdx * cellW - boardScroll.clientWidth / 2);
+  boardScroll.scrollTo({ left: targetLeft, behavior: "smooth" });
 }
 
 /* ===== ClickUp export ===== */
@@ -1059,7 +942,7 @@ function renderExportPanel() {
         const inp = document.createElement("input");
         inp.value = r[col.key] || "";
         inp.style.width = col.width + "px";
-        inp.addEventListener("input", () => { r[col.key] = inp.value; queueSave(); });
+        inp.addEventListener("change", () => { r[col.key] = inp.value; queueSave(); });
         td.appendChild(inp);
       }
       tr.appendChild(td);
@@ -1112,78 +995,7 @@ function clearExportRows() {
   renderExportPanel();
 }
 
-/* ===== Version history / recovery ===== */
-async function openHistoryPanel() {
-  let overlay = document.getElementById("historyOverlay");
-  if (!overlay) {
-    overlay = document.createElement("div");
-    overlay.id = "historyOverlay";
-    overlay.style.cssText =
-      "position:fixed;inset:0;background:rgba(22,35,63,0.45);z-index:60;" +
-      "display:flex;align-items:center;justify-content:center;";
-    overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
-    document.body.appendChild(overlay);
-  }
-  overlay.innerHTML = `
-    <div style="background:#fff;border-radius:14px;max-width:640px;width:92%;max-height:80vh;overflow:auto;padding:20px 22px;font-family:Inter,sans-serif;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;">Version history — ${currentTerm().label}</div>
-        <button id="closeHistoryBtn" style="border:none;background:none;font-size:20px;cursor:pointer;">×</button>
-      </div>
-      <div style="font-size:12.5px;color:#4B5A72;margin-bottom:14px;">Every save is snapshotted. If something looks missing, find the version from before it disappeared and restore it — this replaces the board's current data with that snapshot (also saved as a new version, so nothing is lost either way).</div>
-      <div id="historyList" style="font-size:13px;">Loading…</div>
-    </div>
-  `;
-  overlay.querySelector("#closeHistoryBtn").addEventListener("click", () => overlay.remove());
-
-  try {
-    const res = await fetch("/api/board/" + encodeURIComponent(currentTerm().key) + "/history");
-    const json = await res.json();
-    const list = document.getElementById("historyList");
-    if (!res.ok || !json.history || !json.history.length) {
-      list.textContent = "No history yet for this term.";
-      return;
-    }
-    list.innerHTML = "";
-    json.history.forEach(h => {
-      const row = document.createElement("div");
-      row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0F2F4;";
-      const when = new Date(h.updated_at).toLocaleString();
-      row.innerHTML = `<span>v${h.version} — ${when}${h.updated_by ? " · " + h.updated_by : ""}</span>`;
-      const btn = document.createElement("button");
-      btn.textContent = "Restore this version";
-      btn.className = "btn";
-      btn.addEventListener("click", () => restoreHistoryVersion(h.id, h.version));
-      row.appendChild(btn);
-      list.appendChild(row);
-    });
-  } catch (e) {
-    document.getElementById("historyList").textContent = "Couldn't load history — check your connection.";
-  }
-}
-
-async function restoreHistoryVersion(historyId, version) {
-  if (!window.confirm(`Restore version ${version}? This replaces the current board with that snapshot (saved as a new version — the board's current state is preserved in history too).`)) return;
-  try {
-    const res = await fetch("/api/board/" + encodeURIComponent(currentTerm().key) + "/restore/" + historyId, { method: "POST" });
-    if (!res.ok) throw new Error("restore failed: " + res.status);
-    document.getElementById("historyOverlay")?.remove();
-    setSaveStatus("Restored version " + version + " — reloading…", false);
-    setTimeout(() => window.location.reload(), 600);
-  } catch (e) {
-    setSaveStatus("Restore failed — check your connection and try again", true);
-  }
-}
-
 function announceLoadStatus() {
-  if (!loadOk) {
-    setSaveStatus("Couldn't load this board — editing is paused to avoid overwriting saved data.", true);
-    setFloatingSave("error");
-    showReloadBanner("This board didn't load correctly (network issue or server hiccup). Reload before making changes — the app won't save on top of a failed load.");
-    return;
-  }
-  const existing = document.getElementById("reloadBanner");
-  if (existing) existing.remove();
   if (lastMeta && lastMeta.updatedAt) {
     const when = new Date(lastMeta.updatedAt).toLocaleString();
     setSaveStatus(`Loaded · last saved${lastMeta.updatedBy ? " by " + lastMeta.updatedBy : ""} on ${when}`, false);
@@ -1234,12 +1046,21 @@ async function init() {
   document.getElementById("copyBtn").addEventListener("click", copyPlanAsText);
   document.getElementById("viewToggleBtn").addEventListener("click", toggleView);
   document.getElementById("exportBtn").addEventListener("click", buildExportRows);
-  const historyBtn = document.getElementById("historyBtn");
-  if (historyBtn) historyBtn.addEventListener("click", openHistoryPanel);
   document.getElementById("downloadCsvBtn").addEventListener("click", downloadExportCsv);
   document.getElementById("copyCsvBtn").addEventListener("click", copyExportCsv);
   document.getElementById("clearExportBtn").addEventListener("click", clearExportRows);
   document.getElementById("floatingSaveBtn").addEventListener("click", forceSaveNow);
+  document.getElementById("daySearchBtn").addEventListener("click", searchDay);
+  document.getElementById("daySearchInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") searchDay();
+  });
+  document.getElementById("daySearchTodayBtn").addEventListener("click", () => {
+    const now = new Date();
+    const iso = now.getFullYear() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate());
+    document.getElementById("daySearchInput").value = iso;
+    searchDay();
+  });
+  document.getElementById("closeDaySearchBtn").addEventListener("click", closeDaySearch);
   setFloatingSave("saved");
   announceLoadStatus();
 

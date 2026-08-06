@@ -23,9 +23,25 @@
     <button class="btn" id="expandAllBtn">Expand all</button>
     <button class="btn" id="collapseAllBtn">Collapse all</button>
     <button class="btn" id="copyBtn">Copy plan as text</button>
-    <button class="btn" id="historyBtn">Version history</button>
     <button class="btn btn-accent" id="exportBtn">Create ClickUp export</button>
     <span id="saveStatus"></span>
+  </div>
+
+  <div class="day-search-bar">
+    <label for="daySearchInput" class="day-search-label">Find a day's items</label>
+    <input type="date" id="daySearchInput" class="day-search-input" />
+    <button class="btn btn-accent" id="daySearchBtn">Show items</button>
+    <button class="btn" id="daySearchTodayBtn">Today</button>
+  </div>
+
+  <div id="daySearchPanel" class="day-search-panel hidden">
+    <div class="day-search-header">
+      <span class="day-search-title" id="daySearchTitle"></span>
+      <span class="export-count" id="daySearchCount"></span>
+      <span class="export-spacer"></span>
+      <button class="btn" id="closeDaySearchBtn">Close</button>
+    </div>
+    <div id="daySearchList" class="day-search-list"></div>
   </div>
 
   <div class="legend" id="legend"></div>
@@ -36,7 +52,6 @@
       <div class="header-track-viewport" id="headerTrackViewport">
         <div id="milestoneRow"></div>
         <div id="weekHeaderRow"></div>
-        <div id="loadRow" title="Busy-period heatmap — darker means more happening around that date"></div>
       </div>
     </div>
     <div class="board-split">
@@ -47,14 +62,6 @@
         <div id="board"></div>
       </div>
     </div>
-  </div>
-
-  <div id="conflictPanel" class="export-panel hidden">
-    <div class="export-header">
-      <span class="export-title">⚠ Flagship overlaps</span>
-      <span id="conflictCount" class="export-count"></span>
-    </div>
-    <div id="conflictList" style="padding:4px 16px 12px;"></div>
   </div>
 
   <div id="exportPanel" class="export-panel hidden">
@@ -77,7 +84,7 @@
   </div>
 
   <div class="foot-note">
-    <b>How to use this:</b> each row is a program or task pulled from the AY26–27 planning tool — click any name to rename it, use <b>+ Add row</b> at the bottom of a section to add a new one, and hover a row to reveal the <b>×</b> to remove it (removals show an Undo for a few seconds). In <b>day view</b>, click individual days; use <b>Collapse to weeks</b> to mark a whole week at once (click again to expand back to days — your day-level marks are preserved either way). Type initials into the small box for who owns it, and use the notes field for cadence or context. Check the box on any row and click <b>Create ClickUp export</b> to generate one line per marked date, ready to edit and download as a CSV for import. Milestones pinned above the grid come from the FAS Registrar's published calendar — double-check exact dates before locking programming around them. Switch the <b>Fall 2026 / Spring 2027</b> tabs at the top to plan the next term whenever you're ready; each term keeps its own board. Group tags: <b>MACRO</b> = ecosystem events to track, <b>FUNC</b> = an operating rule rather than an event, <b>CORE</b> = flagship i-lab programming, <b>SERVICE</b> = supporting programs and partnerships. The thin strip above the calendar is a busy-period heatmap — darker means more is happening on or near that date (it accounts for nearby days too, so a cluster of shorter programs shows up the same as one long one); a red outline marks a day where <b>two different CORE programs</b> are both active — check the <b>Flagship overlaps</b> panel below the board for the full list.
+    <b>How to use this:</b> each row is a program or task pulled from the AY26–27 planning tool — click any name to rename it, use <b>+ Add row</b> at the bottom of a section to add a new one, and hover a row to reveal the <b>×</b> to remove it (removals show an Undo for a few seconds). In <b>day view</b>, click individual days; use <b>Collapse to weeks</b> to mark a whole week at once (click again to expand back to days — your day-level marks are preserved either way). Type initials into the small box for who owns it, and use the notes field for cadence or context. Check the box on any row and click <b>Create ClickUp export</b> to generate one line per marked date, ready to edit and download as a CSV for import. Milestones pinned above the grid come from the FAS Registrar's published calendar — double-check exact dates before locking programming around them. Switch the <b>Fall 2026 / Spring 2027</b> tabs at the top to plan the next term whenever you're ready; each term keeps its own board. Group tags: <b>MACRO</b> = ecosystem events to track, <b>FUNC</b> = an operating rule rather than an event, <b>CORE</b> = flagship i-lab programming, <b>SERVICE</b> = supporting programs and partnerships. Use <b>Find a day's items</b> above the grid to pick any date and see every task marked active that day (plus any registrar milestone), across whichever term contains it.
   </div>
 
 </div>

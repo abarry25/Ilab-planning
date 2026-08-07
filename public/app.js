@@ -151,11 +151,12 @@ function ensureState(term) {
   STATE.tasksList.forEach(t => {
     if (!STATE.tasks[t.id]) {
       const seed = DEFAULT_TASK_BY_ID[t.id];
-      STATE.tasks[t.id] = { active: new Array(dayCount).fill(false), owner: seed ? seed.owner : "", note: seed ? seed.note : "" };
+      STATE.tasks[t.id] = { active: new Array(dayCount).fill(false), owner: seed ? seed.owner : "", note: seed ? seed.note : "", cellDetails: {} };
     }
     const cur = STATE.tasks[t.id];
     if (!Array.isArray(cur.active)) cur.active = new Array(dayCount).fill(false);
     while (cur.active.length < dayCount) cur.active.push(false);
+    if (!cur.cellDetails || typeof cur.cellDetails !== "object") cur.cellDetails = {};
   });
 }
 
@@ -197,7 +198,7 @@ function addTask(groupId, subKey) {
   });
   const insertAt = (lastMatchIdx !== -1 ? lastMatchIdx : lastGroupIdx) + 1;
   STATE.tasksList.splice(insertAt, 0, newTask);
-  STATE.tasks[id] = { active: new Array(deriveTerm(term).dayCount).fill(false), owner: "", note: "" };
+  STATE.tasks[id] = { active: new Array(deriveTerm(term).dayCount).fill(false), owner: "", note: "", cellDetails: {} };
   rebuildIndex();
   queueSave();
   renderBoard();
@@ -320,6 +321,169 @@ window.addEventListener("beforeunload", (e) => {
     e.returnValue = "";
   }
 });
+
+/* ===== Cell details (time & location for a specific marked day) ===== */
+function pad2(n) { return String(n).padStart(2, "0"); }
+function isoForDate(d) {
+  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+}
+function getCellDetails(taskId, dayIdx) {
+  const st = STATE.tasks[taskId];
+  if (!st || !st.cellDetails) return null;
+  return st.cellDetails[dayIdx] || null;
+}
+function setCellDetails(taskId, dayIdx, details) {
+  const st = STATE.tasks[taskId];
+  if (!st) return;
+  if (!st.cellDetails) st.cellDetails = {};
+  const hasContent = details && (details.start || details.end || details.location || details.comment);
+  if (hasContent) {
+    st.cellDetails[dayIdx] = {
+      start: details.start || "",
+      end: details.end || "",
+      location: details.location || "",
+      comment: details.comment || ""
+    };
+  } else {
+    delete st.cellDetails[dayIdx];
+  }
+}
+function parseTimeStr(s) {
+  if (!s) return null;
+  const m = /^(\d{1,2}):(\d{2})$/.exec(s.trim());
+  if (!m) return null;
+  const h = Number(m[1]), min = Number(m[2]);
+  if (h < 0 || h > 23 || min < 0 || min > 59) return null;
+  return { h, m: min };
+}
+function addOneHourClamped(h, m) {
+  return h < 23 ? { h: h + 1, m } : { h: 23, m: 59 };
+}
+function fmtTime12(h, m) {
+  const h12 = ((h + 11) % 12) + 1;
+  const ampm = h < 12 ? "AM" : "PM";
+  return `${h12}:${pad2(m)} ${ampm}`;
+}
+function summarizeCellDetails(det) {
+  if (!det) return "";
+  const parts = [];
+  if (det.start) {
+    const sp = parseTimeStr(det.start);
+    let timeStr = sp ? fmtTime12(sp.h, sp.m) : det.start;
+    if (det.end) {
+      const ep = parseTimeStr(det.end);
+      timeStr += "–" + (ep ? fmtTime12(ep.h, ep.m) : det.end);
+    }
+    parts.push(timeStr);
+  }
+  if (det.location) parts.push(det.location);
+  if (det.comment) parts.push(det.comment);
+  return parts.join(" · ");
+}
+
+let openCellCtx = null; // { taskId, dayIdx, cellEl }
+
+function cellPopoverEls() {
+  return {
+    pop: document.getElementById("cellDetailsPopover"),
+    title: document.getElementById("cellPopoverTitle"),
+    start: document.getElementById("cellStartTime"),
+    end: document.getElementById("cellEndTime"),
+    location: document.getElementById("cellLocation"),
+    comment: document.getElementById("cellComment")
+  };
+}
+
+function positionPopover(pop, anchorEl) {
+  const r = anchorEl.getBoundingClientRect();
+  const popW = 260, popH = pop.offsetHeight || 300;
+  let left = r.left;
+  let top = r.bottom + 6;
+  if (left + popW > window.innerWidth - 12) left = window.innerWidth - popW - 12;
+  if (top + popH > window.innerHeight - 12) top = Math.max(12, r.top - popH - 6);
+  pop.style.left = Math.max(12, left) + "px";
+  pop.style.top = top + "px";
+}
+
+function handleOutsideClick(e) {
+  const { pop } = cellPopoverEls();
+  if (pop && !pop.contains(e.target)) closeCellPopover();
+}
+function handlePopoverEscape(e) {
+  if (e.key === "Escape") closeCellPopover();
+}
+
+function openCellPopover(task, dayIdx, cellEl) {
+  const { pop, title, start, end, location, comment } = cellPopoverEls();
+  const term = currentTerm();
+  const det = getCellDetails(task.id, dayIdx) || {};
+  openCellCtx = { taskId: task.id, dayIdx, cellEl };
+  title.textContent = task.label + " — " + fmtShort(dateForDay(term, dayIdx));
+  start.value = det.start || "";
+  end.value = det.end || "";
+  location.value = det.location || "";
+  comment.value = det.comment || "";
+
+  pop.classList.remove("hidden");
+  positionPopover(pop, cellEl);
+  setTimeout(() => document.addEventListener("mousedown", handleOutsideClick), 0);
+  document.addEventListener("keydown", handlePopoverEscape);
+  start.focus();
+}
+
+function closeCellPopover() {
+  const { pop } = cellPopoverEls();
+  pop.classList.add("hidden");
+  openCellCtx = null;
+  document.removeEventListener("mousedown", handleOutsideClick);
+  document.removeEventListener("keydown", handlePopoverEscape);
+}
+
+function refreshCellVisual(taskId, dayIdx, cellEl) {
+  const det = getCellDetails(taskId, dayIdx);
+  const term = currentTerm();
+  const dt = dateForDay(term, dayIdx);
+  const summary = summarizeCellDetails(det);
+  cellEl.title = fmtShort(dt) + (summary ? " — " + summary : "");
+  cellEl.classList.toggle("has-details", !!det);
+}
+
+function saveCellPopover() {
+  if (!openCellCtx) return;
+  const { taskId, dayIdx, cellEl } = openCellCtx;
+  const { start, end, location, comment } = cellPopoverEls();
+  const startVal = start.value.trim();
+  const endVal = end.value.trim();
+  if (startVal && parseTimeStr(startVal) === null) {
+    setSaveStatus("Start time looks invalid", true);
+    return;
+  }
+  if (endVal && parseTimeStr(endVal) === null) {
+    setSaveStatus("End time looks invalid", true);
+    return;
+  }
+  setCellDetails(taskId, dayIdx, {
+    start: startVal,
+    end: endVal,
+    location: location.value.trim(),
+    comment: comment.value.trim()
+  });
+  refreshCellVisual(taskId, dayIdx, cellEl);
+  syncExportRowsForCell(taskId, dayIdx);
+  queueSave();
+  setSaveStatus("Saved details for this date", false);
+  closeCellPopover();
+}
+
+function clearCellPopover() {
+  if (!openCellCtx) return;
+  const { taskId, dayIdx, cellEl } = openCellCtx;
+  setCellDetails(taskId, dayIdx, null);
+  refreshCellVisual(taskId, dayIdx, cellEl);
+  syncExportRowsForCell(taskId, dayIdx);
+  queueSave();
+  closeCellPopover();
+}
 
 /* ===== Rendering ===== */
 function groupActiveCount(groupId) {
@@ -485,7 +649,9 @@ function taskRowMarkup(t) {
       cell.type = "button";
       cell.className = "week-cell day-cell" + (dow === 0 || dow === 6 ? " weekend" : "") + (dt.getDate() === 1 ? " month-start" : "");
       cell.setAttribute("aria-pressed", st.active[i] ? "true" : "false");
-      cell.title = fmtShort(dt);
+      const det0 = getCellDetails(t.id, i);
+      cell.title = fmtShort(dt) + (det0 ? " — " + summarizeCellDetails(det0) : "") + " · right-click to add time & location";
+      if (det0) cell.classList.add("has-details");
       if (st.active[i]) cell.style.background = color;
       cell.addEventListener("click", () => {
         st.active[i] = !st.active[i];
@@ -494,6 +660,10 @@ function taskRowMarkup(t) {
         updateGroupCount(t.group);
         updateRowCount(t.id, st);
         queueSave();
+      });
+      cell.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        openCellPopover(t, i, cell);
       });
       track.appendChild(cell);
     }
@@ -833,13 +1003,73 @@ function flashDayColumn(dayIdx) {
 }
 
 /* ===== ClickUp export ===== */
-function pad2(n) { return String(n).padStart(2, "0"); }
 function fmtDateTime(d, hour, minute) {
   const h12 = ((hour + 11) % 12) + 1;
   const ampm = hour < 12 ? "AM" : "PM";
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${h12}:${pad2(minute)} ${ampm}`;
 }
 function exportRowKey(taskId, iso) { return taskId + "__" + iso; }
+
+// Computes what a ClickUp export row should look like for one task on one
+// day of the term, folding in that day's cell details (time/location/
+// comment) if any were set — otherwise falls back to the 10–11am default
+// with no location, same as before this feature existed.
+function occurrenceFields(term, taskId, dayIdx) {
+  const task = TASKS.find(x => x.id === taskId);
+  const st = STATE.tasks[taskId];
+  const group = GROUP_BY_ID[task.group];
+  const d = dateForDay(term, dayIdx);
+  const det = getCellDetails(taskId, dayIdx);
+
+  let sh = 10, sm = 0, eh = 11, em = 0;
+  if (det && det.start) {
+    const p = parseTimeStr(det.start);
+    if (p) {
+      sh = p.h; sm = p.m;
+      const def = addOneHourClamped(sh, sm);
+      eh = def.h; em = def.m;
+    }
+  }
+  if (det && det.end) {
+    const p = parseTimeStr(det.end);
+    if (p) { eh = p.h; em = p.m; }
+  }
+  const location = (det && det.location) || "";
+  const comment = (det && det.comment) || "";
+  const description = [st.note, comment].filter(Boolean).join(" — ");
+
+  return {
+    date: isoForDate(d),
+    taskName: task.label + " – " + fmtShort(d),
+    assignee: st.owner || "",
+    start: fmtDateTime(d, sh, sm),
+    end: fmtDateTime(d, eh, em),
+    summary: task.label,
+    description,
+    location,
+    audience: group.audience || "",
+    list: group.name
+  };
+}
+
+// Keeps rows already sitting in the export table in sync if their cell's
+// time/location/comment gets edited (or cleared) after the row was created.
+function syncExportRowsForCell(taskId, dayIdx) {
+  const term = currentTerm();
+  const iso = isoForDate(dateForDay(term, dayIdx));
+  let touched = false;
+  STATE.exportRows.forEach(r => {
+    if (r.taskId === taskId && r.date === iso) {
+      const f = occurrenceFields(term, taskId, dayIdx);
+      r.start = f.start;
+      r.end = f.end;
+      r.location = f.location;
+      r.description = f.description;
+      touched = true;
+    }
+  });
+  if (touched) renderExportPanel();
+}
 
 function buildExportRows() {
   const term = currentTerm();
@@ -854,28 +1084,26 @@ function buildExportRows() {
     const task = TASKS.find(t => t.id === taskId);
     const st = STATE.tasks[taskId];
     if (!task || !st) return;
-    const group = GROUP_BY_ID[task.group];
     st.active.forEach((isActive, i) => {
       if (!isActive) return;
-      const d = dateForDay(term, i);
-      const iso = d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
-      const key = exportRowKey(taskId, iso);
+      const f = occurrenceFields(term, taskId, i);
+      const key = exportRowKey(taskId, f.date);
       if (existingKeys.has(key)) return;
       existingKeys.add(key);
       STATE.exportRows.push({
         id: "exp-" + Math.random().toString(36).slice(2, 9),
-        taskId, date: iso,
-        taskName: task.label + " – " + fmtShort(d),
-        assignee: st.owner || "",
-        start: fmtDateTime(d, 10, 0),
-        end: fmtDateTime(d, 11, 0),
-        summary: task.label,
-        description: st.note || "",
+        taskId, date: f.date,
+        taskName: f.taskName,
+        assignee: f.assignee,
+        start: f.start,
+        end: f.end,
+        summary: f.summary,
+        description: f.description,
         format: "",
-        location: "",
+        location: f.location,
         zoomLink: "",
-        audience: group.audience || "",
-        list: group.name
+        audience: f.audience,
+        list: f.list
       });
       added++;
     });
@@ -1061,6 +1289,14 @@ async function init() {
     searchDay();
   });
   document.getElementById("closeDaySearchBtn").addEventListener("click", closeDaySearch);
+  document.getElementById("cellPopoverSave").addEventListener("click", saveCellPopover);
+  document.getElementById("cellPopoverCancel").addEventListener("click", closeCellPopover);
+  document.getElementById("cellPopoverClear").addEventListener("click", clearCellPopover);
+  ["cellStartTime", "cellEndTime", "cellLocation"].forEach(id => {
+    document.getElementById(id).addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); saveCellPopover(); }
+    });
+  });
   setFloatingSave("saved");
   announceLoadStatus();
 

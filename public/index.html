@@ -84,9 +84,34 @@
   </div>
 
   <div class="foot-note">
-    <b>How to use this:</b> each row is a program or task pulled from the AY26–27 planning tool — click any name to rename it, use <b>+ Add row</b> at the bottom of a section to add a new one, and hover a row to reveal the <b>×</b> to remove it (removals show an Undo for a few seconds). In <b>day view</b>, click individual days; use <b>Collapse to weeks</b> to mark a whole week at once (click again to expand back to days — your day-level marks are preserved either way). Type initials into the small box for who owns it, and use the notes field for cadence or context. Check the box on any row and click <b>Create ClickUp export</b> to generate one line per marked date, ready to edit and download as a CSV for import. Milestones pinned above the grid come from the FAS Registrar's published calendar — double-check exact dates before locking programming around them. Switch the <b>Fall 2026 / Spring 2027</b> tabs at the top to plan the next term whenever you're ready; each term keeps its own board. Group tags: <b>MACRO</b> = ecosystem events to track, <b>FUNC</b> = an operating rule rather than an event, <b>CORE</b> = flagship i-lab programming, <b>SERVICE</b> = supporting programs and partnerships. Use <b>Find a day's items</b> above the grid to pick any date and see every task marked active that day (plus any registrar milestone), across whichever term contains it.
+    <b>How to use this:</b> each row is a program or task pulled from the AY26–27 planning tool — click any name to rename it, use <b>+ Add row</b> at the bottom of a section to add a new one, and hover a row to reveal the <b>×</b> to remove it (removals show an Undo for a few seconds). In <b>day view</b>, click individual days; use <b>Collapse to weeks</b> to mark a whole week at once (click again to expand back to days — your day-level marks are preserved either way). Type initials into the small box for who owns it, and use the notes field for cadence or context. Check the box on any row and click <b>Create ClickUp export</b> to generate one line per marked date, ready to edit and download as a CSV for import. Milestones pinned above the grid come from the FAS Registrar's published calendar — double-check exact dates before locking programming around them. Switch the <b>Fall 2026 / Spring 2027</b> tabs at the top to plan the next term whenever you're ready; each term keeps its own board. Group tags: <b>MACRO</b> = ecosystem events to track, <b>FUNC</b> = an operating rule rather than an event, <b>CORE</b> = flagship i-lab programming, <b>SERVICE</b> = supporting programs and partnerships. Use <b>Find a day's items</b> above the grid to pick any date and see every task marked active that day (plus any registrar milestone), across whichever term contains it. In day view, <b>right-click any marked cell</b> to add a start/end time, location, and a comment for that specific date — a small dot marks cells with details, and those values flow straight into the ClickUp export's start/end time and location columns when you build it.
   </div>
 
+</div>
+<div id="cellDetailsPopover" class="cell-popover hidden">
+  <div class="cell-popover-title" id="cellPopoverTitle"></div>
+  <label class="cell-popover-field">
+    <span>Start time</span>
+    <input type="time" id="cellStartTime" />
+  </label>
+  <label class="cell-popover-field">
+    <span>End time</span>
+    <input type="time" id="cellEndTime" />
+  </label>
+  <label class="cell-popover-field">
+    <span>Location</span>
+    <input type="text" id="cellLocation" placeholder="Room, building, or Zoom link" />
+  </label>
+  <label class="cell-popover-field">
+    <span>Comment</span>
+    <textarea id="cellComment" rows="2" placeholder="Anything specific to this date…"></textarea>
+  </label>
+  <div class="cell-popover-actions">
+    <button type="button" class="btn" id="cellPopoverClear">Clear</button>
+    <span class="cell-popover-spacer"></span>
+    <button type="button" class="btn" id="cellPopoverCancel">Cancel</button>
+    <button type="button" class="btn btn-accent" id="cellPopoverSave">Save</button>
+  </div>
 </div>
 <div id="undoToast" class="undo-toast"></div>
 <button type="button" id="floatingSaveBtn" class="floating-save fs-saved">All changes saved</button>

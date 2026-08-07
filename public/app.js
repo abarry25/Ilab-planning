@@ -248,6 +248,60 @@ function saveViewPref() {
   localStorage.setItem("ilab-view-pref", viewMode);
 }
 
+/* ===== Resizable name / panel columns ===== */
+const COL_DEFAULTS = { nameW: 200, metaW: 500 };
+const COL_BOUNDS = { nameW: [120, 480], metaW: [360, 900] };
+let nameColWidth = COL_DEFAULTS.nameW;
+let metaPanelWidth = COL_DEFAULTS.metaW;
+
+function clampNum(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function loadColumnWidths() {
+  const nw = parseInt(localStorage.getItem("ilab-name-col-w"), 10);
+  const mw = parseInt(localStorage.getItem("ilab-meta-panel-w"), 10);
+  if (!isNaN(nw)) nameColWidth = clampNum(nw, COL_BOUNDS.nameW[0], COL_BOUNDS.nameW[1]);
+  if (!isNaN(mw)) metaPanelWidth = clampNum(mw, COL_BOUNDS.metaW[0], COL_BOUNDS.metaW[1]);
+  applyColumnWidths();
+}
+function applyColumnWidths() {
+  document.documentElement.style.setProperty("--name-w", nameColWidth + "px");
+  document.documentElement.style.setProperty("--meta-w", metaPanelWidth + "px");
+}
+
+function setupColumnResizer(handleId, storageKey, bounds, getVal, setVal) {
+  const handle = document.getElementById(handleId);
+  if (!handle) return;
+  let startX = 0, startVal = 0;
+
+  function onMove(e) {
+    const next = clampNum(startVal + (e.clientX - startX), bounds[0], bounds[1]);
+    setVal(next);
+    applyColumnWidths();
+  }
+  function onUp() {
+    handle.classList.remove("dragging");
+    document.removeEventListener("mousemove", onMove);
+    document.removeEventListener("mouseup", onUp);
+    localStorage.setItem(storageKey, String(getVal()));
+    syncRowHeights();
+  }
+  handle.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    startX = e.clientX;
+    startVal = getVal();
+    handle.classList.add("dragging");
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  });
+  handle.addEventListener("dblclick", () => {
+    const def = handleId === "nameColResizer" ? COL_DEFAULTS.nameW : COL_DEFAULTS.metaW;
+    setVal(def);
+    applyColumnWidths();
+    localStorage.setItem(storageKey, String(getVal()));
+    syncRowHeights();
+  });
+}
+
 function getEditorName() {
   return localStorage.getItem("ilab-editor-name") || "";
 }
@@ -889,8 +943,9 @@ function copyPlanAsText() {
   }
 }
 
-/* ===== Day search ===== */
+/* ===== Day search (single day or a date range) ===== */
 const WEEKDAYS_LONG = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MAX_SEARCH_RANGE_DAYS = 62; // generous upper bound, mainly to stop fat-finger year-long ranges
 
 function findTermIndexForDate(iso) {
   for (let i = 0; i < TERMS.length; i++) {
@@ -904,88 +959,131 @@ function fmtLong(iso) {
   return WEEKDAYS_LONG[d.getDay()] + ", " + MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
 }
 
-async function searchDay() {
-  const input = document.getElementById("daySearchInput");
-  const iso = input.value;
-  if (!iso) {
-    setSaveStatus("Pick a date first", true);
-    return;
-  }
+// Gathers everything marked active for one calendar date, switching the
+// loaded term if the date falls in a different one than what's currently
+// on screen. Returns null term (with empty arrays) if the date is outside
+// both Fall 2026 and Spring 2027 entirely.
+async function gatherDayBundle(iso) {
   const termIdx = findTermIndexForDate(iso);
-  if (termIdx === -1) {
-    renderDaySearchResults(iso, null, [], []);
-    return;
-  }
-  let switchedFrom = null;
-  if (termIdx !== currentTermIdx) {
-    switchedFrom = currentTerm().label;
-    await switchTerm(termIdx);
-  }
+  if (termIdx === -1) return { iso, term: null, results: [], milestones: [] };
+  if (termIdx !== currentTermIdx) await switchTerm(termIdx);
   const term = currentTerm();
   const dayIdx = dayIndexForDate(term, iso);
   const results = [];
   TASKS.forEach(t => {
     const st = STATE.tasks[t.id];
     if (st && st.active[dayIdx]) {
-      results.push({ task: t, state: st, group: GROUP_BY_ID[t.group] });
+      results.push({ task: t, state: st, group: GROUP_BY_ID[t.group], details: getCellDetails(t.id, dayIdx) });
     }
   });
   const milestones = term.milestones.filter(m => m.date === iso);
-  renderDaySearchResults(iso, term, results, milestones, switchedFrom);
-  flashDayColumn(dayIdx);
+  return { iso, term, dayIdx, results, milestones };
 }
 
-function renderDaySearchResults(iso, term, results, milestones, switchedFrom) {
+async function searchDay() {
+  const startInput = document.getElementById("daySearchInput");
+  const endInput = document.getElementById("daySearchEndInput");
+  let startIso = startInput.value;
+  let endIso = endInput.value || startIso;
+  if (!startIso) {
+    setSaveStatus("Pick a start date first", true);
+    return;
+  }
+  if (endIso < startIso) {
+    [startIso, endIso] = [endIso, startIso];
+    startInput.value = startIso;
+    endInput.value = endIso;
+  }
+  const rangeLen = Math.round((parseISO(endIso) - parseISO(startIso)) / 86400000) + 1;
+  if (rangeLen > MAX_SEARCH_RANGE_DAYS) {
+    setSaveStatus(`Pick a range of ${MAX_SEARCH_RANGE_DAYS} days or fewer`, true);
+    return;
+  }
+
+  const dayBundles = [];
+  for (let i = 0; i < rangeLen; i++) {
+    const iso = isoForDate(addDays(parseISO(startIso), i));
+    dayBundles.push(await gatherDayBundle(iso));
+  }
+
+  renderDaySearchResults(startIso, endIso, dayBundles);
+  if (dayBundles.length === 1 && dayBundles[0].term) flashDayColumn(dayBundles[0].dayIdx);
+}
+
+function renderDaySearchResults(startIso, endIso, dayBundles) {
   const panel = document.getElementById("daySearchPanel");
   const title = document.getElementById("daySearchTitle");
   const count = document.getElementById("daySearchCount");
   const list = document.getElementById("daySearchList");
   panel.classList.remove("hidden");
-  title.textContent = fmtLong(iso);
   list.innerHTML = "";
 
-  if (!term) {
-    count.textContent = "outside both terms";
-    const empty = document.createElement("div");
-    empty.className = "day-search-empty";
-    empty.textContent = "That date falls outside both Fall 2026 (" + TERMS[0].start + " – " + TERMS[0].end + ") and Spring 2027 (" + TERMS[1].start + " – " + TERMS[1].end + ") — nothing to show.";
-    list.appendChild(empty);
-    return;
-  }
+  const isRange = startIso !== endIso;
+  title.textContent = isRange ? fmtLong(startIso) + "  →  " + fmtLong(endIso) : fmtLong(startIso);
 
-  const total = results.length + milestones.length;
-  count.textContent = total + " item" + (total === 1 ? "" : "s") + " · " + term.label +
-    (switchedFrom ? " (switched from " + switchedFrom + ")" : "");
+  let totalItems = 0;
+  dayBundles.forEach(b => { totalItems += b.results.length + b.milestones.length; });
+  const termsInvolved = Array.from(new Set(dayBundles.filter(b => b.term).map(b => b.term.label)));
+  count.textContent = totalItems + " item" + (totalItems === 1 ? "" : "s") +
+    (isRange ? " across " + dayBundles.length + " days" : "") +
+    (termsInvolved.length ? " · " + termsInvolved.join(" + ") : "");
 
-  if (!total) {
-    const empty = document.createElement("div");
-    empty.className = "day-search-empty";
-    empty.textContent = "Nothing marked for this day yet.";
-    list.appendChild(empty);
-    return;
-  }
+  dayBundles.forEach(b => {
+    const daySection = document.createElement("div");
+    daySection.className = "day-search-day";
 
-  milestones.forEach(m => {
-    const row = document.createElement("div");
-    row.className = "day-search-item day-search-milestone";
-    row.innerHTML = `<span class="day-search-dot" style="background:#B24C3D"></span>
-      <span class="day-search-name">${m.label}</span>
-      <span class="day-search-tag">MILESTONE</span>
-      <span class="day-search-meta">FAS Registrar calendar</span>`;
-    list.appendChild(row);
-  });
+    if (isRange) {
+      const dayTotal = b.results.length + b.milestones.length;
+      const dayHeader = document.createElement("div");
+      dayHeader.className = "day-search-day-header";
+      dayHeader.innerHTML = `<span class="day-search-day-date">${fmtLong(b.iso)}</span>` +
+        `<span class="day-search-day-count">${dayTotal ? dayTotal + " item" + (dayTotal > 1 ? "s" : "") : "—"}</span>`;
+      daySection.appendChild(dayHeader);
+    }
 
-  results.forEach(r => {
-    const row = document.createElement("div");
-    row.className = "day-search-item";
-    const subStr = r.task.sub ? ` <span class="day-search-sub">(${r.task.sub})</span>` : "";
-    const ownerStr = r.state.owner ? " · " + r.state.owner : "";
-    const noteStr = r.state.note ? " — " + r.state.note : "";
-    row.innerHTML = `<span class="day-search-dot" style="background:${r.group.color}"></span>
-      <span class="day-search-name">${r.task.label}${subStr}</span>
-      <span class="day-search-tag">${r.group.tag}</span>
-      <span class="day-search-meta">${r.group.name}${ownerStr}${noteStr}</span>`;
-    list.appendChild(row);
+    if (!b.term) {
+      const empty = document.createElement("div");
+      empty.className = "day-search-empty";
+      empty.textContent = "Outside " + TERMS.map(t => t.label).join(" and ") + " — nothing to show.";
+      daySection.appendChild(empty);
+      list.appendChild(daySection);
+      return;
+    }
+
+    if (!b.results.length && !b.milestones.length) {
+      const empty = document.createElement("div");
+      empty.className = "day-search-empty";
+      empty.textContent = "Nothing marked for this day.";
+      daySection.appendChild(empty);
+      list.appendChild(daySection);
+      return;
+    }
+
+    b.milestones.forEach(m => {
+      const row = document.createElement("div");
+      row.className = "day-search-item day-search-milestone";
+      row.innerHTML = `<span class="day-search-dot" style="background:#B24C3D"></span>
+        <span class="day-search-name">${m.label}</span>
+        <span class="day-search-tag">MILESTONE</span>
+        <span class="day-search-meta">FAS Registrar calendar</span>`;
+      daySection.appendChild(row);
+    });
+
+    b.results.forEach(r => {
+      const row = document.createElement("div");
+      row.className = "day-search-item";
+      const subStr = r.task.sub ? ` <span class="day-search-sub">(${r.task.sub})</span>` : "";
+      const detailStr = r.details ? summarizeCellDetails(r.details) : "";
+      const ownerStr = r.state.owner ? " · " + r.state.owner : "";
+      const noteStr = r.state.note ? " — " + r.state.note : "";
+      row.innerHTML = `<span class="day-search-dot" style="background:${r.group.color}"></span>
+        <span class="day-search-name">${r.task.label}${subStr}</span>
+        <span class="day-search-tag">${r.group.tag}</span>
+        <span class="day-search-meta">${detailStr ? detailStr + " · " : ""}${r.group.name}${ownerStr}${noteStr}</span>`;
+      daySection.appendChild(row);
+    });
+
+    list.appendChild(daySection);
   });
 }
 
@@ -1250,8 +1348,12 @@ async function toggleView() {
 
 async function init() {
   loadViewPref();
+  loadColumnWidths();
   ensureEditorName();
   buildLegend();
+
+  setupColumnResizer("nameColResizer", "ilab-name-col-w", COL_BOUNDS.nameW, () => nameColWidth, (v) => { nameColWidth = v; });
+  setupColumnResizer("metaPanelResizer", "ilab-meta-panel-w", COL_BOUNDS.metaW, () => metaPanelWidth, (v) => { metaPanelWidth = v; });
 
   const boardScrollEl = document.getElementById("boardScroll");
   if (boardScrollEl) boardScrollEl.addEventListener("scroll", syncHeaderScroll);
@@ -1279,13 +1381,29 @@ async function init() {
   document.getElementById("clearExportBtn").addEventListener("click", clearExportRows);
   document.getElementById("floatingSaveBtn").addEventListener("click", forceSaveNow);
   document.getElementById("daySearchBtn").addEventListener("click", searchDay);
-  document.getElementById("daySearchInput").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") searchDay();
+  ["daySearchInput", "daySearchEndInput"].forEach(id => {
+    document.getElementById(id).addEventListener("keydown", (e) => {
+      if (e.key === "Enter") searchDay();
+    });
   });
   document.getElementById("daySearchTodayBtn").addEventListener("click", () => {
-    const now = new Date();
-    const iso = now.getFullYear() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate());
+    const iso = isoForDate(new Date());
     document.getElementById("daySearchInput").value = iso;
+    document.getElementById("daySearchEndInput").value = iso;
+    searchDay();
+  });
+  document.getElementById("daySearchWeekBtn").addEventListener("click", () => {
+    const now = new Date();
+    const sunday = addDays(now, -now.getDay());
+    const saturday = addDays(sunday, 6);
+    document.getElementById("daySearchInput").value = isoForDate(sunday);
+    document.getElementById("daySearchEndInput").value = isoForDate(saturday);
+    searchDay();
+  });
+  document.getElementById("daySearchNext7Btn").addEventListener("click", () => {
+    const now = new Date();
+    document.getElementById("daySearchInput").value = isoForDate(now);
+    document.getElementById("daySearchEndInput").value = isoForDate(addDays(now, 6));
     searchDay();
   });
   document.getElementById("closeDaySearchBtn").addEventListener("click", closeDaySearch);

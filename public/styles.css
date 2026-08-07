@@ -564,6 +564,59 @@ body {
 .day-cell.weekend { background: #F8F6F3; }
 .day-cell.weekend:hover { background: #EFEBE6; }
 .day-cell.month-start { border-left: 2px solid var(--paper-line); }
+.day-cell { position: relative; }
+.day-cell.has-details::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--rust);
+  box-shadow: 0 0 0 1px #fff;
+}
+
+/* ---- Cell details popover ---- */
+.cell-popover {
+  position: fixed;
+  z-index: 60;
+  width: 260px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(22,35,63,0.22);
+  padding: 14px;
+}
+.cell-popover-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+.cell-popover-field { display: block; margin-bottom: 8px; }
+.cell-popover-field span {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: var(--ink-soft);
+  margin-bottom: 3px;
+}
+.cell-popover-field input, .cell-popover-field textarea {
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  resize: vertical;
+}
+.cell-popover-field input:focus, .cell-popover-field textarea:focus { border-color: var(--ink-soft); outline: none; }
+.cell-popover-actions { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.cell-popover-spacer { flex: 1; }
 
 /* ---- Footer note ---- */
 .foot-note {

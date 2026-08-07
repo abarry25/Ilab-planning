@@ -28,10 +28,14 @@
   </div>
 
   <div class="day-search-bar">
-    <label for="daySearchInput" class="day-search-label">Find a day's items</label>
+    <label for="daySearchInput" class="day-search-label">Find items from</label>
     <input type="date" id="daySearchInput" class="day-search-input" />
+    <label for="daySearchEndInput" class="day-search-label">through (optional)</label>
+    <input type="date" id="daySearchEndInput" class="day-search-input" />
     <button class="btn btn-accent" id="daySearchBtn">Show items</button>
     <button class="btn" id="daySearchTodayBtn">Today</button>
+    <button class="btn" id="daySearchWeekBtn">This week</button>
+    <button class="btn" id="daySearchNext7Btn">Next 7 days</button>
   </div>
 
   <div id="daySearchPanel" class="day-search-panel hidden">
@@ -57,6 +61,8 @@
     <div class="board-split">
       <div class="board-names">
         <div id="namesBoard"></div>
+        <div id="nameColResizer" class="col-resize-handle name-col-resizer" title="Drag to resize the name column · double-click to reset"></div>
+        <div id="metaPanelResizer" class="col-resize-handle panel-resizer" title="Drag to resize the whole names panel · double-click to reset"></div>
       </div>
       <div class="board-scroll" id="boardScroll">
         <div id="board"></div>
@@ -84,7 +90,7 @@
   </div>
 
   <div class="foot-note">
-    <b>How to use this:</b> each row is a program or task pulled from the AY26–27 planning tool — click any name to rename it, use <b>+ Add row</b> at the bottom of a section to add a new one, and hover a row to reveal the <b>×</b> to remove it (removals show an Undo for a few seconds). In <b>day view</b>, click individual days; use <b>Collapse to weeks</b> to mark a whole week at once (click again to expand back to days — your day-level marks are preserved either way). Type initials into the small box for who owns it, and use the notes field for cadence or context. Check the box on any row and click <b>Create ClickUp export</b> to generate one line per marked date, ready to edit and download as a CSV for import. Milestones pinned above the grid come from the FAS Registrar's published calendar — double-check exact dates before locking programming around them. Switch the <b>Fall 2026 / Spring 2027</b> tabs at the top to plan the next term whenever you're ready; each term keeps its own board. Group tags: <b>MACRO</b> = ecosystem events to track, <b>FUNC</b> = an operating rule rather than an event, <b>CORE</b> = flagship i-lab programming, <b>SERVICE</b> = supporting programs and partnerships. Use <b>Find a day's items</b> above the grid to pick any date and see every task marked active that day (plus any registrar milestone), across whichever term contains it. In day view, <b>right-click any marked cell</b> to add a start/end time, location, and a comment for that specific date — a small dot marks cells with details, and those values flow straight into the ClickUp export's start/end time and location columns when you build it.
+    <b>How to use this:</b> each row is a program or task pulled from the AY26–27 planning tool — click any name to rename it, use <b>+ Add row</b> at the bottom of a section to add a new one, and hover a row to reveal the <b>×</b> to remove it (removals show an Undo for a few seconds). In <b>day view</b>, click individual days; use <b>Collapse to weeks</b> to mark a whole week at once (click again to expand back to days — your day-level marks are preserved either way). Type initials into the small box for who owns it, and use the notes field for cadence or context. Check the box on any row and click <b>Create ClickUp export</b> to generate one line per marked date, ready to edit and download as a CSV for import. Milestones pinned above the grid come from the FAS Registrar's published calendar — double-check exact dates before locking programming around them. Switch the <b>Fall 2026 / Spring 2027</b> tabs at the top to plan the next term whenever you're ready; each term keeps its own board. Group tags: <b>MACRO</b> = ecosystem events to track, <b>FUNC</b> = an operating rule rather than an event, <b>CORE</b> = flagship i-lab programming, <b>SERVICE</b> = supporting programs and partnerships. Use the <b>Find items from / through</b> bar above the grid to pull everything marked for a single date, or leave both dates filled in for a range (e.g. <b>This week</b> or <b>Next 7 days</b>) to see a whole week's worth grouped day by day — including registrar milestones — across whichever term(s) the dates fall in. In day view, <b>right-click any marked cell</b> to add a start/end time, location, and a comment for that specific date — a small dot marks cells with details, and those values flow straight into the ClickUp export's start/end time and location columns when you build it. If names are getting cut off, drag the thin handle just right of the name field to widen it (double-click to reset) — or drag the handle at the far edge of the left panel to widen the whole names/owner/notes area at once.
   </div>
 
 </div>

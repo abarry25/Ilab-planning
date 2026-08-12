@@ -422,6 +422,8 @@ body {
   background: #F7F8FA;
   border-top: 1px solid var(--border);
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
 }
 .board-scroll .group-header-shadow:first-child { border-top: none; }
 
@@ -432,8 +434,76 @@ body {
   padding: 8px 14px 4px 34px;
   letter-spacing: .03em;
   box-sizing: border-box;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
-.sub-header-shadow { box-sizing: border-box; }
+.sub-header-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sub-header-shadow {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+/* ---- Rollup strips (bucket-level and sub-bucket-level summaries) ----
+   One slim band per level answering "which days does this touch at all?".
+   Columns are the same fixed --cell-w as the task grid below, so the strip
+   lines up square-for-square with the rows it summarizes. */
+.scope-days {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.sub-header .scope-days { opacity: .8; }
+
+.rollup-track {
+  display: grid;
+  align-items: center;
+  width: 100%;
+}
+.rollup-cell {
+  border: none;
+  background: transparent;
+  border-left: 1px solid rgba(27,35,63,0.05);
+  box-sizing: border-box;
+  height: 13px;
+  padding: 0;
+  position: relative;
+  border-radius: 2px;
+}
+.rollup-track-sub .rollup-cell { height: 8px; }
+.rollup-cell.weekend { background: rgba(27,35,63,0.028); }
+.rollup-cell.month-start { border-left: 2px solid var(--paper-line); }
+.rollup-cell.is-off { cursor: default; }
+.rollup-cell.is-on {
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.10);
+}
+.rollup-cell.is-on:hover { filter: brightness(1.18); }
+.rollup-cell.is-on:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+/* Pile-up marker: three or more items stacked on the same day. */
+.rollup-cell.is-busy::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.22);
+}
+.rollup-track-sub .rollup-cell.is-busy::after { width: 3px; height: 3px; box-shadow: none; }
+
+.rollup-panel-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex: 0 0 auto;
+}
 
 /* ---- Task rows ---- */
 .task-meta {

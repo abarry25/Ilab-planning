@@ -549,6 +549,232 @@ function groupActiveCount(groupId) {
   return count;
 }
 
+/* ===== Rollups: one summary strip per bucket, and per sub-bucket =====
+   A rollup answers a single question for a set of rows: on each day of the
+   term, how many of those rows have something marked? That per-day count is
+   drawn as a slim strip on the group (and sub-group) header row, so a bucket
+   tells you which days it touches even when it's collapsed — you can read
+   "when is Venture Incubation happening at all" without expanding it. */
+
+const ROLLUP_BUSY_THRESHOLD = 3; // 3+ items landing on one day gets a pile-up dot
+
+function tasksForScope(groupId, sub) {
+  const all = TASKS_BY_GROUP[groupId] || [];
+  if (!sub) return all;
+  return all.filter(t => (t.sub || "") === sub);
+}
+
+// Per-day count of how many rows in `tasks` are marked active.
+function rollupCounts(tasks) {
+  const dayCount = deriveTerm(currentTerm()).dayCount;
+  const counts = new Array(dayCount).fill(0);
+  tasks.forEach(t => {
+    const st = STATE.tasks[t.id];
+    if (!st || !Array.isArray(st.active)) return;
+    for (let i = 0; i < dayCount; i++) if (st.active[i]) counts[i]++;
+  });
+  return counts;
+}
+
+// How many distinct days this set of rows touches — the headline number for
+// "how much of the term does this bucket occupy?"
+function rollupDayTotal(tasks) {
+  return rollupCounts(tasks).filter(c => c > 0).length;
+}
+
+function rollupTasksOnDay(tasks, dayIdx) {
+  return tasks.filter(t => {
+    const st = STATE.tasks[t.id];
+    return st && st.active[dayIdx];
+  });
+}
+
+function rollupCellTitle(term, tasks, dayIdxs, counts) {
+  const days = dayIdxs.filter(i => counts[i] > 0);
+  const names = [];
+  days.forEach(i => rollupTasksOnDay(tasks, i).forEach(t => {
+    if (!names.includes(t.label)) names.push(t.label);
+  }));
+  const when = dayIdxs.length === 1
+    ? fmtShort(dateForDay(term, dayIdxs[0]))
+    : fmtShort(dateForDay(term, dayIdxs[0])) + " – " + fmtShort(dateForDay(term, dayIdxs[dayIdxs.length - 1]));
+  if (!names.length) return when + " — nothing marked";
+  const shown = names.slice(0, 6).join(", ") + (names.length > 6 ? ", +" + (names.length - 6) + " more" : "");
+  const dayNote = dayIdxs.length > 1 ? " across " + days.length + " day" + (days.length === 1 ? "" : "s") : "";
+  return when + " — " + names.length + " item" + (names.length === 1 ? "" : "s") + dayNote +
+    ": " + shown + " · click to list them";
+}
+
+// Draws (or redraws) the rollup strip inside a header's timeline-side element.
+// `host` carries data-rollup-group / data-rollup-sub so it can be refreshed in
+// place when someone toggles a single day, without re-rendering the whole board.
+function renderRollupStrip(host) {
+  const groupId = host.dataset.rollupGroup;
+  const sub = host.dataset.rollupSub || "";
+  const g = GROUP_BY_ID[groupId];
+  if (!g) return;
+  const term = currentTerm();
+  const tasks = tasksForScope(groupId, sub);
+  const counts = rollupCounts(tasks);
+
+  host.innerHTML = "";
+  const track = document.createElement("div");
+  track.className = "rollup-track" + (sub ? " rollup-track-sub" : "");
+  const n = colCount(term);
+  track.style.gridTemplateColumns = `repeat(${n}, var(--cell-w))`;
+
+  const makeCell = (dayIdxs) => {
+    const marked = dayIdxs.filter(i => counts[i] > 0);
+    const itemCount = new Set();
+    marked.forEach(i => rollupTasksOnDay(tasks, i).forEach(t => itemCount.add(t.id)));
+    const cell = document.createElement("button");
+    cell.type = "button";
+    cell.className = "rollup-cell";
+    if (viewMode === "day") {
+      const dt = dateForDay(term, dayIdxs[0]);
+      const dow = dt.getDay();
+      if (dow === 0 || dow === 6) cell.classList.add("weekend");
+      if (dt.getDate() === 1) cell.classList.add("month-start");
+    }
+    if (marked.length) {
+      cell.classList.add("is-on");
+      cell.style.background = g.color;
+      if (itemCount.size >= ROLLUP_BUSY_THRESHOLD) cell.classList.add("is-busy");
+      cell.addEventListener("click", () => openRollupPanel(groupId, sub, dayIdxs));
+    } else {
+      cell.classList.add("is-off");
+      cell.disabled = true;
+    }
+    cell.title = rollupCellTitle(term, tasks, dayIdxs, counts);
+    return cell;
+  };
+
+  if (viewMode === "day") {
+    for (let i = 0; i < n; i++) track.appendChild(makeCell([i]));
+  } else {
+    deriveTerm(term).weekGroups.forEach(grp => track.appendChild(makeCell(grp)));
+  }
+  host.appendChild(track);
+}
+
+// Rebuild just the strips affected by a single day toggle, so clicking cells
+// stays snappy and doesn't blow away focus elsewhere on the board.
+function refreshRollups(groupId) {
+  document.querySelectorAll(`[data-rollup-group="${groupId}"]`).forEach(renderRollupStrip);
+  document.querySelectorAll(`.scope-days[data-scope-group="${groupId}"]`).forEach(el => {
+    const sub = el.dataset.scopeSub || "";
+    const z = rollupDayTotal(tasksForScope(groupId, sub));
+    el.textContent = z ? z + (z === 1 ? " day" : " days") : "";
+  });
+}
+function refreshAllRollups() {
+  document.querySelectorAll("[data-rollup-group]").forEach(renderRollupStrip);
+}
+
+/* ===== Rollup detail panel (read-only) =====
+   Clicking a filled cell in a rollup strip lists what's actually behind it.
+   Deliberately read-only: this is the "zoom in from the summary" view, and
+   nothing here can flip a mark by accident. */
+function openRollupPanel(groupId, sub, dayIdxs) {
+  const g = GROUP_BY_ID[groupId];
+  const term = currentTerm();
+  const tasks = tasksForScope(groupId, sub);
+  const panel = document.getElementById("rollupPanel");
+  const swatch = document.getElementById("rollupPanelSwatch");
+  const title = document.getElementById("rollupPanelTitle");
+  const count = document.getElementById("rollupPanelCount");
+  const list = document.getElementById("rollupPanelList");
+  if (!panel) return;
+
+  swatch.style.background = g.color;
+  const scopeName = g.name + (sub ? " · " + sub : "");
+  const dayLabel = dayIdxs.length === 1
+    ? fmtLong(isoForDate(dateForDay(term, dayIdxs[0])))
+    : fmtShort(dateForDay(term, dayIdxs[0])) + " – " + fmtShort(dateForDay(term, dayIdxs[dayIdxs.length - 1]));
+  title.textContent = scopeName + " — " + dayLabel;
+
+  list.innerHTML = "";
+  let total = 0;
+  const daysWithItems = dayIdxs.filter(i => rollupTasksOnDay(tasks, i).length);
+
+  daysWithItems.forEach(dayIdx => {
+    const rows = rollupTasksOnDay(tasks, dayIdx);
+    total += rows.length;
+    const section = document.createElement("div");
+    section.className = "day-search-day";
+
+    if (dayIdxs.length > 1) {
+      const head = document.createElement("div");
+      head.className = "day-search-day-header";
+      const dateEl = document.createElement("span");
+      dateEl.className = "day-search-day-date";
+      dateEl.textContent = fmtLong(isoForDate(dateForDay(term, dayIdx)));
+      const cnt = document.createElement("span");
+      cnt.className = "day-search-day-count";
+      cnt.textContent = rows.length + " item" + (rows.length === 1 ? "" : "s");
+      head.appendChild(dateEl);
+      head.appendChild(cnt);
+      section.appendChild(head);
+    }
+
+    rows.forEach(t => {
+      const st = STATE.tasks[t.id];
+      const det = getCellDetails(t.id, dayIdx);
+      const row = document.createElement("div");
+      row.className = "day-search-item";
+
+      const dot = document.createElement("span");
+      dot.className = "day-search-dot";
+      dot.style.background = g.color;
+      row.appendChild(dot);
+
+      const name = document.createElement("span");
+      name.className = "day-search-name";
+      name.textContent = t.label;
+      row.appendChild(name);
+
+      if (t.sub && !sub) {
+        const subEl = document.createElement("span");
+        subEl.className = "day-search-sub";
+        subEl.textContent = "(" + t.sub + ")";
+        row.appendChild(subEl);
+      }
+
+      const meta = document.createElement("span");
+      meta.className = "day-search-meta";
+      const bits = [];
+      if (det) { const s = summarizeCellDetails(det); if (s) bits.push(s); }
+      if (st && st.owner) bits.push(st.owner);
+      if (st && st.note) bits.push(st.note);
+      meta.textContent = bits.join(" · ");
+      row.appendChild(meta);
+
+      section.appendChild(row);
+    });
+
+    list.appendChild(section);
+  });
+
+  if (!total) {
+    const empty = document.createElement("div");
+    empty.className = "day-search-empty";
+    empty.textContent = "Nothing marked here.";
+    list.appendChild(empty);
+  }
+
+  count.textContent = total + " item" + (total === 1 ? "" : "s") +
+    (dayIdxs.length > 1 ? " across " + daysWithItems.length + " day" + (daysWithItems.length === 1 ? "" : "s") : "") +
+    " · " + term.label;
+
+  panel.classList.remove("hidden");
+  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function closeRollupPanel() {
+  const panel = document.getElementById("rollupPanel");
+  if (panel) panel.classList.add("hidden");
+}
+
 function renderMilestoneRow() {
   const term = currentTerm();
   const row = document.getElementById("milestoneRow");
@@ -713,6 +939,7 @@ function taskRowMarkup(t) {
         cell.style.background = st.active[i] ? color : "";
         updateGroupCount(t.group);
         updateRowCount(t.id, st);
+        refreshRollups(t.group);
         queueSave();
       });
       cell.addEventListener("contextmenu", (e) => {
@@ -799,6 +1026,8 @@ function renderBoard() {
   GROUPS.forEach(g => {
     const collapsed = !!STATE.collapsed[g.id];
 
+    const gDays = rollupDayTotal(TASKS_BY_GROUP[g.id] || []);
+
     const leftHeader = document.createElement("div");
     leftHeader.className = "group-header";
     leftHeader.style.setProperty("--gcolor", g.color);
@@ -811,7 +1040,8 @@ function renderBoard() {
           <span class="group-name">${g.name}</span>
         </div>
         <div class="ghr-line2">
-          <span class="group-count" data-group="${g.id}">${groupActiveCount(g.id)} / ${TASKS_BY_GROUP[g.id].length}</span>
+          <span class="group-count" data-group="${g.id}">${groupActiveCount(g.id)} / ${TASKS_BY_GROUP[g.id].length} planned</span>
+          <span class="scope-days" data-scope-group="${g.id}" data-scope-sub="">${gDays ? gDays + (gDays === 1 ? " day" : " days") : ""}</span>
           <span class="group-desc" title="${g.desc}">${g.desc}</span>
         </div>
       </div>
@@ -822,23 +1052,39 @@ function renderBoard() {
     const rightHeader = document.createElement("div");
     rightHeader.className = "group-header-shadow";
     rightHeader.style.width = trackWidthCss;
+    rightHeader.dataset.rollupGroup = g.id;
+    rightHeader.dataset.rollupSub = "";
     cellsRoot.appendChild(rightHeader);
+    renderRollupStrip(rightHeader);
 
     if (!collapsed) {
       const blocks = subBlocksForGroup(g.id);
       const bodyBlocks = blocks.length ? blocks : [{ sub: null, tasks: [] }];
       bodyBlocks.forEach(block => {
         if (block.sub) {
+          const subDays = rollupDayTotal(block.tasks);
           const subHead = document.createElement("div");
           subHead.className = "sub-header";
           subHead.style.setProperty("--gcolor", g.color);
-          subHead.textContent = block.sub;
+          const subName = document.createElement("span");
+          subName.className = "sub-header-name";
+          subName.textContent = block.sub;
+          subHead.appendChild(subName);
+          const subDaysEl = document.createElement("span");
+          subDaysEl.className = "scope-days";
+          subDaysEl.dataset.scopeGroup = g.id;
+          subDaysEl.dataset.scopeSub = block.sub;
+          subDaysEl.textContent = subDays ? subDays + (subDays === 1 ? " day" : " days") : "";
+          subHead.appendChild(subDaysEl);
           namesRoot.appendChild(subHead);
 
           const subHeadShadow = document.createElement("div");
           subHeadShadow.className = "sub-header-shadow";
           subHeadShadow.style.width = trackWidthCss;
+          subHeadShadow.dataset.rollupGroup = g.id;
+          subHeadShadow.dataset.rollupSub = block.sub;
           cellsRoot.appendChild(subHeadShadow);
+          renderRollupStrip(subHeadShadow);
         }
         block.tasks.forEach(t => {
           const { left, right } = taskRowMarkup(t);
@@ -1407,6 +1653,8 @@ async function init() {
     searchDay();
   });
   document.getElementById("closeDaySearchBtn").addEventListener("click", closeDaySearch);
+  const closeRollupBtn = document.getElementById("closeRollupBtn");
+  if (closeRollupBtn) closeRollupBtn.addEventListener("click", closeRollupPanel);
   document.getElementById("cellPopoverSave").addEventListener("click", saveCellPopover);
   document.getElementById("cellPopoverCancel").addEventListener("click", closeCellPopover);
   document.getElementById("cellPopoverClear").addEventListener("click", clearCellPopover);

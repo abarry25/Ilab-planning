@@ -33,48 +33,73 @@ function seedDefaultTasksList() {
 }
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_LONG = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const WEEKDAY_LETTERS = ["S","M","T","W","T","F","S"];
 
-const TERMS = [
+/* ===== The planning year =====
+   One continuous timeline — Aug 1 through Jul 31 of the following year — is the
+   single source of truth in memory. Every mark, note, and per-date detail is
+   indexed by its offset from Aug 1 ("year index"), so a date means the same
+   thing no matter which tab you're looking through.
+
+   On disk it still lives as three separate board records (one per term), the
+   way it always has. SEGMENTS below is the map between the two: each segment
+   owns a contiguous slice of the year, they tile it exactly with no gaps and no
+   overlap, and saving slices the year back apart along those lines. That keeps
+   the existing version-checked, per-term save/history machinery intact. */
+const YEAR = { startIso: "2026-08-01", endIso: "2027-07-31", label: "AY26–27 (Aug 2026 – Jul 2027)" };
+
+const SEGMENTS = [
   {
-    id: "fall2026", label: "Fall 2026", start: "2026-08-03", end: "2026-12-19",
-    key: "ilab-plan-fall2026-v1", deadline: "Draft due Mon, Aug 4",
-    milestones: [
-      { date: "2026-08-04", label: "Planning drafts due", kind: "deadline" },
-      { date: "2026-09-02", label: "Fall term begins", kind: "term" },
-      { date: "2026-09-07", label: "Labor Day", kind: "holiday" },
-      { date: "2026-10-12", label: "Indigenous Peoples' Day", kind: "holiday" },
-      { date: "2026-11-11", label: "Veterans Day", kind: "holiday" },
-      { date: "2026-11-26", label: "Thanksgiving", kind: "holiday" },
-      { date: "2026-12-10", label: "Finals begin", kind: "term" },
-      { date: "2026-12-19", label: "Finals end", kind: "term" }
-    ]
+    id: "fall2026", label: "Fall 2026", key: "ilab-plan-fall2026-v1",
+    startIso: "2026-08-01", endIso: "2026-12-31", yearTerm: "2026 Fall",
+    // Where this record's index 0 used to sit before the year view existed.
+    // Boards saved back then have no dayZero stamp, so we assume this.
+    legacyStartIso: "2026-08-03",
+    deadline: "Fall plan — in flight"
   },
   {
-    id: "spring2027", label: "Spring 2027", start: "2027-01-25", end: "2027-05-15",
-    key: "ilab-plan-spring2027-v1", deadline: "No deadline yet — plan anytime",
-    milestones: [
-      { date: "2027-01-18", label: "MLK Day", kind: "holiday" },
-      { date: "2027-01-25", label: "Spring term begins", kind: "term" },
-      { date: "2027-02-15", label: "Presidents' Day", kind: "holiday" },
-      { date: "2027-03-13", label: "Spring recess begins", kind: "term" },
-      { date: "2027-04-28", label: "Last day of classes", kind: "term" },
-      { date: "2027-05-06", label: "Finals begin", kind: "term" },
-      { date: "2027-05-15", label: "Finals end", kind: "term" },
-      { date: "2027-05-27", label: "Commencement", kind: "deadline" }
-    ]
+    id: "spring2027", label: "Spring 2027", key: "ilab-plan-spring2027-v1",
+    startIso: "2027-01-01", endIso: "2027-05-31", yearTerm: "2027 Spring",
+    legacyStartIso: "2027-01-25",
+    deadline: "Spring plan — open"
+  },
+  {
+    id: "summer2027", label: "Summer 2027", key: "ilab-plan-summer2027-v1",
+    startIso: "2027-06-01", endIso: "2027-07-31", yearTerm: "2027 Summer",
+    legacyStartIso: "2027-06-01",
+    deadline: "Summer plan — open"
   }
 ];
 
-let currentTermIdx = 0;
-let viewMode = "day"; // "day" | "week"
-let STATE = { tasksList: [], tasks: {}, collapsed: {}, selected: {}, exportRows: [] };
+// Registrar milestones for the whole year, placed by absolute date.
+const MILESTONES = [
+  { date: "2026-09-02", label: "Fall term begins", kind: "term" },
+  { date: "2026-09-07", label: "Labor Day", kind: "holiday" },
+  { date: "2026-10-12", label: "Indigenous Peoples' Day", kind: "holiday" },
+  { date: "2026-11-11", label: "Veterans Day", kind: "holiday" },
+  { date: "2026-11-26", label: "Thanksgiving", kind: "holiday" },
+  { date: "2026-12-10", label: "Fall finals begin", kind: "term" },
+  { date: "2026-12-19", label: "Fall finals end", kind: "term" },
+  { date: "2027-01-18", label: "MLK Day", kind: "holiday" },
+  { date: "2027-01-25", label: "Spring term begins", kind: "term" },
+  { date: "2027-02-15", label: "Presidents' Day", kind: "holiday" },
+  { date: "2027-03-13", label: "Spring recess begins", kind: "term" },
+  { date: "2027-04-28", label: "Last day of classes", kind: "term" },
+  { date: "2027-05-06", label: "Spring finals begin", kind: "term" },
+  { date: "2027-05-15", label: "Spring finals end", kind: "term" },
+  { date: "2027-05-27", label: "Commencement", kind: "deadline" },
+  { date: "2027-07-05", label: "Independence Day (observed)", kind: "holiday" }
+];
+
+let currentViewIdx = 0;   // index into VIEWS
+let viewMode = "day";     // "day" | "week"
+// STATE holds the whole year. active[] and cellDetails{} are keyed by year index.
+let STATE = { tasksList: [], tasks: {}, collapsed: {}, selected: {}, exportRows: [], fieldDefaults: {}, optionSets: null };
 let saveTimer = null;
 let saving = false;
 let undoTimer = null;
 let saveState = "saved"; // "saved" | "dirty" | "saving" | "error"
-
-function currentTerm() { return TERMS[currentTermIdx]; }
 
 /* ===== Date helpers ===== */
 function parseISO(s) {
@@ -89,37 +114,95 @@ function addDays(d, n) {
 function fmtShort(d) {
   return MONTHS[d.getMonth()] + " " + d.getDate();
 }
-function deriveTerm(term) {
-  if (term._derived) return term._derived;
-  const start = parseISO(term.start);
-  const end = parseISO(term.end);
-  const dayCount = Math.round((end - start) / 86400000) + 1;
+function pad2(n) { return String(n).padStart(2, "0"); }
+function isoForDate(d) {
+  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+}
+function daysBetween(isoA, isoB) {
+  return Math.round((parseISO(isoB) - parseISO(isoA)) / 86400000);
+}
+
+const YEAR_START = parseISO(YEAR.startIso);
+const YEAR_DAYS = daysBetween(YEAR.startIso, YEAR.endIso) + 1;
+
+// year index <-> date
+function dateForYearIdx(yi) { return addDays(YEAR_START, yi); }
+function isoForYearIdx(yi) { return isoForDate(dateForYearIdx(yi)); }
+function yearIdxForIso(iso) {
+  const n = daysBetween(YEAR.startIso, iso);
+  return (n >= 0 && n < YEAR_DAYS) ? n : null;
+}
+
+// Each segment's slice of the year, computed once from its date bounds.
+SEGMENTS.forEach(seg => {
+  seg.offset = daysBetween(YEAR.startIso, seg.startIso);
+  seg.days = daysBetween(seg.startIso, seg.endIso) + 1;
+});
+function segmentForYearIdx(yi) {
+  return SEGMENTS.find(s => yi >= s.offset && yi < s.offset + s.days) || null;
+}
+function segmentById(id) { return SEGMENTS.find(s => s.id === id) || null; }
+
+/* ===== Views: which slice of the year is on screen =====
+   "Full calendar" is the default and shows all 365 days. The term tabs are
+   windows onto the very same data — switching tabs scrolls the lens, it does
+   not load a different board. */
+const VIEWS = [{ id: "year", label: "Full calendar", offset: 0, days: YEAR_DAYS, yearTerm: null, deadline: YEAR.label }]
+  .concat(SEGMENTS.map(s => ({
+    id: s.id, label: s.label, offset: s.offset, days: s.days,
+    yearTerm: s.yearTerm, deadline: s.deadline, segmentId: s.id
+  })));
+
+function currentView() { return VIEWS[currentViewIdx]; }
+function viewIdxById(id) { const i = VIEWS.findIndex(v => v.id === id); return i === -1 ? 0 : i; }
+
+// Column <-> year index for whatever view is on screen.
+function yearIdxForCol(colIdx) {
+  const v = currentView();
+  return viewMode === "day" ? v.offset + colIdx : deriveView().weekGroups[colIdx][0];
+}
+function colCount() {
+  const d = deriveView();
+  return viewMode === "day" ? d.days : d.weekGroups.length;
+}
+// Week columns are aligned to real calendar weeks (Sun–Sat) and clipped to the
+// view, so a "week" on screen is the week a person actually has in their head.
+// Groups hold YEAR indices, which is what every state lookup expects.
+function deriveView() {
+  const v = currentView();
+  if (v._derived) return v._derived;
   const weekGroups = [];
-  for (let d = 0; d < dayCount; d += 7) {
-    const grp = [];
-    for (let k = 0; k < 7 && d + k < dayCount; k++) grp.push(d + k);
-    weekGroups.push(grp);
+  let cur = null;
+  for (let k = 0; k < v.days; k++) {
+    const yi = v.offset + k;
+    const dow = dateForYearIdx(yi).getDay();
+    if (!cur || dow === 0) { cur = []; weekGroups.push(cur); }
+    cur.push(yi);
   }
-  term._derived = { start, dayCount, weekGroups };
-  return term._derived;
+  v._derived = { offset: v.offset, days: v.days, weekGroups };
+  return v._derived;
 }
-function dateForDay(term, i) { return addDays(deriveTerm(term).start, i); }
-function dayIndexForDate(term, iso) {
-  const d = deriveTerm(term);
-  const diff = Math.round((parseISO(iso) - d.start) / 86400000);
-  return (diff >= 0 && diff < d.dayCount) ? diff : null;
+function dateForCol(colIdx) { return dateForYearIdx(yearIdxForCol(colIdx)); }
+function colForYearIdx(yi) {
+  const v = currentView();
+  if (yi < v.offset || yi >= v.offset + v.days) return null;
+  if (viewMode === "day") return yi - v.offset;
+  const groups = deriveView().weekGroups;
+  for (let i = 0; i < groups.length; i++) if (groups[i].includes(yi)) return i;
+  return null;
 }
-function weekIndexForDay(term, dayIdx) { return Math.floor(dayIdx / 7); }
-function colCount(term) {
-  const d = deriveTerm(term);
-  return viewMode === "day" ? d.dayCount : d.weekGroups.length;
+function yearIdxsForCol(colIdx) {
+  return viewMode === "day" ? [yearIdxForCol(colIdx)] : deriveView().weekGroups[colIdx].slice();
 }
-function colStartDate(term, colIdx) {
-  const d = deriveTerm(term);
-  return viewMode === "day" ? dateForDay(term, colIdx) : dateForDay(term, d.weekGroups[colIdx][0]);
+function milestonesInView() {
+  return MILESTONES.filter(m => {
+    const yi = yearIdxForIso(m.date);
+    return yi !== null && colForYearIdx(yi) !== null;
+  });
 }
-function colIndexForDayIndex(term, dayIdx) {
-  return viewMode === "day" ? dayIdx : weekIndexForDay(term, dayIdx);
+function yearTermForYearIdx(yi) {
+  const seg = segmentForYearIdx(yi);
+  return seg ? seg.yearTerm : "";
 }
 
 /* ===== State ===== */
@@ -140,53 +223,216 @@ function migrateGroupStructure() {
   });
 }
 
-function ensureState(term) {
-  const dayCount = deriveTerm(term).dayCount;
+function emptyState() {
+  return {
+    tasksList: [], tasks: {}, collapsed: {}, selected: {}, exportRows: [],
+    fieldDefaults: {}, optionSets: null
+  };
+}
+
+function ensureState() {
   if (!Array.isArray(STATE.tasksList) || !STATE.tasksList.length) {
     STATE.tasksList = seedDefaultTasksList();
   }
   migrateGroupStructure();
   if (!STATE.selected) STATE.selected = {};
+  if (!STATE.collapsed) STATE.collapsed = {};
   if (!Array.isArray(STATE.exportRows)) STATE.exportRows = [];
+  if (!STATE.fieldDefaults || typeof STATE.fieldDefaults !== "object") STATE.fieldDefaults = {};
+  STATE.optionSets = normalizeOptionSets(STATE.optionSets);
   STATE.tasksList.forEach(t => {
     if (!STATE.tasks[t.id]) {
       const seed = DEFAULT_TASK_BY_ID[t.id];
-      STATE.tasks[t.id] = { active: new Array(dayCount).fill(false), owner: seed ? seed.owner : "", note: seed ? seed.note : "", cellDetails: {} };
+      STATE.tasks[t.id] = {
+        active: new Array(YEAR_DAYS).fill(false),
+        owner: seed ? seed.owner : "", note: seed ? seed.note : "",
+        cellDetails: {}, fields: {}
+      };
     }
     const cur = STATE.tasks[t.id];
-    if (!Array.isArray(cur.active)) cur.active = new Array(dayCount).fill(false);
-    while (cur.active.length < dayCount) cur.active.push(false);
+    if (!Array.isArray(cur.active)) cur.active = new Array(YEAR_DAYS).fill(false);
+    while (cur.active.length < YEAR_DAYS) cur.active.push(false);
+    if (cur.active.length > YEAR_DAYS) cur.active.length = YEAR_DAYS;
     if (!cur.cellDetails || typeof cur.cellDetails !== "object") cur.cellDetails = {};
+    if (!cur.fields || typeof cur.fields !== "object") cur.fields = {};
   });
 }
 
-async function loadTermState(term) {
-  STATE = { tasksList: seedDefaultTasksList(), tasks: {}, collapsed: {}, selected: {}, exportRows: [] };
-  lastMeta = null;
-  try {
-    const res = await fetch("/api/board/" + encodeURIComponent(term.key));
-    if (res.ok) {
-      const json = await res.json();
-      const parsed = json.data;
-      if (parsed && Array.isArray(parsed.tasksList)) {
-        STATE = parsed;
-      } else if (parsed && parsed.tasks) {
-        STATE.tasks = parsed.tasks;
-        STATE.collapsed = parsed.collapsed || {};
-      }
-      lastMeta = { updatedBy: json.updatedBy, updatedAt: json.updatedAt };
-    }
-    // 404 means nothing saved yet for this term — keep the defaults
-  } catch (e) {
-    console.error("Failed to load board", e);
+/* ===== Persistence: one year in memory, three records on disk =====
+
+   Each term record keeps its own row in the database, its own version number,
+   and its own history — none of that changes. What changes is that a record's
+   day-index 0 is now pinned to its term window (Fall = Aug 1) instead of the
+   old academic start date (Fall = Aug 3).
+
+   Boards saved before this change carry no `dayZero`, so we assume the legacy
+   start date and shift every mark, and every per-date detail, by the
+   difference. The shift is computed from real dates, never hard-coded, and the
+   result is stamped with `dayZero` so it can never be applied twice. Nothing is
+   deleted or overwritten in place: the old value is read, remapped in memory,
+   and only written back on the next save — which the server still snapshots to
+   board_history first. */
+
+let SEGMENT_META = {};   // segId -> { version, updatedBy, updatedAt, loaded, missing, failed }
+let loadFailed = false;  // any segment failing to load blocks saving entirely
+let migrationNotes = []; // human-readable record of what got shifted, for the banner
+
+// Re-index one saved record's day-keyed data from `fromStartIso` onto the year
+// timeline. Returns { active (year-length), cellDetails (year-keyed), dropped }.
+function remapSegmentDays(seg, savedActive, savedDetails, fromStartIso) {
+  const shift = daysBetween(YEAR.startIso, fromStartIso); // year index of that record's index 0
+  const active = new Array(YEAR_DAYS).fill(false);
+  const cellDetails = {};
+  let dropped = 0;
+  (savedActive || []).forEach((on, localIdx) => {
+    if (!on) return;
+    const yi = shift + localIdx;
+    if (yi >= 0 && yi < YEAR_DAYS) active[yi] = true; else dropped++;
+  });
+  Object.keys(savedDetails || {}).forEach(k => {
+    const localIdx = Number(k);
+    if (!Number.isFinite(localIdx)) return;
+    const yi = shift + localIdx;
+    if (yi >= 0 && yi < YEAR_DAYS) cellDetails[yi] = savedDetails[k]; else dropped++;
+  });
+  return { active, cellDetails, dropped };
+}
+
+// Merge one loaded segment's contents into the in-memory year.
+function absorbSegment(seg, parsed) {
+  if (!parsed || typeof parsed !== "object") return;
+  const fromStartIso = parsed.dayZero || seg.legacyStartIso;
+  const needsShift = fromStartIso !== seg.startIso;
+  let shiftedMarks = 0;
+
+  // Row list: union across segments, keyed by task id. First segment to
+  // introduce a row defines its position; later segments only add what's new.
+  if (Array.isArray(parsed.tasksList)) {
+    const have = new Set(STATE.tasksList.map(t => t.id));
+    parsed.tasksList.forEach(t => {
+      if (!have.has(t.id)) { STATE.tasksList.push({ id: t.id, group: t.group, sub: t.sub || null, label: t.label }); have.add(t.id); }
+    });
   }
-  ensureState(term);
+
+  Object.keys(parsed.tasks || {}).forEach(taskId => {
+    const src = parsed.tasks[taskId];
+    if (!src) return;
+    const { active, cellDetails, dropped } = remapSegmentDays(
+      seg, src.active, src.cellDetails, fromStartIso
+    );
+    shiftedMarks += active.filter(Boolean).length;
+    if (dropped) migrationNotes.push(`${dropped} mark(s) on ${taskId} fell outside the year and were left out`);
+
+    if (!STATE.tasks[taskId]) {
+      STATE.tasks[taskId] = { active: new Array(YEAR_DAYS).fill(false), owner: "", note: "", cellDetails: {}, fields: {} };
+    }
+    const dst = STATE.tasks[taskId];
+    // Only take marks that fall inside THIS segment's window — a record has no
+    // business asserting anything about days it doesn't own.
+    for (let yi = seg.offset; yi < seg.offset + seg.days; yi++) {
+      if (active[yi]) dst.active[yi] = true;
+      if (cellDetails[yi]) dst.cellDetails[yi] = cellDetails[yi];
+    }
+    // Task-level metadata is year-wide; first non-empty value wins so a filled
+    // Fall board isn't blanked by an untouched Spring one.
+    if (!dst.owner && src.owner) dst.owner = src.owner;
+    if (!dst.note && src.note) dst.note = src.note;
+    if (src.fields && Object.keys(src.fields).length && !Object.keys(dst.fields || {}).length) {
+      dst.fields = JSON.parse(JSON.stringify(src.fields));
+    }
+  });
+
+  if (needsShift && shiftedMarks) {
+    migrationNotes.push(`${seg.label}: ${shiftedMarks} marked day(s) re-aligned from ${fromStartIso} to ${seg.startIso}`);
+  }
+
+  // Year-wide settings: whichever segment has them wins (they get written to
+  // all three on the next save, so they converge).
+  if (parsed.collapsed && !Object.keys(STATE.collapsed).length) STATE.collapsed = parsed.collapsed;
+  if (parsed.selected) Object.keys(parsed.selected).forEach(k => { if (parsed.selected[k]) STATE.selected[k] = true; });
+  if (parsed.fieldDefaults && !Object.keys(STATE.fieldDefaults).length) STATE.fieldDefaults = parsed.fieldDefaults;
+  if (parsed.optionSets && !STATE.optionSets) STATE.optionSets = parsed.optionSets;
+
+  // Export rows carry absolute ISO dates already, so they need no remapping.
+  if (Array.isArray(parsed.exportRows)) {
+    const have = new Set(STATE.exportRows.map(r => r.id));
+    parsed.exportRows.forEach(r => { if (!have.has(r.id)) { STATE.exportRows.push(r); have.add(r.id); } });
+  }
+}
+
+async function loadYear() {
+  STATE = emptyState();
+  SEGMENT_META = {};
+  loadFailed = false;
+  migrationNotes = [];
+
+  for (const seg of SEGMENTS) {
+    const meta = { version: null, updatedBy: null, updatedAt: null, loaded: false, missing: false, failed: false };
+    SEGMENT_META[seg.id] = meta;
+    try {
+      const res = await fetch("/api/board/" + encodeURIComponent(seg.key));
+      if (res.status === 404) {
+        // Nothing saved for this term yet — a genuinely empty board, not a failure.
+        meta.missing = true;
+        meta.loaded = true;
+        continue;
+      }
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const json = await res.json();
+      meta.version = json.version;
+      meta.updatedBy = json.updatedBy;
+      meta.updatedAt = json.updatedAt;
+      meta.loaded = true;
+      absorbSegment(seg, json.data);
+    } catch (e) {
+      // A load failure must never look like an empty board — that's how work
+      // gets silently overwritten. Flag it and block saving.
+      console.error("Failed to load " + seg.key, e);
+      meta.failed = true;
+      loadFailed = true;
+    }
+  }
+
+  if (!STATE.tasksList.length) STATE.tasksList = seedDefaultTasksList();
+  ensureState();
   rebuildIndex();
+  if (loadFailed) blockSavingForReload();
+  else if (migrationNotes.length) showMigrationBanner();
+}
+
+// Cut the in-memory year back into per-term records for saving.
+function segmentPayload(seg) {
+  const tasks = {};
+  STATE.tasksList.forEach(t => {
+    const st = STATE.tasks[t.id];
+    if (!st) return;
+    const active = st.active.slice(seg.offset, seg.offset + seg.days);
+    const cellDetails = {};
+    Object.keys(st.cellDetails || {}).forEach(k => {
+      const yi = Number(k);
+      if (yi >= seg.offset && yi < seg.offset + seg.days) cellDetails[yi - seg.offset] = st.cellDetails[k];
+    });
+    tasks[t.id] = { active, owner: st.owner || "", note: st.note || "", cellDetails, fields: st.fields || {} };
+  });
+  return {
+    dayZero: seg.startIso,          // self-describing: never re-shift this record
+    yearKey: YEAR.startIso,
+    tasksList: STATE.tasksList,
+    tasks,
+    collapsed: STATE.collapsed,
+    selected: STATE.selected,
+    fieldDefaults: STATE.fieldDefaults,
+    optionSets: STATE.optionSets,
+    // Export rows live on the term whose window their date falls in.
+    exportRows: STATE.exportRows.filter(r => {
+      const yi = yearIdxForIso(r.date);
+      return yi !== null && yi >= seg.offset && yi < seg.offset + seg.days;
+    })
+  };
 }
 
 /* ===== Add / remove rows ===== */
 function addTask(groupId, subKey) {
-  const term = currentTerm();
   const id = groupId + "-custom-" + Math.random().toString(36).slice(2, 8);
   const newTask = { id, group: groupId, sub: subKey || null, label: "New item" };
   let lastMatchIdx = -1, lastGroupIdx = -1;
@@ -198,7 +444,7 @@ function addTask(groupId, subKey) {
   });
   const insertAt = (lastMatchIdx !== -1 ? lastMatchIdx : lastGroupIdx) + 1;
   STATE.tasksList.splice(insertAt, 0, newTask);
-  STATE.tasks[id] = { active: new Array(deriveTerm(term).dayCount).fill(false), owner: "", note: "", cellDetails: {} };
+  STATE.tasks[id] = { active: new Array(YEAR_DAYS).fill(false), owner: "", note: "", cellDetails: {}, fields: {} };
   rebuildIndex();
   queueSave();
   renderBoard();
@@ -241,11 +487,15 @@ function showUndoToast(label, onUndo) {
 }
 
 function loadViewPref() {
+  // Days is the default zoom — the day grid is the thing people plan against.
   const v = localStorage.getItem("ilab-view-pref");
-  if (v === "day" || v === "week") viewMode = v;
+  viewMode = (v === "day" || v === "week") ? v : "day";
+  const saved = localStorage.getItem("ilab-window-pref");
+  currentViewIdx = saved ? viewIdxById(saved) : 0;
 }
 function saveViewPref() {
   localStorage.setItem("ilab-view-pref", viewMode);
+  localStorage.setItem("ilab-window-pref", currentView().id);
 }
 
 /* ===== Resizable name / panel columns ===== */
@@ -338,27 +588,53 @@ function setFloatingSave(state) {
 }
 
 function queueSave() {
+  if (loadFailed) { setSaveStatus("Not saving — reload first", true); return; }
   setSaveStatus("Saving…", false);
   setFloatingSave("dirty");
   clearTimeout(saveTimer);
   saveTimer = setTimeout(doSave, 500);
 }
+
+// Saves each term record separately, sending the version we loaded so the
+// server can refuse a blind overwrite if someone else saved in between.
+// A conflict on any one segment stops the whole save and asks for a reload —
+// half-applying a year's worth of edits would be worse than not saving.
 async function doSave() {
+  if (loadFailed) { setSaveStatus("Not saving — reload first", true); return; }
   if (saving) { clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 300); return; }
   saving = true;
   setFloatingSave("saving");
   const editor = getEditorName();
   try {
-    const res = await fetch("/api/board/" + encodeURIComponent(currentTerm().key), {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data: STATE, updatedBy: editor || null })
-    });
-    if (!res.ok) throw new Error("save failed: " + res.status);
+    for (const seg of SEGMENTS) {
+      const meta = SEGMENT_META[seg.id] || {};
+      const body = { data: segmentPayload(seg), updatedBy: editor || null };
+      // Only assert a version for records we actually read a version from.
+      if (typeof meta.version === "number") body.version = meta.version;
+      const res = await fetch("/api/board/" + encodeURIComponent(seg.key), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      if (res.status === 409) {
+        const info = await res.json().catch(() => ({}));
+        saving = false;
+        setFloatingSave("error");
+        blockSavingForConflict(seg, info);
+        return;
+      }
+      if (!res.ok) throw new Error("save failed on " + seg.key + ": " + res.status);
+      const json = await res.json().catch(() => ({}));
+      if (typeof json.version === "number") meta.version = json.version;
+      meta.updatedBy = editor;
+      meta.updatedAt = new Date().toISOString();
+      SEGMENT_META[seg.id] = meta;
+    }
     lastMeta = { updatedBy: editor, updatedAt: new Date().toISOString() };
-    setSaveStatus(`Saved${editor ? " by " + editor : ""} · shared with everyone viewing ${currentTerm().label}`, false);
+    setSaveStatus(`Saved${editor ? " by " + editor : ""} · shared with everyone viewing this board`, false);
     setFloatingSave("saved");
   } catch (e) {
+    console.error(e);
     setSaveStatus("Couldn't save — check your connection", true);
     setFloatingSave("error");
   } finally {
@@ -369,6 +645,65 @@ function forceSaveNow() {
   clearTimeout(saveTimer);
   doSave();
 }
+
+/* ===== Reload guards =====
+   Two situations must never end in a silent overwrite: a board we couldn't
+   read, and a board someone else has saved since we read it. In both cases
+   saving is disabled outright and the person is told to reload, rather than
+   letting an edit land on top of work we can't see. */
+function showTopBanner(kind, html) {
+  let el = document.getElementById("topBanner");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "topBanner";
+    const wrap = document.querySelector(".wrap");
+    wrap.insertBefore(el, wrap.firstChild.nextSibling);
+  }
+  el.className = "top-banner top-banner-" + kind;
+  el.innerHTML = html;
+  const btn = el.querySelector(".top-banner-reload");
+  if (btn) btn.addEventListener("click", () => location.reload());
+  const dismiss = el.querySelector(".top-banner-dismiss");
+  if (dismiss) dismiss.addEventListener("click", () => el.remove());
+}
+
+function blockSavingForReload() {
+  loadFailed = true;
+  clearTimeout(saveTimer);
+  const failed = SEGMENTS.filter(s => (SEGMENT_META[s.id] || {}).failed).map(s => s.label).join(", ");
+  setSaveStatus("Couldn't load " + failed + " — saving is off", true);
+  setFloatingSave("error");
+  showTopBanner("error",
+    `<b>Couldn't load ${failed}.</b> Saving is switched off so nothing you do here can overwrite
+     work that's already saved. Reload to try again — if it keeps failing, the board is still safe in the database.
+     <button type="button" class="btn top-banner-reload">Reload</button>`);
+}
+
+function blockSavingForConflict(seg, info) {
+  loadFailed = true;
+  clearTimeout(saveTimer);
+  const who = info.currentUpdatedBy ? " by " + info.currentUpdatedBy : "";
+  const when = info.currentUpdatedAt ? " at " + info.currentUpdatedAt : "";
+  setSaveStatus("Someone else saved " + seg.label + " — reload before continuing", true);
+  showTopBanner("error",
+    `<b>${seg.label} was saved${who}${when} since you loaded this page.</b>
+     Your change was <i>not</i> saved, so their work is intact. Reload to pick up their version,
+     then re-make your edit. <button type="button" class="btn top-banner-reload">Reload</button>`);
+}
+
+function showMigrationBanner() {
+  const lines = migrationNotes.slice(0, 6).map(n => "<li>" + n + "</li>").join("");
+  const more = migrationNotes.length > 6 ? `<li>…and ${migrationNotes.length - 6} more</li>` : "";
+  showTopBanner("info",
+    `<b>Existing marks were re-aligned to the new full-year calendar.</b>
+     Term boards used to start on the first day of classes; they now start on the first day of the month,
+     so saved days were shifted to keep them on the same real dates.
+     <ul>${lines}${more}</ul>
+     Nothing has been written yet — this shift saves on your next edit, and every prior version is still
+     in Version history if anything looks off.
+     <button type="button" class="btn top-banner-dismiss">Got it</button>`);
+}
+
 window.addEventListener("beforeunload", (e) => {
   if (saveState === "dirty" || saveState === "saving") {
     e.preventDefault();
@@ -377,10 +712,6 @@ window.addEventListener("beforeunload", (e) => {
 });
 
 /* ===== Cell details (time & location for a specific marked day) ===== */
-function pad2(n) { return String(n).padStart(2, "0"); }
-function isoForDate(d) {
-  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
-}
 function getCellDetails(taskId, dayIdx) {
   const st = STATE.tasks[taskId];
   if (!st || !st.cellDetails) return null;
@@ -390,13 +721,19 @@ function setCellDetails(taskId, dayIdx, details) {
   const st = STATE.tasks[taskId];
   if (!st) return;
   if (!st.cellDetails) st.cellDetails = {};
+  const existing = st.cellDetails[dayIdx] || {};
+  // Per-date export field overrides live alongside time/location and must
+  // survive an edit (or a clear) of the time/location part.
+  const keepFields = details && details.fields ? details.fields : (existing.fields || {});
+  const hasFields = keepFields && Object.keys(keepFields).length;
   const hasContent = details && (details.start || details.end || details.location || details.comment);
-  if (hasContent) {
+  if (hasContent || hasFields) {
     st.cellDetails[dayIdx] = {
-      start: details.start || "",
-      end: details.end || "",
-      location: details.location || "",
-      comment: details.comment || ""
+      start: details ? (details.start || "") : "",
+      end: details ? (details.end || "") : "",
+      location: details ? (details.location || "") : "",
+      comment: details ? (details.comment || "") : "",
+      fields: keepFields || {}
     };
   } else {
     delete st.cellDetails[dayIdx];
@@ -435,116 +772,281 @@ function summarizeCellDetails(det) {
   return parts.join(" · ");
 }
 
-let openCellCtx = null; // { taskId, dayIdx, cellEl }
 
-function cellPopoverEls() {
+/* ===== Event editor ========================================================
+   An "event" is one row on one specific date — exactly one line in the ClickUp
+   export. This is where all of its fields are set. Opening it is the default
+   click action on a day cell, because looking at and adjusting a single
+   occurrence is what people actually do most of the time.
+
+   Fast bulk marking is preserved by dragging across cells to paint a run, and
+   by modifier-clicking a cell to toggle it without opening anything. ========= */
+
+let evCtx = null;          // { taskId, yearIdx, draft }
+let evPrevFocus = null;
+
+// Fields offered per event. Task name is included because a single occurrence
+// often needs its own title; dates and Year & Term are derived, so they're
+// shown in the "Exports as" preview instead of being typed here.
+const EVENT_FIELD_KEYS = ["taskName", "assignees", "list", "programOffering", "subtype",
+                          "status", "format", "location", "includeWeb", "flags",
+                          "zoomLink", "regLink", "preview", "description"];
+
+function eventEditorEls() {
   return {
-    pop: document.getElementById("cellDetailsPopover"),
-    title: document.getElementById("cellPopoverTitle"),
-    start: document.getElementById("cellStartTime"),
-    end: document.getElementById("cellEndTime"),
-    location: document.getElementById("cellLocation"),
-    comment: document.getElementById("cellComment")
+    root: document.getElementById("eventEditor"),
+    backdrop: document.getElementById("eventEditorBackdrop"),
+    swatch: document.getElementById("eventEditorSwatch"),
+    title: document.getElementById("eventEditorTitle"),
+    sub: document.getElementById("eventEditorSub"),
+    start: document.getElementById("evStartTime"),
+    end: document.getElementById("evEndTime"),
+    comment: document.getElementById("evComment"),
+    fields: document.getElementById("evFields"),
+    whenPreview: document.getElementById("evWhenPreview"),
+    exportPreview: document.getElementById("evExportPreview")
   };
 }
 
-function positionPopover(pop, anchorEl) {
-  const r = anchorEl.getBoundingClientRect();
-  const popW = 260, popH = pop.offsetHeight || 300;
-  let left = r.left;
-  let top = r.bottom + 6;
-  if (left + popW > window.innerWidth - 12) left = window.innerWidth - popW - 12;
-  if (top + popH > window.innerHeight - 12) top = Math.max(12, r.top - popH - 6);
-  pop.style.left = Math.max(12, left) + "px";
-  pop.style.top = top + "px";
+function openEventEditor(taskId, yearIdx) {
+  const task = TASKS.find(t => t.id === taskId);
+  const st = STATE.tasks[taskId];
+  if (!task || !st) return;
+  const g = GROUP_BY_ID[task.group];
+  const els = eventEditorEls();
+  const det = getCellDetails(taskId, yearIdx) || {};
+
+  // Everything is edited on a draft and only committed on Save, so Cancel is
+  // a real cancel rather than a partial write.
+  evCtx = {
+    taskId, yearIdx,
+    draft: {
+      start: det.start || "",
+      end: det.end || "",
+      comment: det.comment || "",
+      fields: JSON.parse(JSON.stringify(det.fields || {}))
+    }
+  };
+
+  els.swatch.style.background = g.color;
+  els.title.textContent = task.label;
+  els.sub.innerHTML = `${fmtLongFull(isoForYearIdx(yearIdx))} · <b>${g.name}</b>${task.sub ? " · " + task.sub : ""}`;
+  els.start.value = evCtx.draft.start;
+  els.end.value = evCtx.draft.end;
+  els.comment.value = evCtx.draft.comment;
+  els.comment.oninput = () => { evCtx.draft.comment = els.comment.value; renderEventPreview(); };
+  els.start.oninput = () => { evCtx.draft.start = els.start.value; renderEventPreview(); };
+  els.end.oninput = () => { evCtx.draft.end = els.end.value; renderEventPreview(); };
+
+  renderEventFields();
+  renderEventPreview();
+
+  evPrevFocus = document.activeElement;
+  els.backdrop.classList.remove("hidden");
+  els.root.classList.remove("hidden");
+  document.addEventListener("keydown", handleEventEditorKeys);
+  setTimeout(() => els.start.focus(), 0);
 }
 
-function handleOutsideClick(e) {
-  const { pop } = cellPopoverEls();
-  if (pop && !pop.contains(e.target)) closeCellPopover();
+function closeEventEditor() {
+  const els = eventEditorEls();
+  els.root.classList.add("hidden");
+  els.backdrop.classList.add("hidden");
+  document.removeEventListener("keydown", handleEventEditorKeys);
+  evCtx = null;
+  if (evPrevFocus && evPrevFocus.focus) evPrevFocus.focus();
+  evPrevFocus = null;
 }
-function handlePopoverEscape(e) {
-  if (e.key === "Escape") closeCellPopover();
-}
-
-function openCellPopover(task, dayIdx, cellEl) {
-  const { pop, title, start, end, location, comment } = cellPopoverEls();
-  const term = currentTerm();
-  const det = getCellDetails(task.id, dayIdx) || {};
-  openCellCtx = { taskId: task.id, dayIdx, cellEl };
-  title.textContent = task.label + " — " + fmtShort(dateForDay(term, dayIdx));
-  start.value = det.start || "";
-  end.value = det.end || "";
-  location.value = det.location || "";
-  comment.value = det.comment || "";
-
-  pop.classList.remove("hidden");
-  positionPopover(pop, cellEl);
-  setTimeout(() => document.addEventListener("mousedown", handleOutsideClick), 0);
-  document.addEventListener("keydown", handlePopoverEscape);
-  start.focus();
+function handleEventEditorKeys(e) {
+  if (e.key === "Escape") { e.preventDefault(); closeEventEditor(); }
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); saveEventEditor(); }
 }
 
-function closeCellPopover() {
-  const { pop } = cellPopoverEls();
-  pop.classList.add("hidden");
-  openCellCtx = null;
-  document.removeEventListener("mousedown", handleOutsideClick);
-  document.removeEventListener("keydown", handlePopoverEscape);
+// What this field would resolve to if the event itself said nothing.
+function inheritedValue(taskId, key) {
+  const task = TASKS.find(t => t.id === taskId);
+  const fromRow = rowOverride(taskId, key);
+  if (fromRow) return { value: unsentinel(fromRow), from: "row" };
+  const fromBucket = task ? bucketDefault(task.group, key) : "";
+  if (fromBucket) return { value: unsentinel(fromBucket), from: "bucket" };
+  return { value: "", from: "none" };
 }
 
-function refreshCellVisual(taskId, dayIdx, cellEl) {
-  const det = getCellDetails(taskId, dayIdx);
-  const term = currentTerm();
-  const dt = dateForDay(term, dayIdx);
-  const summary = summarizeCellDetails(det);
-  cellEl.title = fmtShort(dt) + (summary ? " — " + summary : "");
-  cellEl.classList.toggle("has-details", !!det);
-}
+function renderEventFields() {
+  if (!evCtx) return;
+  const { taskId } = evCtx;
+  const task = TASKS.find(t => t.id === taskId);
+  const st = STATE.tasks[taskId];
+  const host = eventEditorEls().fields;
+  host.innerHTML = "";
 
-function saveCellPopover() {
-  if (!openCellCtx) return;
-  const { taskId, dayIdx, cellEl } = openCellCtx;
-  const { start, end, location, comment } = cellPopoverEls();
-  const startVal = start.value.trim();
-  const endVal = end.value.trim();
-  if (startVal && parseTimeStr(startVal) === null) {
-    setSaveStatus("Start time looks invalid", true);
-    return;
-  }
-  if (endVal && parseTimeStr(endVal) === null) {
-    setSaveStatus("End time looks invalid", true);
-    return;
-  }
-  setCellDetails(taskId, dayIdx, {
-    start: startVal,
-    end: endVal,
-    location: location.value.trim(),
-    comment: comment.value.trim()
+  EVENT_FIELD_KEYS.forEach(key => {
+    const f = EXPORT_FIELD_BY_KEY[key];
+    const own = evCtx.draft.fields[key] || "";
+    const inh = inheritedValue(taskId, key);
+
+    const cell = document.createElement("label");
+    cell.className = "event-field";
+
+    const lab = document.createElement("span");
+    lab.className = "event-field-label";
+    lab.textContent = f.header;
+    if (own) {
+      const badge = document.createElement("i");
+      badge.className = "inherit-dot inherit-date";
+      badge.title = "Set on this event only";
+      lab.appendChild(badge);
+    } else if (inh.from !== "none") {
+      const hint = document.createElement("span");
+      hint.className = "inherit-hint";
+      hint.textContent = inh.value + " (" + (inh.from === "row" ? "row" : "bucket") + ")";
+      lab.appendChild(hint);
+    }
+    cell.appendChild(lab);
+
+    // Derived fallbacks, so the placeholder tells the truth when nothing is set.
+    let placeholder = inh.value;
+    if (!placeholder) {
+      if (key === "taskName" || key === "preview") placeholder = task.label;
+      else if (key === "assignees") placeholder = emailsForOwnerString(st.owner);
+      else if (key === "description") placeholder = st.note || "";
+    }
+
+    cell.appendChild(fieldEditor(f.options, own, val => {
+      if (val) evCtx.draft.fields[key] = val;
+      else delete evCtx.draft.fields[key];
+      renderEventFields();
+      renderEventPreview();
+    }, 190, placeholder));
+    host.appendChild(cell);
   });
-  refreshCellVisual(taskId, dayIdx, cellEl);
-  syncExportRowsForCell(taskId, dayIdx);
-  queueSave();
-  setSaveStatus("Saved details for this date", false);
-  closeCellPopover();
 }
 
-function clearCellPopover() {
-  if (!openCellCtx) return;
-  const { taskId, dayIdx, cellEl } = openCellCtx;
-  setCellDetails(taskId, dayIdx, null);
-  refreshCellVisual(taskId, dayIdx, cellEl);
-  syncExportRowsForCell(taskId, dayIdx);
-  queueSave();
-  closeCellPopover();
+// Resolve the event against a temporary copy of state so the preview reflects
+// unsaved edits without touching the board.
+function previewResolved() {
+  if (!evCtx) return {};
+  const { taskId, yearIdx, draft } = evCtx;
+  const st = STATE.tasks[taskId];
+  const backup = st.cellDetails[yearIdx];
+  st.cellDetails[yearIdx] = {
+    start: draft.start, end: draft.end,
+    location: backup ? backup.location || "" : "",
+    comment: draft.comment, fields: draft.fields
+  };
+  const out = {};
+  EXPORT_FIELDS.forEach(f => { out[f.key] = resolveField(taskId, yearIdx, f.key); });
+  if (backup === undefined) delete st.cellDetails[yearIdx]; else st.cellDetails[yearIdx] = backup;
+  return out;
 }
+
+function renderEventPreview() {
+  if (!evCtx) return;
+  const els = eventEditorEls();
+  const r = previewResolved();
+  els.whenPreview.textContent = r.startDate + "  →  " + r.endDate +
+    (evCtx.draft.start ? "" : "  (default 10–11am — set a start time to change it)");
+  els.exportPreview.innerHTML = "";
+  EXPORT_FIELDS.forEach(f => {
+    const row = document.createElement("div");
+    row.className = "event-preview-row" + (r[f.key] ? "" : " is-empty");
+    const k = document.createElement("span");
+    k.className = "event-preview-key";
+    k.textContent = f.header;
+    const v = document.createElement("span");
+    v.className = "event-preview-val";
+    v.textContent = r[f.key] || "—";
+    row.appendChild(k); row.appendChild(v);
+    els.exportPreview.appendChild(row);
+  });
+}
+
+function saveEventEditor() {
+  if (!evCtx) return;
+  const { taskId, yearIdx, draft } = evCtx;
+  if (draft.start && parseTimeStr(draft.start) === null) { setSaveStatus("Start time looks invalid", true); return; }
+  if (draft.end && parseTimeStr(draft.end) === null) { setSaveStatus("End time looks invalid", true); return; }
+
+  const st = STATE.tasks[taskId];
+  const existing = st.cellDetails[yearIdx] || {};
+  setCellDetails(taskId, yearIdx, {
+    start: draft.start,
+    end: draft.end,
+    location: draft.fields.location ? "" : (existing.location || ""),
+    comment: draft.comment,
+    fields: draft.fields
+  });
+  syncExportRowsForCell(taskId, yearIdx);
+  queueSave();
+  const n = Object.keys(draft.fields).length;
+  setSaveStatus(n ? `Saved this event · ${n} field${n === 1 ? "" : "s"} set on the date` : "Saved this event", false);
+  closeEventEditor();
+  renderBoard();
+}
+
+function removeEventDate() {
+  if (!evCtx) return;
+  const { taskId, yearIdx } = evCtx;
+  const st = STATE.tasks[taskId];
+  st.active[yearIdx] = false;
+  if (st.cellDetails) delete st.cellDetails[yearIdx];
+  const iso = isoForYearIdx(yearIdx);
+  STATE.exportRows = STATE.exportRows.filter(r => !(r.taskId === taskId && r.date === iso));
+  queueSave();
+  closeEventEditor();
+  renderAll();
+  setSaveStatus("Unmarked that date", false);
+}
+
+/* ---- Click behaviour on day cells ----
+   A plain click opens the event (marking the day first if it wasn't marked).
+   Dragging paints a run of days without opening anything, and holding
+   Alt/Shift/Cmd toggles a single day the old way. */
+let paintCtx = null;   // { taskId, turnOn, moved, startYearIdx }
+
+function beginPaint(taskId, yearIdx, turnOn) {
+  paintCtx = { taskId, turnOn, moved: false, startYearIdx: yearIdx };
+  document.body.classList.add("is-painting");
+}
+function paintCell(taskId, yearIdx) {
+  if (!paintCtx || paintCtx.taskId !== taskId) return;
+  if (yearIdx === paintCtx.startYearIdx) return;
+  const st = STATE.tasks[taskId];
+  // The first movement is what turns a click into a drag — at that moment the
+  // cell the drag started on has to be committed too, or it gets skipped.
+  if (!paintCtx.moved) {
+    st.active[paintCtx.startYearIdx] = paintCtx.turnOn;
+    paintCtx.moved = true;
+  }
+  if (st.active[yearIdx] !== paintCtx.turnOn) st.active[yearIdx] = paintCtx.turnOn;
+}
+function endPaint() {
+  document.body.classList.remove("is-painting");
+  if (!paintCtx) return;
+  const ctx = paintCtx;
+  paintCtx = null;
+  if (ctx.moved) {
+    const t = TASKS.find(x => x.id === ctx.taskId);
+    updateGroupCount(t.group);
+    updateRowCount(ctx.taskId, STATE.tasks[ctx.taskId]);
+    refreshRollups(t.group);
+    queueSave();
+    renderBoard();
+  }
+  return ctx;
+}
+document.addEventListener("mouseup", () => { if (paintCtx) endPaint(); });
 
 /* ===== Rendering ===== */
 function groupActiveCount(groupId) {
+  const v = currentView();
   let count = 0;
   TASKS_BY_GROUP[groupId].forEach(t => {
     const st = STATE.tasks[t.id];
-    if (st && st.active.some(Boolean)) count++;
+    if (!st) return;
+    for (let yi = v.offset; yi < v.offset + v.days; yi++) {
+      if (st.active[yi]) { count++; return; }
+    }
   });
   return count;
 }
@@ -566,38 +1068,44 @@ function tasksForScope(groupId, sub) {
 
 // Per-day count of how many rows in `tasks` are marked active.
 function rollupCounts(tasks) {
-  const dayCount = deriveTerm(currentTerm()).dayCount;
-  const counts = new Array(dayCount).fill(0);
+  // Counts are keyed by YEAR index so they stay valid across view switches.
+  const counts = new Array(YEAR_DAYS).fill(0);
   tasks.forEach(t => {
     const st = STATE.tasks[t.id];
     if (!st || !Array.isArray(st.active)) return;
-    for (let i = 0; i < dayCount; i++) if (st.active[i]) counts[i]++;
+    for (let yi = 0; yi < YEAR_DAYS; yi++) if (st.active[yi]) counts[yi]++;
   });
   return counts;
 }
 
 // How many distinct days this set of rows touches — the headline number for
 // "how much of the term does this bucket occupy?"
+// Distinct days touched, counted only within the view that's on screen — the
+// chip should describe what you're looking at, not the whole year.
 function rollupDayTotal(tasks) {
-  return rollupCounts(tasks).filter(c => c > 0).length;
+  const counts = rollupCounts(tasks);
+  const v = currentView();
+  let n = 0;
+  for (let yi = v.offset; yi < v.offset + v.days; yi++) if (counts[yi] > 0) n++;
+  return n;
 }
 
-function rollupTasksOnDay(tasks, dayIdx) {
+function rollupTasksOnDay(tasks, yearIdx) {
   return tasks.filter(t => {
     const st = STATE.tasks[t.id];
-    return st && st.active[dayIdx];
+    return st && st.active[yearIdx];
   });
 }
 
-function rollupCellTitle(term, tasks, dayIdxs, counts) {
+function rollupCellTitle(tasks, dayIdxs, counts) {
   const days = dayIdxs.filter(i => counts[i] > 0);
   const names = [];
   days.forEach(i => rollupTasksOnDay(tasks, i).forEach(t => {
     if (!names.includes(t.label)) names.push(t.label);
   }));
   const when = dayIdxs.length === 1
-    ? fmtShort(dateForDay(term, dayIdxs[0]))
-    : fmtShort(dateForDay(term, dayIdxs[0])) + " – " + fmtShort(dateForDay(term, dayIdxs[dayIdxs.length - 1]));
+    ? fmtShort(dateForYearIdx(dayIdxs[0]))
+    : fmtShort(dateForYearIdx(dayIdxs[0])) + " – " + fmtShort(dateForYearIdx(dayIdxs[dayIdxs.length - 1]));
   if (!names.length) return when + " — nothing marked";
   const shown = names.slice(0, 6).join(", ") + (names.length > 6 ? ", +" + (names.length - 6) + " more" : "");
   const dayNote = dayIdxs.length > 1 ? " across " + days.length + " day" + (days.length === 1 ? "" : "s") : "";
@@ -613,14 +1121,13 @@ function renderRollupStrip(host) {
   const sub = host.dataset.rollupSub || "";
   const g = GROUP_BY_ID[groupId];
   if (!g) return;
-  const term = currentTerm();
   const tasks = tasksForScope(groupId, sub);
   const counts = rollupCounts(tasks);
 
   host.innerHTML = "";
   const track = document.createElement("div");
   track.className = "rollup-track" + (sub ? " rollup-track-sub" : "");
-  const n = colCount(term);
+  const n = colCount();
   track.style.gridTemplateColumns = `repeat(${n}, var(--cell-w))`;
 
   const makeCell = (dayIdxs) => {
@@ -631,7 +1138,7 @@ function renderRollupStrip(host) {
     cell.type = "button";
     cell.className = "rollup-cell";
     if (viewMode === "day") {
-      const dt = dateForDay(term, dayIdxs[0]);
+      const dt = dateForYearIdx(dayIdxs[0]);
       const dow = dt.getDay();
       if (dow === 0 || dow === 6) cell.classList.add("weekend");
       if (dt.getDate() === 1) cell.classList.add("month-start");
@@ -645,15 +1152,11 @@ function renderRollupStrip(host) {
       cell.classList.add("is-off");
       cell.disabled = true;
     }
-    cell.title = rollupCellTitle(term, tasks, dayIdxs, counts);
+    cell.title = rollupCellTitle(tasks, dayIdxs, counts);
     return cell;
   };
 
-  if (viewMode === "day") {
-    for (let i = 0; i < n; i++) track.appendChild(makeCell([i]));
-  } else {
-    deriveTerm(term).weekGroups.forEach(grp => track.appendChild(makeCell(grp)));
-  }
+  for (let i = 0; i < n; i++) track.appendChild(makeCell(yearIdxsForCol(i)));
   host.appendChild(track);
 }
 
@@ -677,7 +1180,6 @@ function refreshAllRollups() {
    nothing here can flip a mark by accident. */
 function openRollupPanel(groupId, sub, dayIdxs) {
   const g = GROUP_BY_ID[groupId];
-  const term = currentTerm();
   const tasks = tasksForScope(groupId, sub);
   const panel = document.getElementById("rollupPanel");
   const swatch = document.getElementById("rollupPanelSwatch");
@@ -689,8 +1191,8 @@ function openRollupPanel(groupId, sub, dayIdxs) {
   swatch.style.background = g.color;
   const scopeName = g.name + (sub ? " · " + sub : "");
   const dayLabel = dayIdxs.length === 1
-    ? fmtLong(isoForDate(dateForDay(term, dayIdxs[0])))
-    : fmtShort(dateForDay(term, dayIdxs[0])) + " – " + fmtShort(dateForDay(term, dayIdxs[dayIdxs.length - 1]));
+    ? fmtLong(isoForYearIdx(dayIdxs[0]))
+    : fmtShort(dateForYearIdx(dayIdxs[0])) + " – " + fmtShort(dateForYearIdx(dayIdxs[dayIdxs.length - 1]));
   title.textContent = scopeName + " — " + dayLabel;
 
   list.innerHTML = "";
@@ -708,7 +1210,7 @@ function openRollupPanel(groupId, sub, dayIdxs) {
       head.className = "day-search-day-header";
       const dateEl = document.createElement("span");
       dateEl.className = "day-search-day-date";
-      dateEl.textContent = fmtLong(isoForDate(dateForDay(term, dayIdx)));
+      dateEl.textContent = fmtLong(isoForYearIdx(dayIdx));
       const cnt = document.createElement("span");
       cnt.className = "day-search-day-count";
       cnt.textContent = rows.length + " item" + (rows.length === 1 ? "" : "s");
@@ -728,9 +1230,12 @@ function openRollupPanel(groupId, sub, dayIdxs) {
       dot.style.background = g.color;
       row.appendChild(dot);
 
-      const name = document.createElement("span");
-      name.className = "day-search-name";
+      const name = document.createElement("button");
+      name.type = "button";
+      name.className = "day-search-name day-search-open";
       name.textContent = t.label;
+      name.title = "Open this event";
+      name.addEventListener("click", () => openEventEditor(t.id, dayIdx));
       row.appendChild(name);
 
       if (t.sub && !sub) {
@@ -764,7 +1269,7 @@ function openRollupPanel(groupId, sub, dayIdxs) {
 
   count.textContent = total + " item" + (total === 1 ? "" : "s") +
     (dayIdxs.length > 1 ? " across " + daysWithItems.length + " day" + (daysWithItems.length === 1 ? "" : "s") : "") +
-    " · " + term.label;
+    " · " + yearTermForYearIdx(dayIdxs[0]);
 
   panel.classList.remove("hidden");
   panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -776,34 +1281,38 @@ function closeRollupPanel() {
 }
 
 function renderMilestoneRow() {
-  const term = currentTerm();
   const row = document.getElementById("milestoneRow");
   row.innerHTML = "";
   const track = document.createElement("div");
   track.className = "week-track";
-  track.style.gridTemplateColumns = `repeat(${colCount(term)}, var(--cell-w))`;
+  track.style.gridTemplateColumns = `repeat(${colCount()}, var(--cell-w))`;
   track.style.height = "1px";
   row.appendChild(track);
 
-  // month tags (day view only)
-  if (viewMode === "day") {
-    const d = deriveTerm(term);
-    for (let i = 0; i < d.dayCount; i++) {
-      const dt = dateForDay(term, i);
-      if (dt.getDate() === 1 || i === 0) {
-        const tag = document.createElement("div");
-        tag.className = "pin pin-month";
-        tag.style.left = `calc(${i} * var(--cell-w) + var(--cell-w) / 2)`;
-        tag.innerHTML = `<span class="pin-label">${MONTHS[dt.getMonth()]}</span>`;
-        track.appendChild(tag);
-      }
+  // Month tags. In day view a tag sits on the 1st of each month; across a full
+  // year that's the main way to keep your bearings while scrolling.
+  const n = colCount();
+  for (let i = 0; i < n; i++) {
+    const dt = dateForCol(i);
+    const isFirstCol = i === 0;
+    const startsMonth = viewMode === "day"
+      ? dt.getDate() === 1
+      : yearIdxsForCol(i).some(yi => dateForYearIdx(yi).getDate() === 1);
+    if (startsMonth || isFirstCol) {
+      const monthDt = viewMode === "day" ? dt
+        : dateForYearIdx(yearIdxsForCol(i).find(yi => dateForYearIdx(yi).getDate() === 1) ?? yearIdxsForCol(i)[0]);
+      const tag = document.createElement("div");
+      tag.className = "pin pin-month";
+      tag.style.left = `calc(${i} * var(--cell-w) + var(--cell-w) / 2)`;
+      const showYear = monthDt.getMonth() === 0 || isFirstCol;
+      tag.innerHTML = `<span class="pin-label">${MONTHS[monthDt.getMonth()]}${showYear ? " " + monthDt.getFullYear() : ""}</span>`;
+      track.appendChild(tag);
     }
   }
 
-  term.milestones.forEach(m => {
-    const dayIdx = dayIndexForDate(term, m.date);
-    if (dayIdx === null) return;
-    const col = colIndexForDayIndex(term, dayIdx);
+  milestonesInView().forEach(m => {
+    const col = colForYearIdx(yearIdxForIso(m.date));
+    if (col === null) return;
     const pin = document.createElement("div");
     pin.className = "pin pin-" + m.kind;
     pin.style.left = `calc(${col} * var(--cell-w) + var(--cell-w) / 2)`;
@@ -814,33 +1323,37 @@ function renderMilestoneRow() {
 }
 
 function renderWeekHeader() {
-  const term = currentTerm();
+  const v = currentView();
   const row = document.getElementById("weekHeaderRow");
   row.innerHTML = "";
 
   const namesSpacer = document.getElementById("namesSpacer");
-  if (namesSpacer) namesSpacer.textContent = term.label + " · " + (viewMode === "day" ? "days" : "weeks");
+  if (namesSpacer) namesSpacer.textContent = v.label + " · " + (viewMode === "day" ? "days" : "weeks");
 
   const track = document.createElement("div");
   track.className = "week-track";
-  const n = colCount(term);
+  const n = colCount();
   track.style.gridTemplateColumns = `repeat(${n}, var(--cell-w))`;
 
   if (viewMode === "day") {
     for (let i = 0; i < n; i++) {
-      const dt = dateForDay(term, i);
+      const dt = dateForCol(i);
       const dow = dt.getDay();
       const cell = document.createElement("div");
       cell.className = "day-head-cell" + (dow === 0 || dow === 6 ? " weekend" : "") + (dt.getDate() === 1 ? " month-start" : "");
-      cell.title = fmtShort(dt);
+      cell.title = fmtLong(isoForDate(dt));
       cell.innerHTML = `<span class="dh-dow">${WEEKDAY_LETTERS[dow]}</span><span class="dh-num">${dt.getDate()}</span>`;
       track.appendChild(cell);
     }
   } else {
     for (let i = 0; i < n; i++) {
+      const grp = yearIdxsForCol(i);
+      const first = dateForYearIdx(grp[0]);
+      const last = dateForYearIdx(grp[grp.length - 1]);
       const cell = document.createElement("div");
-      cell.className = "week-head-cell";
-      cell.innerHTML = `<span>${fmtShort(colStartDate(term, i))}</span>`;
+      cell.className = "week-head-cell" + (first.getDate() <= 7 ? " month-start" : "");
+      cell.title = fmtShort(first) + " – " + fmtShort(last);
+      cell.innerHTML = `<span>${fmtShort(first)}</span>`;
       track.appendChild(cell);
     }
   }
@@ -848,9 +1361,11 @@ function renderWeekHeader() {
 }
 
 function taskRowMarkup(t) {
-  const term = currentTerm();
+  const v = currentView();
   const st = STATE.tasks[t.id];
-  const activeN = st.active.filter(Boolean).length;
+  // The "Nd" chip counts days inside the current view, not the whole year.
+  let activeN = 0;
+  for (let yi = v.offset; yi < v.offset + v.days; yi++) if (st.active[yi]) activeN++;
   const isSelected = !!STATE.selected[t.id];
 
   const left = document.createElement("div");
@@ -881,6 +1396,18 @@ function taskRowMarkup(t) {
   del.innerHTML = "×";
   del.addEventListener("click", () => removeTask(t.id));
   left.appendChild(del);
+
+  const gear = document.createElement("button");
+  gear.type = "button";
+  gear.className = "task-fields" + (openRowFieldsId === t.id ? " is-open" : "");
+  const overrideCount = Object.keys((STATE.tasks[t.id].fields) || {}).length;
+  gear.title = overrideCount
+    ? overrideCount + " field" + (overrideCount === 1 ? "" : "s") + " set on this row"
+    : "Event fields for this row (inherits from " + GROUP_BY_ID[t.group].name + ")";
+  gear.textContent = "⚙";
+  if (overrideCount) gear.classList.add("has-overrides");
+  gear.addEventListener("click", () => openRowFields(t.id));
+  left.appendChild(gear);
 
   const label = document.createElement("div");
   label.className = "task-label";
@@ -917,59 +1444,92 @@ function taskRowMarkup(t) {
 
   const track = document.createElement("div");
   track.className = "week-track cell-track";
-  const n = colCount(term);
+  const n = colCount();
   track.style.gridTemplateColumns = `repeat(${n}, var(--cell-w))`;
   const color = GROUP_BY_ID[t.group].color;
 
   if (viewMode === "day") {
     for (let i = 0; i < n; i++) {
-      const dt = dateForDay(term, i);
+      const yi = yearIdxForCol(i);
+      const dt = dateForYearIdx(yi);
       const dow = dt.getDay();
       const cell = document.createElement("button");
       cell.type = "button";
       cell.className = "week-cell day-cell" + (dow === 0 || dow === 6 ? " weekend" : "") + (dt.getDate() === 1 ? " month-start" : "");
-      cell.setAttribute("aria-pressed", st.active[i] ? "true" : "false");
-      const det0 = getCellDetails(t.id, i);
-      cell.title = fmtShort(dt) + (det0 ? " — " + summarizeCellDetails(det0) : "") + " · right-click to add time & location";
+      cell.setAttribute("aria-pressed", st.active[yi] ? "true" : "false");
+      const det0 = getCellDetails(t.id, yi);
+      cell.title = fmtShort(dt) + (det0 ? " — " + summarizeCellDetails(det0) : "") + " · right-click for time, location & event fields";
       if (det0) cell.classList.add("has-details");
-      if (st.active[i]) cell.style.background = color;
-      cell.addEventListener("click", () => {
-        st.active[i] = !st.active[i];
-        cell.setAttribute("aria-pressed", st.active[i] ? "true" : "false");
-        cell.style.background = st.active[i] ? color : "";
+      if (st.active[yi]) cell.style.background = color;
+      const toggleOnly = () => {
+        st.active[yi] = !st.active[yi];
+        cell.setAttribute("aria-pressed", st.active[yi] ? "true" : "false");
+        cell.style.background = st.active[yi] ? color : "";
+        cell.classList.toggle("has-details", !!getCellDetails(t.id, yi));
         updateGroupCount(t.group);
         updateRowCount(t.id, st);
         refreshRollups(t.group);
         queueSave();
+      };
+      // Drag across cells to paint a run of days; a plain click (no drag)
+      // opens the event instead.
+      cell.addEventListener("mousedown", (e) => {
+        if (e.button !== 0) return;
+        if (e.altKey || e.shiftKey || e.metaKey || e.ctrlKey) return;
+        beginPaint(t.id, yi, !st.active[yi]);
+      });
+      cell.addEventListener("mouseenter", () => {
+        if (paintCtx && paintCtx.taskId === t.id) {
+          paintCell(t.id, yi);
+          cell.setAttribute("aria-pressed", st.active[yi] ? "true" : "false");
+          cell.style.background = st.active[yi] ? color : "";
+        }
+      });
+      cell.addEventListener("click", (e) => {
+        // Modifier-click = the old fast toggle, no dialog.
+        if (e.altKey || e.shiftKey || e.metaKey || e.ctrlKey) { toggleOnly(); return; }
+        const ctx = endPaint();
+        if (ctx && ctx.moved) return;             // that was a drag, not a click
+        if (!st.active[yi]) {                      // clicking an empty day creates the event
+          st.active[yi] = true;
+          cell.setAttribute("aria-pressed", "true");
+          cell.style.background = color;
+          updateGroupCount(t.group);
+          updateRowCount(t.id, st);
+          refreshRollups(t.group);
+          queueSave();
+        }
+        openEventEditor(t.id, yi);
       });
       cell.addEventListener("contextmenu", (e) => {
         e.preventDefault();
-        openCellPopover(t, i, cell);
+        if (st.active[yi]) openEventEditor(t.id, yi);
       });
       track.appendChild(cell);
     }
   } else {
-    const d = deriveTerm(term);
-    d.weekGroups.forEach((grp) => {
+    for (let i = 0; i < n; i++) {
+      const grp = yearIdxsForCol(i);
       const cell = document.createElement("button");
       cell.type = "button";
-      const activeInWeek = grp.filter(di => st.active[di]).length;
+      const activeInWeek = grp.filter(yi => st.active[yi]).length;
       const full = activeInWeek === grp.length && grp.length > 0;
       const partial = activeInWeek > 0 && !full;
       cell.className = "week-cell";
       cell.setAttribute("aria-pressed", full ? "true" : "false");
-      cell.title = fmtShort(dateForDay(term, grp[0])) + " – " + fmtShort(dateForDay(term, grp[grp.length - 1]));
+      cell.title = fmtShort(dateForYearIdx(grp[0])) + " – " + fmtShort(dateForYearIdx(grp[grp.length - 1]))
+        + (activeInWeek ? " · " + activeInWeek + " day" + (activeInWeek === 1 ? "" : "s") + " marked" : "");
       if (full) cell.style.background = color;
       else if (partial) cell.style.background = `linear-gradient(90deg, ${color} 50%, transparent 50%)`;
       cell.addEventListener("click", () => {
         const turnOn = activeInWeek < grp.length;
-        grp.forEach(di => { st.active[di] = turnOn; });
+        grp.forEach(yi => { st.active[yi] = turnOn; });
         updateGroupCount(t.group);
         queueSave();
         renderBoard();
       });
       track.appendChild(cell);
-    });
+    }
   }
   right.appendChild(track);
 
@@ -979,7 +1539,9 @@ function taskRowMarkup(t) {
 function updateRowCount(taskId, st) {
   const el = document.querySelector(`#namesBoard [data-task-id="${taskId}"] .row-count`);
   if (el) {
-    const activeN = st.active.filter(Boolean).length;
+    const v = currentView();
+    let activeN = 0;
+    for (let yi = v.offset; yi < v.offset + v.days; yi++) if (st.active[yi]) activeN++;
     el.textContent = activeN > 0 ? activeN + "d" : "";
   }
 }
@@ -1021,7 +1583,7 @@ function renderBoard() {
   const cellsRoot = document.getElementById("board");
   namesRoot.innerHTML = "";
   cellsRoot.innerHTML = "";
-  const trackWidthCss = `calc(${colCount(currentTerm())} * var(--cell-w))`;
+  const trackWidthCss = `calc(${colCount()} * var(--cell-w))`;
 
   GROUPS.forEach(g => {
     const collapsed = !!STATE.collapsed[g.id];
@@ -1090,6 +1652,13 @@ function renderBoard() {
           const { left, right } = taskRowMarkup(t);
           namesRoot.appendChild(left);
           cellsRoot.appendChild(right);
+          if (openRowFieldsId === t.id) {
+            namesRoot.appendChild(rowFieldsMarkup(t));
+            const shadow = document.createElement("div");
+            shadow.className = "row-fields-shadow";
+            shadow.style.width = trackWidthCss;
+            cellsRoot.appendChild(shadow);
+          }
         });
 
         const addRow = document.createElement("button");
@@ -1120,19 +1689,150 @@ function renderAll() {
   updateTermTabs();
   updateViewToggle();
   updateDeadlineChip();
+  buildMonthJump();
+  positionTodayLine();
+}
+
+/* ===== Navigation: view rail, month jump, sticky month, today line =========
+   A full year in day view is roughly eight thousand pixels wide, so the point
+   of all of this is that you always know where you are and can get somewhere
+   else in one action. ====================================================== */
+
+function setViewMode(mode) {
+  if (mode !== "day" && mode !== "week") return;
+  if (viewMode === mode) return;
+  // Keep the same date under the eye when the zoom changes.
+  const anchor = firstVisibleYearIdx();
+  viewMode = mode;
+  saveViewPref();
+  renderAll();
+  if (anchor !== null) scrollToYearIdx(anchor, "auto");
+}
+
+function updateViewToggle() {
+  document.querySelectorAll(".rail-zoom-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.mode === viewMode);
+  });
 }
 
 function updateTermTabs() {
   document.querySelectorAll(".term-tab").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.term === currentTerm().id);
+    btn.classList.toggle("active", btn.dataset.term === currentView().id);
   });
 }
-function updateViewToggle() {
-  const btn = document.getElementById("viewToggleBtn");
-  btn.textContent = viewMode === "day" ? "Collapse to weeks" : "Expand to days";
+
+// Which year index is at the left edge of the scroll viewport right now.
+function firstVisibleYearIdx() {
+  const boardScroll = document.getElementById("boardScroll");
+  if (!boardScroll) return null;
+  const cellW = viewMode === "day" ? 22 : 46;
+  const col = Math.round(boardScroll.scrollLeft / cellW);
+  const groups = deriveView().weekGroups;
+  if (viewMode === "day") {
+    const v = currentView();
+    return Math.min(v.offset + v.days - 1, v.offset + Math.max(0, col));
+  }
+  const g = groups[Math.min(groups.length - 1, Math.max(0, col))];
+  return g ? g[0] : null;
 }
+
+// Months that actually appear in the view on screen.
+function monthsInView() {
+  const v = currentView();
+  const out = [];
+  let last = null;
+  for (let k = 0; k < v.days; k++) {
+    const d = dateForYearIdx(v.offset + k);
+    const key = d.getFullYear() + "-" + d.getMonth();
+    if (key !== last) {
+      last = key;
+      out.push({ key, month: d.getMonth(), year: d.getFullYear(), yearIdx: v.offset + k });
+    }
+  }
+  return out;
+}
+
+function buildMonthJump() {
+  const host = document.getElementById("monthJump");
+  if (!host) return;
+  host.innerHTML = "";
+  monthsInView().forEach(m => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "rail-month";
+    b.dataset.monthKey = m.key;
+    b.innerHTML = `<span class="rail-month-name">${MONTHS[m.month]}</span>` +
+      (m.month === 0 || m.yearIdx === currentView().offset
+        ? `<span class="rail-month-year">'${String(m.year).slice(2)}</span>` : "");
+    b.title = MONTHS_LONG[m.month] + " " + m.year;
+    b.addEventListener("click", () => scrollToYearIdx(m.yearIdx, "smooth", "start"));
+    host.appendChild(b);
+  });
+  updateStickyMonth();
+}
+
+// Pin the month you're looking at, and light up its button in the rail.
+function updateStickyMonth() {
+  const label = document.getElementById("stickyMonth");
+  const yi = firstVisibleYearIdx();
+  if (!label || yi === null) return;
+  const d = dateForYearIdx(yi);
+  label.textContent = MONTHS_LONG[d.getMonth()] + " " + d.getFullYear();
+  const key = d.getFullYear() + "-" + d.getMonth();
+  document.querySelectorAll(".rail-month").forEach(b => {
+    b.classList.toggle("active", b.dataset.monthKey === key);
+  });
+  positionTodayLine();
+}
+
+// A vertical rule on today's column, so "now" is findable at a glance.
+function positionTodayLine() {
+  const line = document.getElementById("todayLine");
+  if (!line) return;
+  const yi = yearIdxForIso(isoForDate(new Date()));
+  const col = yi === null ? null : colForYearIdx(yi);
+  if (col === null) { line.classList.add("hidden"); return; }
+  line.classList.remove("hidden");
+  const cellW = viewMode === "day" ? 22 : 46;
+  line.style.left = (col * cellW + (viewMode === "day" ? cellW / 2 : 1)) + "px";
+}
+
+function scrollToYearIdx(yi, behavior, align) {
+  const boardScroll = document.getElementById("boardScroll");
+  if (!boardScroll) return;
+  const col = colForYearIdx(yi);
+  if (col === null) return;
+  const cellW = viewMode === "day" ? 22 : 46;
+  const targetLeft = align === "start"
+    ? Math.max(0, col * cellW - 2)
+    : Math.max(0, col * cellW - boardScroll.clientWidth / 2);
+  boardScroll.scrollTo({ left: targetLeft, behavior: behavior || "smooth" });
+  setTimeout(updateStickyMonth, 60);
+}
+function flashDayColumn(yi) { scrollToYearIdx(yi); }
+
+// Today lives in exactly one view; if it isn't in the one you're on, say so
+// rather than scrolling to nothing.
+function scrollToToday() {
+  const yi = yearIdxForIso(isoForDate(new Date()));
+  if (yi === null) { setSaveStatus("Today is outside " + YEAR.label, false); return; }
+  if (colForYearIdx(yi) === null) {
+    const seg = segmentForYearIdx(yi);
+    if (seg) { currentViewIdx = viewIdxById(seg.id); saveViewPref(); renderAll(); }
+  }
+  scrollToYearIdx(yi);
+}
+
+function toggleDaySearchBar() {
+  const bar = document.getElementById("daySearchBar");
+  if (!bar) return;
+  const nowHidden = bar.classList.toggle("hidden");
+  document.getElementById("findBtn").classList.toggle("active", !nowHidden);
+  if (!nowHidden) document.getElementById("daySearchInput").focus();
+}
+
 function updateDeadlineChip() {
-  document.getElementById("deadlineChip").textContent = currentTerm().deadline;
+  document.getElementById("deadlineChip").textContent = currentView().deadline;
 }
 
 function expandAll(state) {
@@ -1153,24 +1853,30 @@ function buildLegend() {
 }
 
 function copyPlanAsText() {
-  const term = currentTerm();
+  const v = currentView();
   const lines = [];
-  lines.push("i-lab " + term.label + " Planning — draft");
+  lines.push("i-lab " + v.label + " Planning — draft");
   lines.push("Generated " + new Date().toLocaleDateString());
   lines.push("");
   GROUPS.forEach(g => {
-    const items = TASKS_BY_GROUP[g.id].filter(t => STATE.tasks[t.id].active.some(Boolean) || STATE.tasks[t.id].note || STATE.tasks[t.id].owner);
+    const items = TASKS_BY_GROUP[g.id].filter(t => {
+      const st = STATE.tasks[t.id];
+      for (let yi = v.offset; yi < v.offset + v.days; yi++) if (st.active[yi]) return true;
+      return !!(st.note || st.owner);
+    });
     if (!items.length) return;
     lines.push(g.name.toUpperCase());
     let lastSub = undefined;
     items.forEach(t => {
       if (t.sub !== lastSub) { lastSub = t.sub; if (t.sub) lines.push("  " + t.sub + ":"); }
       const st = STATE.tasks[t.id];
-      const activeDays = st.active.map((v, i) => v ? i : -1).filter(i => i >= 0);
+      const activeDays = st.active
+        .map((on, yi) => on ? yi : -1)
+        .filter(yi => yi >= v.offset && yi < v.offset + v.days);
       let rangeStr = "(no days marked yet)";
       if (activeDays.length) {
-        const first = dateForDay(term, activeDays[0]);
-        const last = dateForDay(term, activeDays[activeDays.length - 1]);
+        const first = dateForYearIdx(activeDays[0]);
+        const last = dateForYearIdx(activeDays[activeDays.length - 1]);
         rangeStr = fmtShort(first) + " – " + fmtShort(last) + " (" + activeDays.length + " day" + (activeDays.length > 1 ? "s" : "") + ")";
       }
       const ownerStr = st.owner ? " [" + st.owner + "]" : "";
@@ -1193,40 +1899,44 @@ function copyPlanAsText() {
 const WEEKDAYS_LONG = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const MAX_SEARCH_RANGE_DAYS = 62; // generous upper bound, mainly to stop fat-finger year-long ranges
 
-function findTermIndexForDate(iso) {
-  for (let i = 0; i < TERMS.length; i++) {
-    if (dayIndexForDate(TERMS[i], iso) !== null) return i;
-  }
-  return -1;
+function segmentLabelForIso(iso) {
+  const yi = yearIdxForIso(iso);
+  if (yi === null) return null;
+  const seg = segmentForYearIdx(yi);
+  return seg ? seg.label : null;
 }
 
 function fmtLong(iso) {
   const d = parseISO(iso);
   return WEEKDAYS_LONG[d.getDay()] + ", " + MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
 }
+function fmtLongFull(iso) {
+  const d = parseISO(iso);
+  return WEEKDAYS_LONG[d.getDay()] + ", " + MONTHS_LONG[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+}
 
 // Gathers everything marked active for one calendar date, switching the
 // loaded term if the date falls in a different one than what's currently
 // on screen. Returns null term (with empty arrays) if the date is outside
 // both Fall 2026 and Spring 2027 entirely.
-async function gatherDayBundle(iso) {
-  const termIdx = findTermIndexForDate(iso);
-  if (termIdx === -1) return { iso, term: null, results: [], milestones: [] };
-  if (termIdx !== currentTermIdx) await switchTerm(termIdx);
-  const term = currentTerm();
-  const dayIdx = dayIndexForDate(term, iso);
+// The whole year is loaded at once now, so looking up a date is a plain lookup —
+// no board switching, and dates in the old Dec/Jan gap are searchable too.
+function gatherDayBundle(iso) {
+  const yi = yearIdxForIso(iso);
+  if (yi === null) return { iso, term: null, results: [], milestones: [] };
+  const seg = segmentForYearIdx(yi);
   const results = [];
   TASKS.forEach(t => {
     const st = STATE.tasks[t.id];
-    if (st && st.active[dayIdx]) {
-      results.push({ task: t, state: st, group: GROUP_BY_ID[t.group], details: getCellDetails(t.id, dayIdx) });
+    if (st && st.active[yi]) {
+      results.push({ task: t, state: st, group: GROUP_BY_ID[t.group], details: getCellDetails(t.id, yi) });
     }
   });
-  const milestones = term.milestones.filter(m => m.date === iso);
-  return { iso, term, dayIdx, results, milestones };
+  const milestones = MILESTONES.filter(m => m.date === iso);
+  return { iso, term: seg, dayIdx: yi, results, milestones };
 }
 
-async function searchDay() {
+function searchDay() {
   const startInput = document.getElementById("daySearchInput");
   const endInput = document.getElementById("daySearchEndInput");
   let startIso = startInput.value;
@@ -1249,7 +1959,7 @@ async function searchDay() {
   const dayBundles = [];
   for (let i = 0; i < rangeLen; i++) {
     const iso = isoForDate(addDays(parseISO(startIso), i));
-    dayBundles.push(await gatherDayBundle(iso));
+    dayBundles.push(gatherDayBundle(iso));
   }
 
   renderDaySearchResults(startIso, endIso, dayBundles);
@@ -1290,7 +2000,7 @@ function renderDaySearchResults(startIso, endIso, dayBundles) {
     if (!b.term) {
       const empty = document.createElement("div");
       empty.className = "day-search-empty";
-      empty.textContent = "Outside " + TERMS.map(t => t.label).join(" and ") + " — nothing to show.";
+      empty.textContent = "Outside " + YEAR.label + " — nothing to show.";
       daySection.appendChild(empty);
       list.appendChild(daySection);
       return;
@@ -1322,10 +2032,26 @@ function renderDaySearchResults(startIso, endIso, dayBundles) {
       const detailStr = r.details ? summarizeCellDetails(r.details) : "";
       const ownerStr = r.state.owner ? " · " + r.state.owner : "";
       const noteStr = r.state.note ? " — " + r.state.note : "";
-      row.innerHTML = `<span class="day-search-dot" style="background:${r.group.color}"></span>
-        <span class="day-search-name">${r.task.label}${subStr}</span>
-        <span class="day-search-tag">${r.group.tag}</span>
+
+      const dot = document.createElement("span");
+      dot.className = "day-search-dot";
+      dot.style.background = r.group.color;
+      row.appendChild(dot);
+
+      // The name is the way into this specific occurrence's fields.
+      const open = document.createElement("button");
+      open.type = "button";
+      open.className = "day-search-name day-search-open";
+      open.innerHTML = r.task.label + subStr;
+      open.title = "Open this event";
+      open.addEventListener("click", () => openEventEditor(r.task.id, b.dayIdx));
+      row.appendChild(open);
+
+      const rest = document.createElement("span");
+      rest.className = "day-search-rest";
+      rest.innerHTML = `<span class="day-search-tag">${r.group.tag}</span>
         <span class="day-search-meta">${detailStr ? detailStr + " · " : ""}${r.group.name}${ownerStr}${noteStr}</span>`;
+      row.appendChild(rest);
       daySection.appendChild(row);
     });
 
@@ -1337,16 +2063,259 @@ function closeDaySearch() {
   document.getElementById("daySearchPanel").classList.add("hidden");
 }
 
-function flashDayColumn(dayIdx) {
-  if (viewMode !== "day") return;
-  const boardScroll = document.getElementById("boardScroll");
-  if (!boardScroll) return;
-  const cellW = 22; // matches --cell-w set for day view in renderAll()
-  const targetLeft = Math.max(0, dayIdx * cellW - boardScroll.clientWidth / 2);
-  boardScroll.scrollTo({ left: targetLeft, behavior: "smooth" });
+
+/* ===== ClickUp export =====================================================
+   The column list, order, and header text below match the reconciled CSV that
+   ClickUp actually accepted, so a downloaded file can be imported without
+   rearranging anything.
+
+   Every field resolves through a three-step cascade:
+
+       bucket default  ->  row override  ->  single-date override
+
+   The idea is that you set "Venture Incubation events are In-Person, list
+   Venture Incubation, status Planning" once on the bucket, and then only touch
+   the exceptions. A blank at a narrower level means "inherit"; it does not mean
+   "blank". To force an actual blank, the narrower level stores "—" (see
+   BLANK_SENTINEL) — otherwise there'd be no way to clear an inherited value.
+   ========================================================================= */
+
+const BLANK_SENTINEL = "—";
+
+const EXPORT_FIELDS = [
+  { key: "taskName",        header: "Task Name",                           width: 200, auto: true },
+  { key: "assignees",       header: "Assignees",                           width: 210, options: "assignees", multi: true },
+  { key: "includeWeb",      header: "Include_on_website (clickup)",        width: 120, options: "includeWeb" },
+  { key: "startDate",       header: "Start Dates",                         width: 150, auto: true },
+  { key: "endDate",         header: "End Dates",                           width: 150, auto: true },
+  { key: "preview",         header: "Preview summary",                     width: 210 },
+  { key: "description",     header: "Event Description",                   width: 230 },
+  { key: "format",          header: "Event Format",                        width: 115, options: "format" },
+  { key: "location",        header: "Event Location",                      width: 160, options: "location" },
+  { key: "zoomLink",        header: "Zoom link",                           width: 165 },
+  { key: "list",            header: "List (must match new clickup lists)", width: 185, options: "list" },
+  { key: "programOffering", header: "Program Offering",                    width: 155, options: "programOffering" },
+  { key: "subtype",         header: "Offerings Subtype",                   width: 165, options: "subtype" },
+  { key: "status",          header: "Status",                              width: 135, options: "status" },
+  { key: "flags",           header: "Workflow Flags",                      width: 145, options: "flags" },
+  { key: "regLink",         header: "Registration Link",                   width: 175 },
+  { key: "yearTerm",        header: "Year & Term",                         width: 115, auto: true }
+];
+const EXPORT_FIELD_BY_KEY = {};
+EXPORT_FIELDS.forEach(f => EXPORT_FIELD_BY_KEY[f.key] = f);
+
+// Fields worth setting per bucket. Task name / dates / year & term are derived
+// from the row and the date, so they're not offered as bucket defaults.
+const BUCKET_FIELD_KEYS = ["assignees", "includeWeb", "format", "location", "zoomLink",
+                           "list", "programOffering", "subtype", "status", "flags", "regLink", "preview"];
+
+/* Option lists, de-duplicated from the reconciled CSV. These are seeds only —
+   they're copied into the board on first load and edited in the app after that,
+   so a new ClickUp list never needs a code change. */
+const DEFAULT_OPTION_SETS = {
+  includeWeb: ["Yes", "No"],
+  format: ["In-Person", "Virtual", "Hybrid"],
+  location: ["i-lab Main Space", "Classroom (68)", "Lobby (77-291)", "External Venue (not i-lab)", "Virtual/Online", "TBD"],
+  list: ["Community", "Founder Fundamentals", "Venture Incubation", "Venture Acceleration",
+         "Climate + Social Impact", "Membership", "PIC", "Key Dates", "Event Request Queue (Other Events)"],
+  programOffering: ["Community", "Founder Fundamentals", "Venture Incubation", "Venture Acceleration",
+                    "Climate", "Social Impact", "Membership", "PIC", "Partnerships", "Network Engagement",
+                    "Academic Classes", "Other Events"],
+  subtype: ["Climate Circle", "Social Impact Fellowship Fund"],
+  status: ["Idea", "Planning", "Ready for Marketing"],
+  flags: ["Field Data Missing", "Not confirmed", "Date/ Time TBD", "Event needs more info"],
+  assignees: []   // filled from ROSTER below
+};
+
+/* Roster derived from the Assignees column of the reconciled CSV, so the owner
+   initials already on the board can be turned into the email addresses ClickUp
+   expects. Note the PG collision: Peter Gladstone and Phillip Green share
+   initials, so "PG" is mapped to the one that appears far more often and
+   flagged in the roster editor rather than guessed silently. */
+const ROSTER = [
+  { initials: "AB", email: "alexa_barry@harvard.edu",         name: "Alexa Barry" },
+  { initials: "AS", email: "alexandra_stephens@harvard.edu",  name: "Alexandra Stephens" },
+  { initials: "BX", email: "becca_xiong@harvard.edu",         name: "Becca Xiong" },
+  { initials: "CA", email: "caroline_arzoo@harvard.edu",      name: "Caroline Arzoo" },
+  { initials: "CC", email: "cassie_coravos@harvard.edu",      name: "Cassie Coravos" },
+  { initials: "JF", email: "joanna_furgiuele@harvard.edu",    name: "Joanna Furgiuele" },
+  { initials: "JM", email: "joy_massicotte@harvard.edu",      name: "Joy Massicotte" },
+  { initials: "JP", email: "julien_pham@harvard.edu",         name: "Julien Pham" },
+  { initials: "LK", email: "lauren_koppelson@harvard.edu",    name: "Lauren Koppelson" },
+  { initials: "PG", email: "phillip_green@harvard.edu",       name: "Phillip Green", note: "PG is ambiguous — Peter Gladstone shares these initials" },
+  { initials: "PGL", email: "peter_gladstone@harvard.edu",    name: "Peter Gladstone" },
+  { initials: "RB", email: "rym_baouendi@harvard.edu",        name: "Rym Baouendi" },
+  { initials: "RE", email: "rebekah_emanuel@harvard.edu",     name: "Rebekah Emanuel" },
+  { initials: "SS", email: "shuntaro_shirota@harvard.edu",    name: "Shuntaro Shirota" },
+  { initials: "TS", email: "tom_samph@harvard.edu",           name: "Tom Samph" },
+  { initials: "VL", email: "vivian_liusomers@harvard.edu",    name: "Vivian Liusomers" }
+];
+DEFAULT_OPTION_SETS.assignees = ROSTER.map(p => p.email);
+const ROSTER_BY_INITIALS = {};
+ROSTER.forEach(p => { if (!ROSTER_BY_INITIALS[p.initials]) ROSTER_BY_INITIALS[p.initials] = p; });
+
+// "JF + RB" / "TS" / "AB, CC" -> matching emails, in the order written.
+function emailsForOwnerString(owner) {
+  if (!owner) return "";
+  const tokens = owner.split(/[+,/&]| and /i).map(t => t.trim()).filter(Boolean);
+  const out = [];
+  tokens.forEach(tok => {
+    const key = tok.toUpperCase().replace(/[^A-Z]/g, "");
+    const hit = ROSTER_BY_INITIALS[key];
+    if (hit && !out.includes(hit.email)) out.push(hit.email);
+  });
+  return out.join(", ");
 }
 
-/* ===== ClickUp export ===== */
+function normalizeOptionSets(saved) {
+  const out = {};
+  Object.keys(DEFAULT_OPTION_SETS).forEach(k => {
+    const fromSaved = saved && Array.isArray(saved[k]) ? saved[k] : null;
+    out[k] = fromSaved ? fromSaved.slice() : DEFAULT_OPTION_SETS[k].slice();
+  });
+  return out;
+}
+function optionsFor(setName) {
+  const sets = STATE.optionSets || DEFAULT_OPTION_SETS;
+  return sets[setName] || [];
+}
+
+/* ---- Bucket defaults ----
+   Pre-seeded from the List / Program Offering / Subtype combinations actually
+   used in the reconciled CSV, so the common case is already right on day one. */
+const SEED_BUCKET_DEFAULTS = {
+  landscape:    { list: "Key Dates", programOffering: "Other Events", status: "Planning", includeWeb: "No" },
+  membership:   { list: "Key Dates", programOffering: "Membership", status: "Planning", includeWeb: "No" },
+  community:    { list: "Community", programOffering: "Community", status: "Planning", includeWeb: "Yes", format: "In-Person" },
+  fundamentals: { list: "Founder Fundamentals", programOffering: "Founder Fundamentals", status: "Planning", includeWeb: "Yes" },
+  incubation:   { list: "Venture Incubation", programOffering: "Venture Incubation", status: "Planning", includeWeb: "No" },
+  acceleration: { list: "Venture Acceleration", programOffering: "Venture Acceleration", status: "Planning", includeWeb: "No" },
+  lifelab:      { list: "Climate + Social Impact", programOffering: "Climate", subtype: "Climate Circle", status: "Planning", includeWeb: "No" },
+  partnerships: { list: "Event Request Queue (Other Events)", programOffering: "Partnerships", status: "Planning", includeWeb: "No" },
+  pic:          { list: "Key Dates", programOffering: "PIC", status: "Planning", includeWeb: "No" },
+  siff:         { list: "Key Dates", programOffering: "Social Impact", subtype: "Social Impact Fellowship Fund", status: "Planning", includeWeb: "No" },
+  network:      { list: "Event Request Queue (Other Events)", programOffering: "Network Engagement", status: "Planning", includeWeb: "No" }
+};
+function seedBucketDefaultsIfEmpty() {
+  if (STATE.fieldDefaults && Object.keys(STATE.fieldDefaults).length) return false;
+  STATE.fieldDefaults = JSON.parse(JSON.stringify(SEED_BUCKET_DEFAULTS));
+  return true;
+}
+function bucketDefault(groupId, key) {
+  const d = STATE.fieldDefaults[groupId];
+  return d && d[key] ? d[key] : "";
+}
+function setBucketDefault(groupId, key, val) {
+  if (!STATE.fieldDefaults[groupId]) STATE.fieldDefaults[groupId] = {};
+  if (val) STATE.fieldDefaults[groupId][key] = val;
+  else delete STATE.fieldDefaults[groupId][key];
+}
+function rowOverride(taskId, key) {
+  const st = STATE.tasks[taskId];
+  return st && st.fields && st.fields[key] ? st.fields[key] : "";
+}
+function setRowOverride(taskId, key, val) {
+  const st = STATE.tasks[taskId];
+  if (!st) return;
+  if (!st.fields) st.fields = {};
+  if (val) st.fields[key] = val; else delete st.fields[key];
+}
+function dateOverride(taskId, yearIdx, key) {
+  const det = getCellDetails(taskId, yearIdx);
+  return det && det.fields && det.fields[key] ? det.fields[key] : "";
+}
+function setDateOverride(taskId, yearIdx, key, val) {
+  const st = STATE.tasks[taskId];
+  if (!st) return;
+  if (!st.cellDetails) st.cellDetails = {};
+  const det = st.cellDetails[yearIdx] || { start: "", end: "", location: "", comment: "", fields: {} };
+  if (!det.fields) det.fields = {};
+  if (val) det.fields[key] = val; else delete det.fields[key];
+  st.cellDetails[yearIdx] = det;
+  pruneCellDetails(taskId, yearIdx);
+}
+function pruneCellDetails(taskId, yearIdx) {
+  const st = STATE.tasks[taskId];
+  const det = st && st.cellDetails ? st.cellDetails[yearIdx] : null;
+  if (!det) return;
+  const hasFields = det.fields && Object.keys(det.fields).length;
+  if (!det.start && !det.end && !det.location && !det.comment && !hasFields) delete st.cellDetails[yearIdx];
+}
+
+// Which level a value came from — drives the little inheritance dots in the UI.
+function fieldSource(taskId, yearIdx, key) {
+  if (dateOverride(taskId, yearIdx, key)) return "date";
+  if (rowOverride(taskId, key)) return "row";
+  const task = TASKS.find(t => t.id === taskId);
+  if (task && bucketDefault(task.group, key)) return "bucket";
+  return "none";
+}
+
+function unsentinel(v) { return v === BLANK_SENTINEL ? "" : v; }
+
+/* The one function that decides what actually lands in the CSV. */
+function resolveField(taskId, yearIdx, key) {
+  const task = TASKS.find(t => t.id === taskId);
+  const st = STATE.tasks[taskId];
+  if (!task || !st) return "";
+  const det = getCellDetails(taskId, yearIdx);
+  const d = dateForYearIdx(yearIdx);
+
+  const cascade = () => {
+    const fromDate = dateOverride(taskId, yearIdx, key);
+    if (fromDate) return unsentinel(fromDate);
+    const fromRow = rowOverride(taskId, key);
+    if (fromRow) return unsentinel(fromRow);
+    return unsentinel(bucketDefault(task.group, key));
+  };
+
+  switch (key) {
+    case "taskName":
+      return cascade() || task.label;
+    case "yearTerm":
+      return cascade() || yearTermForYearIdx(yearIdx);
+    case "startDate": {
+      const explicit = cascade();
+      if (explicit) return explicit;
+      let h = 10, m = 0;
+      if (det && det.start) { const p = parseTimeStr(det.start); if (p) { h = p.h; m = p.m; } }
+      return fmtDateTime(d, h, m);
+    }
+    case "endDate": {
+      const explicit = cascade();
+      if (explicit) return explicit;
+      let sh = 10, sm = 0;
+      if (det && det.start) { const p = parseTimeStr(det.start); if (p) { sh = p.h; sm = p.m; } }
+      let eh, em;
+      if (det && det.end) {
+        const p = parseTimeStr(det.end);
+        if (p) { eh = p.h; em = p.m; }
+      }
+      if (eh === undefined) { const def = addOneHourClamped(sh, sm); eh = def.h; em = def.m; }
+      return fmtDateTime(d, eh, em);
+    }
+    case "location": {
+      // A location typed into the date popover is the most specific thing there is.
+      if (det && det.location) return det.location;
+      return cascade();
+    }
+    case "preview":
+      return cascade() || task.label;
+    case "description": {
+      const explicit = dateOverride(taskId, yearIdx, key) || rowOverride(taskId, key);
+      if (explicit) return unsentinel(explicit);
+      // Otherwise build it from what's already on the board: the row's notes
+      // plus anything specific typed for this date.
+      const bits = [st.note, det && det.comment].filter(Boolean);
+      return bits.join(" — ") || unsentinel(bucketDefault(task.group, key));
+    }
+    case "assignees":
+      return cascade() || emailsForOwnerString(st.owner);
+    default:
+      return cascade();
+  }
+}
+
 function fmtDateTime(d, hour, minute) {
   const h12 = ((hour + 11) % 12) + 1;
   const ampm = hour < 12 ? "AM" : "PM";
@@ -1354,61 +2323,20 @@ function fmtDateTime(d, hour, minute) {
 }
 function exportRowKey(taskId, iso) { return taskId + "__" + iso; }
 
-// Computes what a ClickUp export row should look like for one task on one
-// day of the term, folding in that day's cell details (time/location/
-// comment) if any were set — otherwise falls back to the 10–11am default
-// with no location, same as before this feature existed.
-function occurrenceFields(term, taskId, dayIdx) {
-  const task = TASKS.find(x => x.id === taskId);
-  const st = STATE.tasks[taskId];
-  const group = GROUP_BY_ID[task.group];
-  const d = dateForDay(term, dayIdx);
-  const det = getCellDetails(taskId, dayIdx);
-
-  let sh = 10, sm = 0, eh = 11, em = 0;
-  if (det && det.start) {
-    const p = parseTimeStr(det.start);
-    if (p) {
-      sh = p.h; sm = p.m;
-      const def = addOneHourClamped(sh, sm);
-      eh = def.h; em = def.m;
-    }
-  }
-  if (det && det.end) {
-    const p = parseTimeStr(det.end);
-    if (p) { eh = p.h; em = p.m; }
-  }
-  const location = (det && det.location) || "";
-  const comment = (det && det.comment) || "";
-  const description = [st.note, comment].filter(Boolean).join(" — ");
-
-  return {
-    date: isoForDate(d),
-    taskName: task.label + " – " + fmtShort(d),
-    assignee: st.owner || "",
-    start: fmtDateTime(d, sh, sm),
-    end: fmtDateTime(d, eh, em),
-    summary: task.label,
-    description,
-    location,
-    audience: group.audience || "",
-    list: group.name
-  };
+// Build a fresh export row for one task on one date, fully resolved.
+function buildExportRow(taskId, yearIdx) {
+  const row = { id: "exp-" + Math.random().toString(36).slice(2, 9), taskId, date: isoForYearIdx(yearIdx), yearIdx };
+  EXPORT_FIELDS.forEach(f => { row[f.key] = resolveField(taskId, yearIdx, f.key); });
+  return row;
 }
 
-// Keeps rows already sitting in the export table in sync if their cell's
-// time/location/comment gets edited (or cleared) after the row was created.
-function syncExportRowsForCell(taskId, dayIdx) {
-  const term = currentTerm();
-  const iso = isoForDate(dateForDay(term, dayIdx));
+// Re-resolve rows already in the table after their date's details change.
+function syncExportRowsForCell(taskId, yearIdx) {
+  const iso = isoForYearIdx(yearIdx);
   let touched = false;
   STATE.exportRows.forEach(r => {
     if (r.taskId === taskId && r.date === iso) {
-      const f = occurrenceFields(term, taskId, dayIdx);
-      r.start = f.start;
-      r.end = f.end;
-      r.location = f.location;
-      r.description = f.description;
+      EXPORT_FIELDS.forEach(f => { if (!r._edited || !r._edited[f.key]) r[f.key] = resolveField(taskId, yearIdx, f.key); });
       touched = true;
     }
   });
@@ -1416,7 +2344,7 @@ function syncExportRowsForCell(taskId, dayIdx) {
 }
 
 function buildExportRows() {
-  const term = currentTerm();
+  const v = currentView();
   const selectedIds = Object.keys(STATE.selected).filter(id => STATE.selected[id]);
   if (!selectedIds.length) {
     setSaveStatus("Check at least one row first", true);
@@ -1428,62 +2356,148 @@ function buildExportRows() {
     const task = TASKS.find(t => t.id === taskId);
     const st = STATE.tasks[taskId];
     if (!task || !st) return;
-    st.active.forEach((isActive, i) => {
-      if (!isActive) return;
-      const f = occurrenceFields(term, taskId, i);
-      const key = exportRowKey(taskId, f.date);
-      if (existingKeys.has(key)) return;
+    // Only dates inside the view you're looking at — the Fall tab exports Fall.
+    for (let yi = v.offset; yi < v.offset + v.days; yi++) {
+      if (!st.active[yi]) continue;
+      const key = exportRowKey(taskId, isoForYearIdx(yi));
+      if (existingKeys.has(key)) continue;
       existingKeys.add(key);
-      STATE.exportRows.push({
-        id: "exp-" + Math.random().toString(36).slice(2, 9),
-        taskId, date: f.date,
-        taskName: f.taskName,
-        assignee: f.assignee,
-        start: f.start,
-        end: f.end,
-        summary: f.summary,
-        description: f.description,
-        format: "",
-        location: f.location,
-        zoomLink: "",
-        audience: f.audience,
-        list: f.list
-      });
+      STATE.exportRows.push(buildExportRow(taskId, yi));
       added++;
-    });
+    }
   });
   queueSave();
   renderExportPanel();
-  setSaveStatus(added ? `Added ${added} row${added > 1 ? "s" : ""} to the export` : "Those dates are already in the export", false);
+  setSaveStatus(added
+    ? `Added ${added} row${added > 1 ? "s" : ""} from ${v.label}`
+    : "Those dates are already in the export", false);
   document.getElementById("exportPanel").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-const EXPORT_COLUMNS = [
-  { key: "taskName", label: "Task name", width: 190 },
-  { key: "assignee", label: "Assignee", width: 90 },
-  { key: "start", label: "Start date w/ time", width: 150 },
-  { key: "end", label: "End date w/ time", width: 150 },
-  { key: "summary", label: "Preview summary", width: 160 },
-  { key: "description", label: "Description", width: 200 },
-  { key: "format", label: "Format", width: 100, select: ["", "In-person", "Virtual", "Hybrid"] },
-  { key: "location", label: "Location", width: 140 },
-  { key: "zoomLink", label: "Zoom link", width: 160 },
-  { key: "audience", label: "Audience", width: 160 },
-  { key: "list", label: "List", width: 140 }
-];
+/* ---- Sorting & filtering (view-only; never reorders the stored rows) ---- */
+let exportSort = { key: null, dir: 1 };
+let exportFilters = {};
 
-function renderExportPanel() {
-  const panel = document.getElementById("exportPanel");
+function exportVisibleRows() {
+  let rows = STATE.exportRows.slice();
+  Object.keys(exportFilters).forEach(key => {
+    const needle = (exportFilters[key] || "").trim().toLowerCase();
+    if (!needle) return;
+    rows = rows.filter(r => String(r[key] == null ? "" : r[key]).toLowerCase().includes(needle));
+  });
+  if (exportSort.key) {
+    const k = exportSort.key;
+    rows.sort((a, b) => {
+      let av = a[k] == null ? "" : String(a[k]);
+      let bv = b[k] == null ? "" : String(b[k]);
+      // Date columns sort chronologically, not alphabetically ("10/1" before "9/1").
+      if (k === "startDate" || k === "endDate") {
+        const ad = Date.parse(av), bd = Date.parse(bv);
+        if (!isNaN(ad) && !isNaN(bd)) return (ad - bd) * exportSort.dir;
+      }
+      return av.localeCompare(bv, undefined, { numeric: true, sensitivity: "base" }) * exportSort.dir;
+    });
+  }
+  return rows;
+}
+
+function toggleExportSort(key) {
+  if (exportSort.key === key) {
+    if (exportSort.dir === 1) exportSort.dir = -1;
+    else exportSort = { key: null, dir: 1 };   // third click clears
+  } else {
+    exportSort = { key, dir: 1 };
+  }
+  renderExportPanel();
+}
+function clearExportFilters() {
+  exportFilters = {};
+  renderExportPanel();
+}
+
+function renderExportHead() {
+  const headRow = document.getElementById("exportHeadRow");
+  const filterRow = document.getElementById("exportFilterRow");
+  headRow.innerHTML = "";
+  filterRow.innerHTML = "";
+
+  headRow.appendChild(document.createElement("th"));
+  const fth = document.createElement("th");
+  const clearBtn = document.createElement("button");
+  clearBtn.type = "button";
+  clearBtn.className = "export-filter-clear";
+  clearBtn.textContent = "⌫";
+  clearBtn.title = "Clear all filters";
+  clearBtn.addEventListener("click", clearExportFilters);
+  fth.appendChild(clearBtn);
+  filterRow.appendChild(fth);
+
+  EXPORT_FIELDS.forEach(f => {
+    const th = document.createElement("th");
+    th.className = "export-th sortable" + (exportSort.key === f.key ? " sorted" : "");
+    th.style.minWidth = f.width + "px";
+    const caret = exportSort.key === f.key ? (exportSort.dir === 1 ? " ▲" : " ▼") : "";
+    th.textContent = f.header + caret;
+    th.title = "Click to sort by " + f.header;
+    th.addEventListener("click", () => toggleExportSort(f.key));
+    headRow.appendChild(th);
+
+    const ftd = document.createElement("th");
+    ftd.className = "export-filter-cell";
+    if (f.options) {
+      // Offer the values actually present in the table, plus the option list.
+      const present = Array.from(new Set(STATE.exportRows.map(r => r[f.key]).filter(Boolean)));
+      const all = Array.from(new Set(optionsFor(f.options).concat(present)));
+      const sel = document.createElement("select");
+      sel.className = "export-filter-select";
+      const optAll = document.createElement("option");
+      optAll.value = ""; optAll.textContent = "All";
+      sel.appendChild(optAll);
+      all.forEach(v => {
+        const o = document.createElement("option");
+        o.value = v; o.textContent = v;
+        if (exportFilters[f.key] === v) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener("change", () => { exportFilters[f.key] = sel.value; renderExportPanel(); });
+      ftd.appendChild(sel);
+    } else {
+      const inp = document.createElement("input");
+      inp.className = "export-filter-input";
+      inp.placeholder = "filter…";
+      inp.value = exportFilters[f.key] || "";
+      inp.addEventListener("input", () => { exportFilters[f.key] = inp.value; scheduleFilterRerender(); });
+      ftd.appendChild(inp);
+    }
+    filterRow.appendChild(ftd);
+  });
+}
+
+// Debounced so typing in a filter box doesn't rebuild 200 rows per keystroke.
+let filterRerenderTimer = null;
+function scheduleFilterRerender() {
+  clearTimeout(filterRerenderTimer);
+  filterRerenderTimer = setTimeout(() => renderExportBody(), 140);
+}
+
+function markEdited(r, key) {
+  if (!r._edited) r._edited = {};
+  r._edited[key] = true;
+}
+
+function renderExportBody() {
   const body = document.getElementById("exportTableBody");
   const countEl = document.getElementById("exportCount");
-  if (!STATE.exportRows.length) {
-    panel.classList.add("hidden");
-    return;
-  }
-  panel.classList.remove("hidden");
-  countEl.textContent = STATE.exportRows.length + " row" + (STATE.exportRows.length > 1 ? "s" : "");
+  const rows = exportVisibleRows();
+  const total = STATE.exportRows.length;
+  countEl.textContent = rows.length === total
+    ? total + " row" + (total === 1 ? "" : "s")
+    : rows.length + " of " + total + " rows shown";
+  const dl = document.getElementById("downloadCsvBtn");
+  if (dl) dl.textContent = rows.length === total ? "Download CSV" : `Download CSV (${rows.length} filtered)`;
+
   body.innerHTML = "";
-  STATE.exportRows.forEach(r => {
+  rows.forEach(r => {
     const tr = document.createElement("tr");
     const delTd = document.createElement("td");
     const delBtn = document.createElement("button");
@@ -1498,23 +2512,30 @@ function renderExportPanel() {
     });
     delTd.appendChild(delBtn);
     tr.appendChild(delTd);
-    EXPORT_COLUMNS.forEach(col => {
+
+    EXPORT_FIELDS.forEach(f => {
       const td = document.createElement("td");
-      if (col.select) {
+      if (f.options && !f.multi) {
         const sel = document.createElement("select");
-        col.select.forEach(opt => {
+        sel.style.minWidth = Math.min(f.width, 170) + "px";
+        const blank = document.createElement("option");
+        blank.value = ""; blank.textContent = "—";
+        sel.appendChild(blank);
+        const present = r[f.key] && !optionsFor(f.options).includes(r[f.key]) ? [r[f.key]] : [];
+        optionsFor(f.options).concat(present).forEach(opt => {
           const o = document.createElement("option");
-          o.value = opt; o.textContent = opt || "—";
-          if (r[col.key] === opt) o.selected = true;
+          o.value = opt; o.textContent = opt;
+          if (r[f.key] === opt) o.selected = true;
           sel.appendChild(o);
         });
-        sel.addEventListener("change", () => { r[col.key] = sel.value; queueSave(); });
+        sel.addEventListener("change", () => { r[f.key] = sel.value; markEdited(r, f.key); queueSave(); });
         td.appendChild(sel);
       } else {
         const inp = document.createElement("input");
-        inp.value = r[col.key] || "";
-        inp.style.width = col.width + "px";
-        inp.addEventListener("change", () => { r[col.key] = inp.value; queueSave(); });
+        inp.value = r[f.key] || "";
+        inp.style.width = f.width + "px";
+        if (f.multi) inp.title = "Comma-separated emails";
+        inp.addEventListener("change", () => { r[f.key] = inp.value; markEdited(r, f.key); queueSave(); });
         td.appendChild(inp);
       }
       tr.appendChild(td);
@@ -1523,16 +2544,28 @@ function renderExportPanel() {
   });
 }
 
+function renderExportPanel() {
+  const panel = document.getElementById("exportPanel");
+  if (!STATE.exportRows.length) {
+    panel.classList.add("hidden");
+    return;
+  }
+  panel.classList.remove("hidden");
+  renderExportHead();
+  renderExportBody();
+}
+
 function csvEscape(v) {
   const s = String(v == null ? "" : v);
   if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
   return s;
 }
+// Exports exactly what's on screen — filters included — with the CSV's own
+// header row, so the file can go straight into ClickUp.
 function exportCsvText() {
-  const headers = EXPORT_COLUMNS.map(c => c.label);
-  const lines = [headers.map(csvEscape).join(",")];
-  STATE.exportRows.forEach(r => {
-    lines.push(EXPORT_COLUMNS.map(c => csvEscape(r[c.key])).join(","));
+  const lines = [EXPORT_FIELDS.map(f => csvEscape(f.header)).join(",")];
+  exportVisibleRows().forEach(r => {
+    lines.push(EXPORT_FIELDS.map(f => csvEscape(r[f.key])).join(","));
   });
   return lines.join("\n");
 }
@@ -1543,7 +2576,7 @@ function downloadExportCsv() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = currentTerm().id + "-clickup-export.csv";
+    a.download = currentView().id + "-clickup-export.csv";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -1563,34 +2596,319 @@ function copyExportCsv() {
 }
 function clearExportRows() {
   STATE.exportRows = [];
+  exportFilters = {};
+  exportSort = { key: null, dir: 1 };
   queueSave();
   renderExportPanel();
 }
+// Re-resolve every non-hand-edited cell from the current cascade. Useful after
+// changing bucket defaults with rows already built.
+function refreshExportFromCascade() {
+  let n = 0;
+  STATE.exportRows.forEach(r => {
+    const yi = yearIdxForIso(r.date);
+    if (yi === null) return;
+    EXPORT_FIELDS.forEach(f => {
+      if (r._edited && r._edited[f.key]) return;
+      const next = resolveField(r.taskId, yi, f.key);
+      if (next !== r[f.key]) { r[f.key] = next; n++; }
+    });
+  });
+  queueSave();
+  renderExportPanel();
+  setSaveStatus(n ? `Refreshed ${n} field${n === 1 ? "" : "s"} from bucket/row defaults` : "Nothing to refresh", false);
+}
 
-function announceLoadStatus() {
-  if (lastMeta && lastMeta.updatedAt) {
-    const when = new Date(lastMeta.updatedAt).toLocaleString();
-    setSaveStatus(`Loaded · last saved${lastMeta.updatedBy ? " by " + lastMeta.updatedBy : ""} on ${when}`, false);
-  } else {
-    setSaveStatus("Loaded — no saves yet for " + currentTerm().label, false);
+/* ===== Event fields: bucket defaults, row overrides, date overrides =========
+   One panel, three tabs. This is where the cascade is actually filled in — the
+   export table is downstream of it, not the place you're meant to type. */
+
+let settingsTab = "buckets";   // "buckets" | "options" | "roster"
+let settingsGroupId = null;    // which bucket is open on the Buckets tab
+
+function openSettings(tab) {
+  if (tab) settingsTab = tab;
+  if (!settingsGroupId) settingsGroupId = GROUPS[0].id;
+  document.getElementById("settingsPanel").classList.remove("hidden");
+  renderSettings();
+  document.getElementById("settingsPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function closeSettings() {
+  document.getElementById("settingsPanel").classList.add("hidden");
+}
+
+function fieldEditor(setName, value, onChange, widthPx, placeholder) {
+  // Constrained fields get a dropdown; everything else a plain text box.
+  if (setName) {
+    const wrap = document.createElement("div");
+    wrap.className = "field-editor-wrap";
+    const sel = document.createElement("select");
+    sel.style.minWidth = (widthPx || 170) + "px";
+    const blank = document.createElement("option");
+    blank.value = "";
+    blank.textContent = placeholder ? "— inherit (" + placeholder + ") —" : "— inherit —";
+    sel.appendChild(blank);
+    const opts = optionsFor(setName).slice();
+    if (value && !opts.includes(value) && value !== BLANK_SENTINEL) opts.push(value);
+    opts.forEach(o => {
+      const el = document.createElement("option");
+      el.value = o; el.textContent = o;
+      if (value === o) el.selected = true;
+      sel.appendChild(el);
+    });
+    const forceBlank = document.createElement("option");
+    forceBlank.value = BLANK_SENTINEL;
+    forceBlank.textContent = "(force blank)";
+    if (value === BLANK_SENTINEL) forceBlank.selected = true;
+    sel.appendChild(forceBlank);
+    sel.addEventListener("change", () => onChange(sel.value));
+    wrap.appendChild(sel);
+    return wrap;
+  }
+  const inp = document.createElement("input");
+  inp.className = "field-editor-input";
+  inp.value = value === BLANK_SENTINEL ? "" : (value || "");
+  inp.placeholder = placeholder ? "inherits: " + placeholder : "— inherit —";
+  inp.style.width = (widthPx || 220) + "px";
+  inp.addEventListener("change", () => onChange(inp.value));
+  return inp;
+}
+
+function renderSettings() {
+  const panel = document.getElementById("settingsPanel");
+  if (panel.classList.contains("hidden")) return;
+  document.querySelectorAll(".settings-tab").forEach(b => {
+    b.classList.toggle("active", b.dataset.tab === settingsTab);
+  });
+  const body = document.getElementById("settingsBody");
+  body.innerHTML = "";
+  if (settingsTab === "buckets") renderBucketDefaults(body);
+  else if (settingsTab === "options") renderOptionSets(body);
+  else renderRoster(body);
+}
+
+function renderBucketDefaults(body) {
+  const intro = document.createElement("p");
+  intro.className = "settings-intro";
+  intro.innerHTML = "Set the values that are true for <b>most</b> events in a bucket. " +
+    "Every row in that bucket inherits them, and any row or any single date can override. " +
+    "Rows show <span class='inherit-dot inherit-bucket'></span> bucket, " +
+    "<span class='inherit-dot inherit-row'></span> row, " +
+    "<span class='inherit-dot inherit-date'></span> this-date-only.";
+  body.appendChild(intro);
+
+  const picker = document.createElement("div");
+  picker.className = "bucket-picker";
+  GROUPS.forEach(g => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "bucket-pick" + (g.id === settingsGroupId ? " active" : "");
+    b.style.setProperty("--gcolor", g.color);
+    const filled = BUCKET_FIELD_KEYS.filter(k => bucketDefault(g.id, k)).length;
+    b.innerHTML = `<span class="bucket-pick-tab" style="background:${g.color}"></span>` +
+      `<span class="bucket-pick-name">${g.name}</span>` +
+      `<span class="bucket-pick-count">${filled}/${BUCKET_FIELD_KEYS.length}</span>`;
+    b.addEventListener("click", () => { settingsGroupId = g.id; renderSettings(); });
+    picker.appendChild(b);
+  });
+  body.appendChild(picker);
+
+  const g = GROUP_BY_ID[settingsGroupId];
+  const grid = document.createElement("div");
+  grid.className = "settings-grid";
+  BUCKET_FIELD_KEYS.forEach(key => {
+    const f = EXPORT_FIELD_BY_KEY[key];
+    const row = document.createElement("label");
+    row.className = "settings-row";
+    const lab = document.createElement("span");
+    lab.className = "settings-label";
+    lab.textContent = f.header;
+    row.appendChild(lab);
+    row.appendChild(fieldEditor(f.options, bucketDefault(g.id, key), val => {
+      setBucketDefault(g.id, key, val);
+      queueSave();
+      renderSettings();
+      renderBoard();
+    }, 200));
+    grid.appendChild(row);
+  });
+  body.appendChild(grid);
+
+  const foot = document.createElement("div");
+  foot.className = "settings-foot";
+  const applyBtn = document.createElement("button");
+  applyBtn.type = "button";
+  applyBtn.className = "btn btn-accent";
+  applyBtn.textContent = "Re-apply defaults to existing export rows";
+  applyBtn.title = "Updates every export cell you haven't hand-edited";
+  applyBtn.addEventListener("click", refreshExportFromCascade);
+  foot.appendChild(applyBtn);
+  const note = document.createElement("span");
+  note.className = "settings-note";
+  note.textContent = "Cells you typed into by hand are left alone.";
+  foot.appendChild(note);
+  body.appendChild(foot);
+}
+
+function renderOptionSets(body) {
+  const intro = document.createElement("p");
+  intro.className = "settings-intro";
+  intro.innerHTML = "These are the dropdown choices. Edit them here when ClickUp's lists change — " +
+    "one value per line. Removing a value doesn't erase it from rows that already use it.";
+  body.appendChild(intro);
+
+  const sets = [
+    ["list", "List (must match new clickup lists)"],
+    ["programOffering", "Program Offering"],
+    ["subtype", "Offerings Subtype"],
+    ["status", "Status"],
+    ["format", "Event Format"],
+    ["location", "Event Location"],
+    ["flags", "Workflow Flags"],
+    ["includeWeb", "Include_on_website (clickup)"]
+  ];
+  const grid = document.createElement("div");
+  grid.className = "settings-grid settings-grid-wide";
+  sets.forEach(([setName, label]) => {
+    const box = document.createElement("div");
+    box.className = "option-set";
+    const lab = document.createElement("div");
+    lab.className = "settings-label";
+    lab.textContent = label;
+    box.appendChild(lab);
+    const ta = document.createElement("textarea");
+    ta.className = "option-set-text";
+    ta.rows = Math.min(10, Math.max(3, optionsFor(setName).length + 1));
+    ta.value = optionsFor(setName).join("\n");
+    ta.addEventListener("change", () => {
+      const vals = ta.value.split("\n").map(v => v.trim()).filter(Boolean);
+      STATE.optionSets[setName] = vals;
+      queueSave();
+      renderExportPanel();
+      renderSettings();
+    });
+    box.appendChild(ta);
+    grid.appendChild(box);
+  });
+  body.appendChild(grid);
+}
+
+function renderRoster(body) {
+  const intro = document.createElement("p");
+  intro.className = "settings-intro";
+  intro.innerHTML = "Owner initials on the board are turned into these email addresses for the " +
+    "<b>Assignees</b> column. A row's <i>who</i> box can hold several people — <code>JF + RB</code> " +
+    "becomes both emails.";
+  body.appendChild(intro);
+
+  const dupes = {};
+  ROSTER.forEach(p => { dupes[p.initials] = (dupes[p.initials] || 0) + 1; });
+
+  const table = document.createElement("table");
+  table.className = "roster-table";
+  table.innerHTML = "<thead><tr><th>Initials</th><th>Name</th><th>Email</th></tr></thead>";
+  const tb = document.createElement("tbody");
+  ROSTER.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><code>${p.initials}</code></td><td>${p.name}</td><td>${p.email}</td>`;
+    if (p.note) {
+      tr.classList.add("roster-warn");
+      tr.title = p.note;
+      tr.querySelector("td").innerHTML += ' <span class="roster-flag" title="' + p.note + '">!</span>';
+    }
+    tb.appendChild(tr);
+  });
+  table.appendChild(tb);
+  body.appendChild(table);
+
+  // Anything on the board whose initials we can't resolve — worth surfacing,
+  // because it silently produces an empty Assignees cell in the CSV.
+  const unresolved = [];
+  STATE.tasksList.forEach(t => {
+    const st = STATE.tasks[t.id];
+    if (!st || !st.owner) return;
+    if (!emailsForOwnerString(st.owner)) unresolved.push(`${t.label} (“${st.owner}”)`);
+  });
+  if (unresolved.length) {
+    const warn = document.createElement("div");
+    warn.className = "settings-warn";
+    warn.innerHTML = "<b>No email match for these owners</b> — their Assignees cell will export blank:<ul>" +
+      unresolved.slice(0, 12).map(u => "<li>" + u + "</li>").join("") +
+      (unresolved.length > 12 ? `<li>…and ${unresolved.length - 12} more</li>` : "") + "</ul>";
+    body.appendChild(warn);
   }
 }
 
-async function switchTerm(idx) {
-  if (idx === currentTermIdx) return;
-  currentTermIdx = idx;
-  setSaveStatus("Loading " + currentTerm().label + "…", false);
-  await loadTermState(currentTerm());
-  renderAll();
-  setFloatingSave("saved");
-  announceLoadStatus();
+/* ---- Per-row field editing, reached from the row's ⚙ button ---- */
+let openRowFieldsId = null;
+function openRowFields(taskId) {
+  openRowFieldsId = openRowFieldsId === taskId ? null : taskId;
+  renderBoard();
+}
+function rowFieldsMarkup(t) {
+  const g = GROUP_BY_ID[t.group];
+  const wrap = document.createElement("div");
+  wrap.className = "row-fields";
+  wrap.style.setProperty("--gcolor", g.color);
+  const head = document.createElement("div");
+  head.className = "row-fields-head";
+  head.innerHTML = `<b>${t.label}</b> — event fields. Blank means “inherit from ${g.name}”.`;
+  wrap.appendChild(head);
+  const grid = document.createElement("div");
+  grid.className = "row-fields-grid";
+  BUCKET_FIELD_KEYS.concat(["description"]).forEach(key => {
+    const f = EXPORT_FIELD_BY_KEY[key];
+    const cell = document.createElement("label");
+    cell.className = "row-fields-cell";
+    const lab = document.createElement("span");
+    lab.className = "settings-label";
+    const inherited = bucketDefault(t.group, key);
+    lab.innerHTML = f.header + (inherited && !rowOverride(t.id, key)
+      ? ` <span class="inherit-hint">${inherited}</span>` : "");
+    cell.appendChild(lab);
+    cell.appendChild(fieldEditor(f.options, rowOverride(t.id, key), val => {
+      setRowOverride(t.id, key, val);
+      queueSave();
+      renderBoard();
+    }, 180));
+    grid.appendChild(cell);
+  });
+  wrap.appendChild(grid);
+  return wrap;
 }
 
-async function toggleView() {
-  viewMode = viewMode === "day" ? "week" : "day";
-  saveViewPref();
-  renderAll();
+function announceLoadStatus() {
+  if (loadFailed) return; // the reload banner already says what's wrong
+  // Report the most recent save across the three term records.
+  let newest = null;
+  SEGMENTS.forEach(seg => {
+    const m = SEGMENT_META[seg.id];
+    if (m && m.updatedAt && (!newest || m.updatedAt > newest.updatedAt)) newest = m;
+  });
+  const missing = SEGMENTS.filter(s => (SEGMENT_META[s.id] || {}).missing).map(s => s.label);
+  const tail = missing.length ? " · no saves yet for " + missing.join(", ") : "";
+  if (newest) {
+    const when = new Date(newest.updatedAt).toLocaleString();
+    setSaveStatus(`Loaded ${YEAR.label}· last saved${newest.updatedBy ? " by " + newest.updatedBy : ""} on ${when}${tail}`, false);
+  } else {
+    setSaveStatus("Loaded — nothing saved yet for " + YEAR.label, false);
+  }
 }
+
+function switchView(idx) {
+  if (idx === currentViewIdx) return;
+  // Hold the date you were looking at, so switching tabs doesn't lose your place.
+  const anchor = firstVisibleYearIdx();
+  currentViewIdx = idx;
+  saveViewPref();
+  closeRollupPanel();
+  renderAll();
+  const v = currentView();
+  const keep = anchor !== null && anchor >= v.offset && anchor < v.offset + v.days;
+  scrollToYearIdx(keep ? anchor : v.offset, "auto", "start");
+}
+
+function toggleView() { setViewMode(viewMode === "day" ? "week" : "day"); }
 
 async function init() {
   loadViewPref();
@@ -1605,22 +2923,26 @@ async function init() {
   if (boardScrollEl) boardScrollEl.addEventListener("scroll", syncHeaderScroll);
 
   const tabsWrap = document.getElementById("termTabs");
-  TERMS.forEach((term, idx) => {
+  VIEWS.forEach((view, idx) => {
     const btn = document.createElement("button");
-    btn.className = "term-tab";
-    btn.dataset.term = term.id;
-    btn.textContent = term.label;
-    btn.addEventListener("click", () => switchTerm(idx));
+    btn.className = "term-tab" + (view.id === "year" ? " term-tab-year" : "");
+    btn.dataset.term = view.id;
+    const days = view.days;
+    btn.innerHTML = `<span class="term-tab-label">${view.label}</span>` +
+      `<span class="term-tab-meta">${days} days</span>`;
+    btn.title = view.label + " · " + view.deadline;
+    btn.addEventListener("click", () => switchView(idx));
     tabsWrap.appendChild(btn);
   });
 
-  await loadTermState(currentTerm());
+  await loadYear();
+  if (seedBucketDefaultsIfEmpty() && !loadFailed) queueSave();
   renderAll();
+  scrollToToday();
 
   document.getElementById("expandAllBtn").addEventListener("click", () => expandAll(true));
   document.getElementById("collapseAllBtn").addEventListener("click", () => expandAll(false));
   document.getElementById("copyBtn").addEventListener("click", copyPlanAsText);
-  document.getElementById("viewToggleBtn").addEventListener("click", toggleView);
   document.getElementById("exportBtn").addEventListener("click", buildExportRows);
   document.getElementById("downloadCsvBtn").addEventListener("click", downloadExportCsv);
   document.getElementById("copyCsvBtn").addEventListener("click", copyExportCsv);
@@ -1653,16 +2975,25 @@ async function init() {
     searchDay();
   });
   document.getElementById("closeDaySearchBtn").addEventListener("click", closeDaySearch);
+  document.getElementById("todayBtn").addEventListener("click", scrollToToday);
+  document.getElementById("settingsBtn").addEventListener("click", () => openSettings());
+  document.getElementById("closeSettingsBtn").addEventListener("click", closeSettings);
+  document.querySelectorAll(".settings-tab").forEach(btn => {
+    btn.addEventListener("click", () => { settingsTab = btn.dataset.tab; renderSettings(); });
+  });
   const closeRollupBtn = document.getElementById("closeRollupBtn");
   if (closeRollupBtn) closeRollupBtn.addEventListener("click", closeRollupPanel);
-  document.getElementById("cellPopoverSave").addEventListener("click", saveCellPopover);
-  document.getElementById("cellPopoverCancel").addEventListener("click", closeCellPopover);
-  document.getElementById("cellPopoverClear").addEventListener("click", clearCellPopover);
-  ["cellStartTime", "cellEndTime", "cellLocation"].forEach(id => {
-    document.getElementById(id).addEventListener("keydown", (e) => {
-      if (e.key === "Enter") { e.preventDefault(); saveCellPopover(); }
-    });
+  document.getElementById("evSave").addEventListener("click", saveEventEditor);
+  document.getElementById("evCancel").addEventListener("click", closeEventEditor);
+  document.getElementById("eventEditorClose").addEventListener("click", closeEventEditor);
+  document.getElementById("evRemove").addEventListener("click", removeEventDate);
+  document.getElementById("eventEditorBackdrop").addEventListener("click", closeEventEditor);
+  document.getElementById("findBtn").addEventListener("click", toggleDaySearchBar);
+  document.querySelectorAll(".rail-zoom-btn").forEach(btn => {
+    btn.addEventListener("click", () => setViewMode(btn.dataset.mode));
   });
+  buildMonthJump();
+  boardScrollEl.addEventListener("scroll", updateStickyMonth);
   setFloatingSave("saved");
   announceLoadStatus();
 

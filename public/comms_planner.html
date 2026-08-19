@@ -21,7 +21,6 @@ body { margin:0; font-family:'Inter',-apple-system,sans-serif; color:var(--ink);
   background:var(--paper); font-size:14px; line-height:1.4; }
 .wrap { max-width:1600px; margin:0 auto; padding:22px 22px 90px; }
 
-/* cross-app nav */
 .app-nav { display:flex; gap:6px; margin:0 0 16px; flex-wrap:wrap; }
 .app-nav a { font-family:'IBM Plex Mono',monospace; font-size:11.5px; text-decoration:none;
   padding:7px 14px; border-radius:999px; border:1px solid var(--border);
@@ -65,7 +64,6 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .panel-title { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px; }
 .panel-note { font-size:11.5px; color:var(--ink-soft); }
 
-/* lane grid */
 .grid-scroll { overflow-x:auto; }
 .grid-inner { min-width:max-content; }
 .row { display:flex; align-items:stretch; border-top:1px solid #F0F2F4; }
@@ -117,7 +115,7 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
   font-size:14px; cursor:pointer; border-radius:6px; padding:1px; line-height:1; }
 .cell:hover .add-cell { border-color:var(--border); color:var(--ink-soft); }
 
-/* journey spans — one slice per week, bleeding past cell padding so adjacent
+/* Journey spans: one slice per week, bleeding past cell padding so adjacent
    weeks join into a continuous bar. Every journey renders a slice in every
    week (transparent when idle) so bars keep their row across the term. */
 .jr-strip { display:flex; flex-direction:column; gap:2px; margin:0 -4px 3px; }
@@ -135,7 +133,6 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .feeder-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .feeder-win { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft); margin-top:5px; }
 
-/* modal */
 .overlay { position:fixed; inset:0; background:rgba(22,35,63,.42); z-index:40;
   display:flex; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; }
 .overlay.hidden { display:none; }
@@ -219,7 +216,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     <button class="btn" id="importJsonBtn">Import plan</button>
   </div>
 
-  <!-- ============ COMMS ============ -->
   <div class="view active" id="view-comms">
     <div class="panel">
       <div class="panel-head">
@@ -237,14 +233,12 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     </div>
     <div class="foot-note">
       <b>Click the + in any cell to add a send; click a journey bar to open it.</b>
-      The events row at the top is context — it shows what is running that week, which
-      is the pool your content slots draw from. A send showing
-      <span class="sticky-warn">!</span> has a slot pointing at an event that isn't
-      tagged for that segment.
+      The events row at the top shows what is running that week — the pool your
+      content slots draw from. A send showing <span class="sticky-warn">!</span> has a
+      slot pointing at an event that isn't tagged for that segment.
     </div>
   </div>
 
-  <!-- ============ TIMELINE ============ -->
   <div class="view" id="view-timeline">
     <div class="panel">
       <div class="panel-head">
@@ -255,7 +249,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     </div>
   </div>
 
-  <!-- ============ SETUP ============ -->
   <div class="view" id="view-setup">
     <div class="panel">
       <div class="panel-head">
@@ -271,8 +264,8 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     </div>
     <div class="panel">
       <div class="panel-head">
-        <span class="panel-title">Channels</span>
-        <span class="panel-note">The lanes on your calendar. Delete removes the lane and any sends in it.</span>
+        <span class="panel-title">Platforms / channels</span>
+        <span class="panel-note">Each becomes a lane. Rename in place, add as many as you need.</span>
         <span class="spacer"></span>
         <button class="btn btn-accent" id="addChannelBtn">+ Add channel</button>
       </div>
@@ -284,12 +277,12 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     <div class="panel">
       <div class="panel-head">
         <span class="panel-title">Segments</span>
-        <span class="panel-note">The six Wayfinder personas are preloaded. A segment linked to a persona can have its content checked; a custom one cannot.</span>
+        <span class="panel-note">Six Wayfinder personas preloaded. Link a segment to a persona to get content checking; leave it unlinked for audiences outside the founder model.</span>
         <span class="spacer"></span>
         <button class="btn btn-accent" id="addSegmentBtn">+ Add segment</button>
       </div>
       <table class="grid">
-        <thead><tr><th>Name</th><th style="width:200px">Linked persona</th><th style="width:80px"></th></tr></thead>
+        <thead><tr><th>Name</th><th style="width:200px">Linked persona</th><th style="width:90px">Used in</th><th style="width:80px"></th></tr></thead>
         <tbody id="segmentBody"></tbody>
       </table>
     </div>
@@ -297,7 +290,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
 
 </div>
 
-<!-- ============ SEND EDITOR ============ -->
 <div class="overlay hidden" id="editorOverlay">
   <div class="modal">
     <div class="modal-head">
@@ -320,7 +312,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
             <option value="sent">Sent</option>
           </select></label>
       </div>
-
       <div class="fld-row">
         <label class="fld" style="flex:0 0 230px"><span>Part of journey</span>
           <select id="edJourney"></select></label>
@@ -332,7 +323,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         <div class="fld" style="flex:1 1 200px"><span>&nbsp;</span>
           <div class="hint" id="edKindHint" style="margin-top:0"></div></div>
       </div>
-
       <div class="fld">
         <span>Segments &amp; content</span>
         <div id="edSegments"></div>
@@ -341,7 +331,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           <button class="btn btn-sm" id="edAddSegBtn">+ Add segment</button>
         </div>
       </div>
-
       <label class="fld"><span>Notes</span>
         <textarea id="edNotes" rows="2" placeholder="Anything the person building this send needs to know"></textarea></label>
     </div>
@@ -354,7 +343,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   </div>
 </div>
 
-<!-- ============ JOURNEY EDITOR ============ -->
 <div class="overlay hidden" id="journeyOverlay">
   <div class="modal" style="width:min(760px,100%)">
     <div class="modal-head">
@@ -377,22 +365,19 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         <label class="fld" style="flex:0 0 140px"><span>Colour</span>
           <input type="text" id="jrColor" placeholder="#4A5A73" /></label>
       </div>
-
       <div class="fld">
         <span>Entry cutoffs — which welcome someone gets</span>
         <div class="hint" style="margin:0 0 8px">
-          Ordered by date. Each one covers everyone entering from its date until the
-          next one starts. The first covers everyone from the journey's start.
+          Ordered by date. Each covers everyone entering from its date until the next
+          one starts. The first covers everyone from the journey's start.
         </div>
         <div id="jrFeeders"></div>
         <button class="btn btn-sm" id="jrAddFeeder">+ Add entry cutoff</button>
       </div>
-
       <div class="fld">
         <span>Scheduled sends in this journey</span>
         <div id="jrSends"></div>
       </div>
-
       <label class="fld"><span>Notes</span>
         <textarea id="jrNotes" rows="2" placeholder="Entry criteria, automation platform, anything the builder needs"></textarea></label>
     </div>
@@ -405,7 +390,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   </div>
 </div>
 
-<!-- ============ PROMO GENERATOR ============ -->
 <div class="overlay hidden" id="promoOverlay">
   <div class="modal" style="width:min(680px,100%)">
     <div class="modal-head">
@@ -415,9 +399,8 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     </div>
     <div class="modal-body">
       <p class="hint" style="margin-top:0">
-        Pick events and a channel. Each becomes a set of draft sends on the beats
-        below, pre-filled with that event as content for every segment it is tagged
-        for. They land as normal drafts — edit or delete them like anything else.
+        Pick events and a channel. Each becomes draft sends on the beats below,
+        pre-filled with that event for every segment it is tagged for.
       </p>
       <div class="fld-row">
         <label class="fld" style="flex:0 0 190px"><span>Into channel</span>
@@ -447,7 +430,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
 (function () {
   "use strict";
 
-  /* ===================== TERMS ===================== */
   var TERMS = [
     { id:"fall2026", label:"Fall 2026", start:"2026-08-03", end:"2026-12-19",
       months:[7,8,9,10,11], year:2026,
@@ -476,96 +458,83 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     explorer:"Explorer", validator:"Validator", builder:"Sprint Builder",
     propeller:"Growth Founder", community:"Community First", impact:"Impact Founder"
   };
-  var SECTOR_TAGS = ["lifesci","deeptech","climate","socialimpact","general"];
   var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   var MONTHS_FULL = ["january","february","march","april","may","june","july",
                      "august","september","october","november","december"];
   var DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
   var DEFAULT_CHANNELS = [
-    { id:"ch_mcj",    name:"MC Journey",     color:"#4A5A73" },
-    { id:"ch_mcs",    name:"MC Standalone",  color:"#2A7F7F" },
-    { id:"ch_slack",  name:"Slack",          color:"#6B3FA0" },
-    { id:"ch_pinbox", name:"Personal inbox", color:"#C98A2B" },
-    { id:"ch_ginbox", name:"General inbox",  color:"#B24C3D" }
+    { id:"ch_mcj",    name:"MC Journey",    color:"#4A5A73" },
+    { id:"ch_mcs",    name:"MC Standalone", color:"#2A7F7F" },
+    { id:"ch_slack",  name:"Slack",         color:"#6B3FA0" },
+    { id:"ch_ginbox", name:"General inbox", color:"#B24C3D" }
   ];
 
-  /* ===================== STATE & PERSISTENCE =====================
-     Stored in the same Turso-backed table as the planning board, as one more
-     row: GET/PUT /api/board/ilab-comms-v1. Shared and attributed rather than
-     trapped in one browser. localStorage is only an offline mirror — opening
-     this file from disk means there is no server, so it says so instead of
-     appearing to save. ============================================ */
-  var BOARD_KEY  = "ilab-comms-v1";
-  var MIRROR_KEY = "ilab-comms-mirror";
-  var NAME_KEY   = "ilab-editor-name";
-
+  /* Stored alongside the planning board: GET/PUT /api/board/ilab-comms-v1.
+     localStorage is only an offline mirror — opened from disk there is no
+     server, so it says so rather than appearing to save. */
+  var BOARD_KEY="ilab-comms-v1", MIRROR_KEY="ilab-comms-mirror", NAME_KEY="ilab-editor-name";
   var DB = { channels:[], segments:[], sends:[], journeys:[], events:[], eventsMeta:{} };
-  var termIdx = 0, editingId = null, editingJourney = null;
-  var problems = [], serverOk = false, lastMeta = null;
-  var saveTimer = null, saving = false, saveState = "saved";
+  var termIdx=0, editingId=null, editingJourney=null;
+  var problems=[], serverOk=false, lastMeta=null;
+  var saveTimer=null, saving=false, saveState="saved";
 
   function uid(p){ return p+"_"+Math.random().toString(36).slice(2,9); }
   function lsGet(k){ try { return window.localStorage.getItem(k); } catch(e){ return null; } }
   function lsSet(k,v){ try { window.localStorage.setItem(k,v); } catch(e){} }
-
   function editorName() {
-    var n = lsGet(NAME_KEY);
+    var n=lsGet(NAME_KEY);
     if (!n) {
-      n = (window.prompt("Quick — what are your initials or name? (shown next to your saves so people know who edited what)") || "").trim();
-      if (n) lsSet(NAME_KEY, n);
+      n=(window.prompt("Quick — what are your initials or name? (shown next to your saves so people know who edited what)")||"").trim();
+      if (n) lsSet(NAME_KEY,n);
     }
-    return n || "";
+    return n||"";
   }
   function setSaveStatus(t){ var el=document.getElementById("saveStatus"); if (el) el.textContent=t; }
 
   function normalizeDB() {
-    if (!DB || typeof DB !== "object") DB = {};
-    if (!Array.isArray(DB.channels) || !DB.channels.length) DB.channels = DEFAULT_CHANNELS.slice();
+    if (!DB || typeof DB!=="object") DB={};
+    if (!Array.isArray(DB.channels) || !DB.channels.length) DB.channels=DEFAULT_CHANNELS.slice();
     if (!Array.isArray(DB.segments) || !DB.segments.length) {
-      DB.segments = Object.keys(PERSONA_FALLBACK).map(function (k) {
+      DB.segments=Object.keys(PERSONA_FALLBACK).map(function (k) {
         return { id:"seg_"+k, name:PERSONA_FALLBACK[k], persona:k };
       });
     }
-    if (!Array.isArray(DB.sends))    DB.sends    = [];
-    if (!Array.isArray(DB.journeys)) DB.journeys = [];
-    if (!Array.isArray(DB.events))   DB.events   = [];
-    if (!DB.eventsMeta || typeof DB.eventsMeta !== "object") DB.eventsMeta = {};
-    DB.sends.forEach(function (s) { if (!s.kind) s.kind = "send"; });
+    if (!Array.isArray(DB.sends))    DB.sends=[];
+    if (!Array.isArray(DB.journeys)) DB.journeys=[];
+    if (!Array.isArray(DB.events))   DB.events=[];
+    if (!DB.eventsMeta || typeof DB.eventsMeta!=="object") DB.eventsMeta={};
+    DB.sends.forEach(function(s){ if (!s.kind) s.kind="send"; });
   }
 
   function loadDB(done) {
-    var mirrored = null, raw = lsGet(MIRROR_KEY);
-    if (raw) { try { mirrored = JSON.parse(raw); } catch (e) {} }
-
-    if (!window.fetch || window.location.protocol === "file:") {
-      serverOk = false;
-      if (mirrored) DB = mirrored;
+    var mirrored=null, raw=lsGet(MIRROR_KEY);
+    if (raw) { try { mirrored=JSON.parse(raw); } catch(e){} }
+    if (!window.fetch || window.location.protocol==="file:") {
+      serverOk=false;
+      if (mirrored) DB=mirrored;
       problems.push({ level:"warn", msg:"Opened directly from disk, so there is no server to save to. Changes stay in this browser only. Serve it from the planning app to share the plan." });
       normalizeDB(); done(); return;
     }
-
-    fetch("/api/board/" + encodeURIComponent(BOARD_KEY))
+    fetch("/api/board/"+encodeURIComponent(BOARD_KEY))
       .then(function (r) {
-        if (r.status === 404) { serverOk = true; return null; }
-        if (!r.ok) throw new Error("HTTP " + r.status);
+        if (r.status===404) { serverOk=true; return null; }
+        if (!r.ok) throw new Error("HTTP "+r.status);
         return r.json();
       })
       .then(function (body) {
-        serverOk = true;
-        if (body && body.data) {
-          DB = body.data;
-          lastMeta = { updatedBy: body.updatedBy, updatedAt: body.updatedAt };
-        } else if (mirrored) {
-          DB = mirrored;
+        serverOk=true;
+        if (body && body.data) { DB=body.data; lastMeta={updatedBy:body.updatedBy, updatedAt:body.updatedAt}; }
+        else if (mirrored) {
+          DB=mirrored;
           problems.push({ level:"info", msg:"No saved plan on the server yet — starting from what was last in this browser." });
         }
         normalizeDB(); done();
       })
       .catch(function (e) {
-        serverOk = false;
-        if (mirrored) DB = mirrored;
-        problems.push({ level:"warn", msg:"Couldn't reach the server (" + e.message + "). Working from a local copy — changes will not be shared until the connection is back." });
+        serverOk=false;
+        if (mirrored) DB=mirrored;
+        problems.push({ level:"warn", msg:"Couldn't reach the server ("+e.message+"). Working from a local copy — changes will not be shared until the connection is back." });
         normalizeDB(); done();
       });
   }
@@ -573,27 +542,26 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   function saveDB() {
     lsSet(MIRROR_KEY, JSON.stringify(DB));
     if (!serverOk) { setSaveStatus("Local only — not shared"); return; }
-    saveState = "dirty"; setSaveStatus("Saving…");
-    clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 600);
+    saveState="dirty"; setSaveStatus("Saving…");
+    clearTimeout(saveTimer); saveTimer=setTimeout(doSave,600);
   }
   function doSave() {
-    if (saving) { clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 400); return; }
-    saving = true;
-    var who = editorName();
-    fetch("/api/board/" + encodeURIComponent(BOARD_KEY), {
-      method:"PUT", headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ data: DB, updatedBy: who || null })
+    if (saving) { clearTimeout(saveTimer); saveTimer=setTimeout(doSave,400); return; }
+    saving=true;
+    var who=editorName();
+    fetch("/api/board/"+encodeURIComponent(BOARD_KEY), {
+      method:"PUT", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ data:DB, updatedBy:who||null })
     })
-      .then(function (r) { if (!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
-      .then(function () { saveState="saved"; setSaveStatus("Saved"+(who?" by "+who:"")+" · shared"); })
-      .catch(function () { saveState="error"; setSaveStatus("Couldn't save — check your connection"); })
-      .finally(function () { saving = false; });
+      .then(function(r){ if (!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+      .then(function(){ saveState="saved"; setSaveStatus("Saved"+(who?" by "+who:"")+" · shared"); })
+      .catch(function(){ saveState="error"; setSaveStatus("Couldn't save — check your connection"); })
+      .finally(function(){ saving=false; });
   }
   window.addEventListener("beforeunload", function (e) {
     if (saveState==="dirty" || saving) { e.preventDefault(); e.returnValue=""; }
   });
 
-  /* ===================== DATE HELPERS ===================== */
   function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
   function parseISO(s){ var p=String(s).split("-"); return new Date(+p[0], +p[1]-1, +p[2]); }
   function addDays(d,n){ var x=new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
@@ -603,7 +571,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
   function parseDisplayDate(str, term) {
-    if (!str || typeof str !== "string") return null;
+    if (!str || typeof str!=="string") return null;
     var s=str.trim();
     if (!s || /^tb[cad]$/i.test(s)) return null;
     var m=s.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2})$/);
@@ -614,35 +582,32 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (mi<0 || term.months.indexOf(mi)<0) return null;
     var day=parseInt(m[2],10);
     if (!(day>=1 && day<=31)) return null;
-    var d=new Date(term.year, mi, day);
+    var d=new Date(term.year,mi,day);
     return d.getMonth()===mi ? d : null;
   }
-
   function weeksFor(term) {
     var out=[], cur=startOfWeek(parseISO(term.start)), end=parseISO(term.end), guard=0;
     while (cur<=end && guard++<60) { out.push({start:new Date(cur.getTime()), key:iso(cur)}); cur=addDays(cur,7); }
     return out;
   }
 
-  /* ===================== EVENT DATA ===================== */
   var _gc={};
   function g(name) {
     if (Object.prototype.hasOwnProperty.call(_gc,name)) return _gc[name];
     var v;
-    try { v = window[name]; } catch (e) {}
+    try { v=window[name]; } catch(e){}
     // A top-level `const` in a classic script never becomes a window property,
-    // so window[name] alone would miss it. A Function-constructed lookup runs
-    // in global scope and sees both.
-    if (typeof v === "undefined") {
-      try { v = Function("return typeof "+name+" !== 'undefined' ? "+name+" : undefined;")(); }
-      catch (e) { v = undefined; }
+    // so window[name] alone would miss it entirely.
+    if (typeof v==="undefined") {
+      try { v=Function("return typeof "+name+" !== 'undefined' ? "+name+" : undefined;")(); }
+      catch(e){ v=undefined; }
     }
     _gc[name]=v; return v;
   }
   function personaName(k) {
     var P=g("PERSONAS");
-    if (P && P[k]) return P[k].name || P[k].title || P[k].label || PERSONA_FALLBACK[k] || k;
-    return PERSONA_FALLBACK[k] || k;
+    if (P && P[k]) return P[k].name||P[k].title||P[k].label||PERSONA_FALLBACK[k]||k;
+    return PERSONA_FALLBACK[k]||k;
   }
 
   var EVENTS=[], CATS=[], OHS_LIST=[];
@@ -663,13 +628,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         (m.importedAt?" (imported "+m.importedAt+(m.importedBy?" by "+m.importedBy:"")+")":"")+"." });
     }
     var o=g("OHS"); OHS_LIST=Array.isArray(o)?o.slice():[];
-
     var seen={}; CATS=[];
     EVENTS.forEach(function (e) {
       var c=e.con||"Uncategorised";
       if (!seen[c]) { seen[c]=true; CATS.push({name:c,bg:e.cbg||"#EEF1F4",fg:e.ctx||"#4B5A72"}); }
     });
-
     var untagged=EVENTS.filter(function(e){ return !Array.isArray(e.tags)||!e.tags.length; }).length;
     if (untagged) problems.push({ level:"info", msg:untagged+" of "+EVENTS.length+
       " events have no audience tags, so content slots using them can't be checked against a segment. Add a Best For column to the ClickUp export to fix this at source." });
@@ -685,7 +648,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         if (d>=tS && d<=tE) { out.push({ev:e,date:d}); fromIso++; } else outside++;
         return;
       }
-      var d2=parseDisplayDate(e.date, term);
+      var d2=parseDisplayDate(e.date,term);
       if (d2) { out.push({ev:e,date:d2}); fromGuess++; }
       else if (!e.date || /^tb[cad]$/i.test(String(e.date).trim())) unresolved.push(e);
       else outside++;
@@ -694,7 +657,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     return { list:out, unresolved:unresolved, outside:outside, fromIso:fromIso, fromGuess:fromGuess };
   }
 
-  /* ===================== CLICKUP CSV IMPORT ===================== */
   var CATEGORY_MAP = {
     "founder fundamentals": { con:"Founder Fundamentals",    cbg:"#C1F4A8", ctx:"#27500A" },
     "community":            { con:"Community",               cbg:"#FFC7C8", ctx:"#711213" },
@@ -706,10 +668,9 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     "life lab":             { con:"Climate + Social Impact", cbg:"#cee5f7", ctx:"#2a5a80" },
     "pic":                  { con:"Venture Growth",          cbg:"#cbcafa", ctx:"#232262" }
   };
-  var OTHER_CAT = { con:"Other", cbg:"#EEF1F4", ctx:"#4B5A72" };
+  var OTHER_CAT={ con:"Other", cbg:"#EEF1F4", ctx:"#4B5A72" };
 
-  /* Written out rather than split(",") because Task Names in this export
-     contain commas, and quoted fields would be shredded. */
+  /* Written out rather than split(",") because Task Names contain commas. */
   function parseCsv(text) {
     var rows=[], row=[], field="", i=0, inQ=false;
     text=String(text).replace(/^﻿/,"");
@@ -731,7 +692,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (field.length || row.length) { row.push(field); rows.push(row); }
     return rows.filter(function(r){ return r.length && r.some(function(x){ return String(x).trim(); }); });
   }
-
   function parseClickUpDate(s) {
     if (!s) return null;
     var m=String(s).match(/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?[,]?\s+(\d{4})(?:\s*,\s*(\d{1,2}):(\d{2})(?::\d{2})?\s*([ap]\.?m\.?))?/i);
@@ -761,19 +721,16 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var cProg=col("program offering (drop down)","program offering");
     var cFmt=col("event format (labels)","event format","format");
     var cTags=col("best for:","best for","tags","audience");
-
     if (cName<0 || cDue<0) {
       window.alert("I need at least a \"Task Name\" and \"Due Date\" column. Found: "+rows[0].join(", "));
       return;
     }
-
     // The export has no tag column, so carry tags forward by Task ID. Dropping
     // them would silently disable every content check in the plan.
     var priorTags={};
     (DB.events||[]).concat(EVENTS).forEach(function (e) {
       if (e && e.src && Array.isArray(e.tags) && e.tags.length) priorTags[e.src]=e.tags;
     });
-
     var out=[], skipped=0, undated=0, keptTags=0;
     for (var r=1;r<rows.length;r++) {
       var row=rows[r];
@@ -781,30 +738,25 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       if (!name) { skipped++; continue; }
       var parsed=parseClickUpDate(row[cDue]);
       if (!parsed) { undated++; continue; }
-
       var taskId=cId>=0?String(row[cId]||"").trim():"";
       var progRaw=cProg>=0?String(row[cProg]||"").trim():"";
       var cat=CATEGORY_MAP[progRaw.toLowerCase()]||OTHER_CAT;
       var fmtRaw=cFmt>=0?String(row[cFmt]||"").toLowerCase():"";
       var fmt=fmtRaw.indexOf("virtual")>=0?"REMOTE":(fmtRaw.indexOf("person")>=0?"INPERSON":"");
-
       var tags=[];
       if (cTags>=0) {
         tags=String(row[cTags]||"").split(/[;,|]/)
-          .map(function(t){ return t.trim().toLowerCase().replace(/[\[\]]/g,""); })
-          .filter(Boolean);
+          .map(function(t){ return t.trim().toLowerCase().replace(/[\[\]]/g,""); }).filter(Boolean);
       }
       if (!tags.length && taskId && priorTags[taskId]) { tags=priorTags[taskId]; keptTags++; }
-
       out.push({
         id: taskId?("ci_"+taskId):uid("ev"), active:true, name:name,
         con:cat.con, cbg:cat.cbg, ctx:cat.ctx,
         date: MONTHS[parsed.date.getMonth()]+" "+parsed.date.getDate(),
-        iso: iso(parsed.date), time: parsed.time, format: fmt,
-        tags: tags, desc:"", link:"", src: taskId
+        iso: iso(parsed.date), time:parsed.time, format:fmt,
+        tags:tags, desc:"", link:"", src:taskId
       });
     }
-
     if (!out.length) { window.alert("No rows had a readable date, so nothing was imported."); return; }
     var msg="Import "+out.length+" event(s)?";
     if (undated)  msg+="\n· "+undated+" row(s) skipped — no readable date.";
@@ -812,20 +764,19 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (keptTags) msg+="\n· "+keptTags+" kept their existing audience tags.";
     if (DB.events && DB.events.length) msg+="\n\nThis replaces the current "+DB.events.length+" event(s).";
     if (!window.confirm(msg)) return;
-
     DB.events=out;
     DB.eventsMeta={ importedAt:new Date().toISOString().slice(0,10), importedBy:editorName(),
                     fileName:fileName||"", rowCount:out.length };
     saveDB(); problems=[]; loadData(); render();
   }
 
-  /* ===================== LOOKUPS ===================== */
   function channelById(id){ for (var i=0;i<DB.channels.length;i++) if (DB.channels[i].id===id) return DB.channels[i]; return null; }
   function segmentById(id){ for (var i=0;i<DB.segments.length;i++) if (DB.segments[i].id===id) return DB.segments[i]; return null; }
   function sendById(id){ for (var i=0;i<DB.sends.length;i++) if (DB.sends[i].id===id) return DB.sends[i]; return null; }
   function eventById(id){ for (var i=0;i<EVENTS.length;i++) if (EVENTS[i].id===id) return EVENTS[i]; return null; }
   function journeyById(id){ for (var i=0;i<DB.journeys.length;i++) if (DB.journeys[i].id===id) return DB.journeys[i]; return null; }
   function journeysForChannel(chId){ return DB.journeys.filter(function(j){ return j.channelId===chId; }); }
+  function segmentUsage(segId){ return DB.sends.filter(function(s){ return (s.segments||[]).some(function(x){ return x.segId===segId; }); }).length; }
 
   function sendsInJourney(jId, kind) {
     return DB.sends.filter(function (s) {
@@ -836,9 +787,9 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
   }
 
-  /* Feeders are ordered by date; each covers entrants from its own date until
-     the day before the next one. "Before 9/16" and "on or after 9/16" fall out
-     of the ordering rather than needing a rule stored per feeder. */
+  /* Feeders ordered by date; each covers entrants from its own date until the
+     day before the next. "Before 9/16" and "on or after 9/16" fall out of the
+     ordering rather than needing a rule stored per feeder. */
   function feederWindows(jr) {
     var fs=sendsInJourney(jr.id,"feeder");
     return fs.map(function (f,i) {
@@ -853,7 +804,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (!w.from)  return "until "+w.until;
     return w.from+" → "+w.until;
   }
-
   function eventsInWeekOf(dateStr, res) {
     if (!dateStr) return [];
     var d=parseISO(dateStr);
@@ -861,7 +811,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var ws=startOfWeek(d), we=addDays(ws,7);
     return res.list.filter(function(r){ return r.date>=ws && r.date<we; });
   }
-
   /* Reported, never auto-corrected — a deliberate cross-promotion is valid. */
   function slotMismatch(seg, ev) {
     if (!seg || !seg.persona || !ev) return false;
@@ -888,15 +837,13 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     return !isNaN(d.getTime()) && d>=parseISO(term.start) && d<=parseISO(term.end);
   }
 
-  /* ===================== HEALTH ===================== */
   function renderHealth(res, term) {
     var el=document.getElementById("health"), items=problems.slice();
     if (res.unresolved.length) items.push({ level:"warn",
-      msg: res.unresolved.length+" event(s) have no usable date and can't be offered as content: "+
-        res.unresolved.slice(0,4).map(function(e){return e.name||e.id;}).join(", ")+
-        (res.unresolved.length>4?", …":"") });
+      msg:res.unresolved.length+" event(s) have no usable date and can't be offered as content: "+
+        res.unresolved.slice(0,4).map(function(e){return e.name||e.id;}).join(", ")+(res.unresolved.length>4?", …":"") });
     if (res.fromGuess>0) items.push({ level:"info",
-      msg: res.fromGuess+" event(s) lack an `iso` field, so their year was inferred from the display string." });
+      msg:res.fromGuess+" event(s) lack an `iso` field, so their year was inferred from the display string." });
     if (!res.list.length && EVENTS.length) items.push({ level:"warn",
       msg:"No events fall inside "+term.label+". Content slots will have nothing to offer — check the term tab." });
 
@@ -909,8 +856,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
     if (undatedFeeders.length) items.push({ level:"warn",
       msg:"Entry email(s) with no cutoff date, so no one is routed to them: "+
-        undatedFeeders.slice(0,3).join("; ")+
-        (undatedFeeders.length>3?" and "+(undatedFeeders.length-3)+" more":"")+"." });
+        undatedFeeders.slice(0,3).join("; ")+(undatedFeeders.length>3?" and "+(undatedFeeders.length-3)+" more":"")+"." });
 
     var fatal=items.some(function(i){ return i.level==="fatal"; });
     el.className="health"+(fatal?" bad":"");
@@ -921,7 +867,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     el.innerHTML=head+(items.length?"<ul>"+items.map(function(i){ return "<li>"+esc(i.msg)+"</li>"; }).join("")+"</ul>":"");
   }
 
-  /* ===================== GRID ===================== */
   function laneEl(name, meta, color) {
     var d=document.createElement("div"); d.className="lane";
     d.innerHTML='<div class="lane-name">'+(color?'<span class="lane-swatch" style="background:'+esc(color)+'"></span>':"")+
@@ -951,7 +896,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           var fd=parseISO(fw.from);
           if (isNaN(fd.getTime()) || fd<w.start || fd>=we) return;
           // Day-count, not millisecond maths — a DST shift inside the week
-          // would otherwise nudge the marker off by a fraction of a day.
+          // would nudge the marker off by a fraction of a day.
           var dayOffset=Math.round((fd-w.start)/86400000);
           var cut=document.createElement("span"); cut.className="jr-cut";
           cut.style.left=(dayOffset/7*100)+"%";
@@ -1033,7 +978,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           return !isNaN(d.getTime()) && d>=w.start && d<we;
         }).sort(function(a,b){ return parseISO(a.date)-parseISO(b.date); })
           .forEach(function (s) { c.appendChild(stickyEl(s,ch)); });
-
         var add=document.createElement("button");
         add.type="button"; add.className="add-cell"; add.textContent="+";
         add.title="Add a send in this week";
@@ -1061,7 +1005,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var r=parseInt(h.slice(0,2),16), g2=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
       if (isNaN(r)||isNaN(g2)||isNaN(b)) return "#F7F8FA";
       return "rgba("+r+","+g2+","+b+",0.10)";
-    } catch (e) { return "#F7F8FA"; }
+    } catch(e){ return "#F7F8FA"; }
   }
 
   function stickyEl(s, ch) {
@@ -1107,7 +1051,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       lastMo=mo; ht.appendChild(c);
     });
     hdr.appendChild(ht); root.appendChild(hdr);
-
     CATS.forEach(function (cat) {
       var mine=res.list.filter(function(r){ return (r.ev.con||"Uncategorised")===cat.name; });
       var row=document.createElement("div"); row.className="row";
@@ -1128,7 +1071,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
   }
 
-  /* ===================== SETUP ===================== */
   function renderSetup() {
     var jb=document.getElementById("journeyBody"); jb.innerHTML="";
     if (!DB.journeys.length) {
@@ -1179,7 +1121,20 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var td4=document.createElement("td");
       var del=document.createElement("button"); del.className="btn btn-sm"; del.textContent="Delete";
       del.addEventListener("click", function () {
-        if (!window.confirm("Delete “"+ch.name+"” and its "+n+" send(s)? This cannot be undone.")) return;
+        // Deleting a lane takes its journeys with it, so name them rather than
+        // burying that under a send count. An empty channel goes quietly.
+        var jrs=journeysForChannel(ch.id), msg;
+        if (!n && !jrs.length) {
+          msg="Delete the “"+ch.name+"” channel? It has nothing in it.";
+        } else {
+          msg="Delete “"+ch.name+"”?\n\nThis also deletes:\n· "+n+" send(s)";
+          if (jrs.length) {
+            msg+="\n· "+jrs.length+" journey(s), including their entry cutoffs:\n    "+
+              jrs.map(function(j){ return j.name||"Untitled"; }).join("\n    ");
+          }
+          msg+="\n\nThis cannot be undone. To keep the journeys, reassign them to another channel first.";
+        }
+        if (!window.confirm(msg)) return;
         DB.sends=DB.sends.filter(function(s){ return s.channelId!==ch.id; });
         DB.journeys=DB.journeys.filter(function(j){ return j.channelId!==ch.id; });
         DB.channels=DB.channels.filter(function(x){ return x.id!==ch.id; });
@@ -1205,21 +1160,21 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       sel.value=sg.persona||"";
       sel.addEventListener("change", function(){ sg.persona=sel.value||null; saveDB(); render(); });
       td2.appendChild(sel); tr.appendChild(td2);
-      var td3=document.createElement("td");
+      var used=segmentUsage(sg.id);
+      var td3=document.createElement("td"); td3.textContent=used+" send"+(used===1?"":"s"); tr.appendChild(td3);
+      var td4=document.createElement("td");
       var del=document.createElement("button"); del.className="btn btn-sm"; del.textContent="Delete";
       del.addEventListener("click", function () {
-        var used=DB.sends.filter(function(s){ return (s.segments||[]).some(function(x){ return x.segId===sg.id; }); }).length;
-        if (used && !window.confirm("“"+sg.name+"” is used in "+used+" send(s). Delete anyway? Those blocks will be removed.")) return;
+        if (used && !window.confirm("“"+sg.name+"” is used in "+used+" send(s). Delete anyway? Those segment blocks and their content will be removed.")) return;
         DB.sends.forEach(function(s){ s.segments=(s.segments||[]).filter(function(x){ return x.segId!==sg.id; }); });
         DB.segments=DB.segments.filter(function(x){ return x.id!==sg.id; });
         saveDB(); render();
       });
-      td3.appendChild(del); tr.appendChild(td3);
+      td4.appendChild(del); tr.appendChild(td4);
       sb.appendChild(tr);
     });
   }
 
-  /* ===================== SEND EDITOR ===================== */
   function currentSend(){ return sendById(editingId); }
 
   function openEditor(sendId, presetChannel, presetDate) {
@@ -1236,13 +1191,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("edDate").value=s.date||"";
     document.getElementById("edStatus").value=s.status||"draft";
     document.getElementById("edNotes").value=s.notes||"";
-
     var cs=document.getElementById("edChannel"); cs.innerHTML="";
     DB.channels.forEach(function (ch) {
       var o=document.createElement("option"); o.value=ch.id; o.textContent=ch.name; cs.appendChild(o);
     });
     cs.value=s.channelId;
-
     var js=document.getElementById("edJourney"); js.innerHTML="";
     var o0=document.createElement("option"); o0.value=""; o0.textContent="— standalone —"; js.appendChild(o0);
     DB.journeys.forEach(function (j) {
@@ -1251,7 +1204,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     js.value=s.journeyId||"";
     document.getElementById("edKind").value=s.kind||"send";
     updateKindUi();
-
     renderEditorSegments();
     document.getElementById("editorOverlay").classList.remove("hidden");
   }
@@ -1279,7 +1231,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var host=document.getElementById("edSegments"); host.innerHTML="";
     var term=TERMS[termIdx], res=resolvedEvents(term);
     var dateStr=document.getElementById("edDate").value || s.date;
-    var weekEvents=eventsInWeekOf(dateStr, res);
+    var weekEvents=eventsInWeekOf(dateStr,res);
 
     (s.segments||[]).forEach(function (sg, si) {
       var seg=segmentById(sg.segId);
@@ -1320,12 +1272,12 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           var sel=document.createElement("select");
           var op0=document.createElement("option"); op0.value=""; op0.textContent="— pick content —"; sel.appendChild(op0);
           var gWeek=document.createElement("optgroup"); gWeek.label="This week ("+weekEvents.length+")";
-          weekEvents.forEach(function (r) { gWeek.appendChild(evOption(r, seg)); });
+          weekEvents.forEach(function (r) { gWeek.appendChild(evOption(r,seg)); });
           if (weekEvents.length) sel.appendChild(gWeek);
           var gRest=document.createElement("optgroup"); gRest.label="Elsewhere in "+term.label;
           res.list.forEach(function (r) {
             if (weekEvents.indexOf(r)>=0) return;
-            gRest.appendChild(evOption(r, seg));
+            gRest.appendChild(evOption(r,seg));
           });
           sel.appendChild(gRest);
           sel.value=it.ref||"";
@@ -1337,7 +1289,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           inp.addEventListener("change", function(){ it.text=inp.value; saveDB(); });
           rowEl.appendChild(inp);
         }
-
         var rm=document.createElement("button"); rm.className="btn btn-sm"; rm.textContent="×";
         rm.addEventListener("click", function(){ sg.items.splice(ii,1); saveDB(); renderEditorSegments(); });
         rowEl.appendChild(rm);
@@ -1363,7 +1314,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       h2.textContent="No segments yet. Add one below to start breaking this send down.";
       host.appendChild(h2);
     }
-
     var sel2=document.getElementById("edAddSegSel"); sel2.innerHTML="";
     DB.segments.forEach(function (sg2) {
       if ((s.segments||[]).some(function(x){ return x.segId===sg2.id; })) return;
@@ -1394,7 +1344,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     render();
   }
 
-  /* ===================== JOURNEY EDITOR ===================== */
   function currentJourney(){ return journeyById(editingJourney); }
 
   function openJourney(id, presetChannel) {
@@ -1433,24 +1382,20 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     wins.forEach(function (fw) {
       var box=document.createElement("div"); box.className="feeder";
       var head=document.createElement("div"); head.className="feeder-head";
-
       var nm=document.createElement("input"); nm.type="text"; nm.value=fw.send.title||"";
       nm.placeholder="e.g. Welcome to Fall (pre-orientation)"; nm.style.flex="1 1 210px";
       nm.addEventListener("change", function(){ fw.send.title=nm.value; saveDB(); renderJourneyDetail(); render(); });
       head.appendChild(nm);
-
       var dt=document.createElement("input"); dt.type="date"; dt.value=fw.send.date||"";
       dt.style.flex="0 0 148px"; dt.title="Entrants from this date get this email";
       dt.addEventListener("change", function(){ fw.send.date=dt.value; saveDB(); renderJourneyDetail(); render(); });
       head.appendChild(dt);
-
       var ed=document.createElement("button"); ed.className="btn btn-sm"; ed.textContent="Content…";
       ed.addEventListener("click", function () {
         document.getElementById("journeyOverlay").classList.add("hidden");
         openEditor(fw.send.id);
       });
       head.appendChild(ed);
-
       var rm=document.createElement("button"); rm.className="btn btn-sm"; rm.textContent="×";
       rm.addEventListener("click", function () {
         if (!window.confirm("Remove this entry cutoff and its content?")) return;
@@ -1459,7 +1404,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
       head.appendChild(rm);
       box.appendChild(head);
-
       var slots=(fw.send.segments||[]).reduce(function(a,x){ return a+((x.items||[]).length); },0);
       var win=document.createElement("div"); win.className="feeder-win";
       win.textContent="Entrants "+describeWindow(fw)+" · "+(fw.send.segments||[]).length+
@@ -1491,7 +1435,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
       d.appendChild(b); sh.appendChild(d);
     });
-
     document.getElementById("jrMeta").textContent=wins.length+" cutoff(s) · "+ss.length+" scheduled send(s)";
   }
 
@@ -1509,7 +1452,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     render();
   }
 
-  /* ===================== PROMO GENERATOR ===================== */
   function intVal(id,d){ var v=parseInt(document.getElementById(id).value,10); return isNaN(v)?d:v; }
 
   function openPromo() {
@@ -1547,7 +1489,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var picked=[];
     document.querySelectorAll(".pg-ev").forEach(function (cb) { if (cb.checked) picked.push(cb.value); });
     if (!picked.length) { window.alert("Pick at least one event."); return; }
-
     var tS=parseISO(term.start), tE=parseISO(term.end), made=0, skipped=0;
     picked.forEach(function (evId) {
       var rec=null;
@@ -1558,7 +1499,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       // Untagged events get every persona-linked segment — better to over-include
       // and let a human cut than to produce a send with no audience at all.
       if (!segs.length) segs=DB.segments.filter(function(sg){ return !!sg.persona; });
-
       beats.forEach(function (b) {
         var when=addDays(rec.date,b.off);
         if (when<tS || when>tE) { skipped++; return; }
@@ -1579,7 +1519,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     render();
   }
 
-  /* ===================== CSV / JSON ===================== */
   function toCsv(rows) {
     return rows.map(function (r) {
       return r.map(function (c) {
@@ -1603,7 +1542,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     DB.journeys.forEach(function (j) {
       feederWindows(j).forEach(function (fw) { winByFeeder[fw.send.id]=describeWindow(fw); });
     });
-
     DB.sends.filter(function(s){ return inTerm(s,term); })
       .sort(function(a,b){ return parseISO(a.date)-parseISO(b.date); })
       .forEach(function (s) {
@@ -1647,14 +1585,13 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           if (!window.confirm("Replace the current plan with the imported one? "+
               p.sends.length+" send(s), "+p.channels.length+" channel(s).")) return;
           DB=p; normalizeDB(); saveDB(); problems=[]; loadData(); render();
-        } catch (e) { window.alert("That file isn't a communications plan export."); }
+        } catch(e){ window.alert("That file isn't a communications plan export."); }
       };
       fr.readAsText(f);
     });
     inp.click();
   }
 
-  /* ===================== RENDER / INIT ===================== */
   function render() {
     var term=TERMS[termIdx], res=resolvedEvents(term), weeks=weeksFor(term);
     renderHealth(res,term);
@@ -1665,7 +1602,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
 
   function init() {
     problems=[];
-
     var ts=document.getElementById("termSel");
     TERMS.forEach(function (t,i) {
       var o=document.createElement("option"); o.value=i; o.textContent=t.label; ts.appendChild(o);
@@ -1680,7 +1616,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         });
       });
     });
-
     document.getElementById("densitySel").addEventListener("change", render);
 
     document.getElementById("addChannelBtn").addEventListener("click", function () {
@@ -1770,7 +1705,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       document.getElementById("promoOverlay").classList.add("hidden");
     });
     document.getElementById("pgGenerate").addEventListener("click", generatePromos);
-
     document.getElementById("commsCsvBtn").addEventListener("click", commsCsv);
     document.getElementById("exportJsonBtn").addEventListener("click", exportJson);
     document.getElementById("importJsonBtn").addEventListener("click", importJson);

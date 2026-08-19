@@ -376,6 +376,12 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         <div class="fld" style="flex:1 1 300px"><span>Who receives this</span>
           <div class="hint" id="edCutoffHint" style="margin-top:0"></div></div>
       </div>
+      <div class="fld-row" id="edFeederRow">
+        <label class="fld" style="flex:0 0 190px"><span>Sends on</span>
+          <input type="date" id="edSendOn" /></label>
+        <div class="fld" style="flex:1 1 300px"><span>Who receives this</span>
+          <div class="hint" id="edFeederHint" style="margin-top:0"></div></div>
+      </div>
       <div class="trigger-box hidden" id="edTriggerBox">
         <div class="trigger-box-title">Automation</div>
         <div class="trigger-box-sub">
@@ -445,8 +451,10 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       <div class="fld">
         <span>Entry cutoffs — which welcome someone gets</span>
         <div class="hint" style="margin:0 0 8px">
-          Ordered by date. Each covers everyone entering from its date until the next
-          one starts. The first covers everyone from the journey's start.
+          Ordered by <b>cohort opens</b>. Each covers everyone entering from its date
+          until the next one starts; the first covers everyone from the journey's start.
+          <b>Sends on</b> is the day that email goes out to its cohort — leave it empty
+          and it fires whenever each person joins instead.
         </div>
         <div id="jrFeeders"></div>
         <button class="btn btn-sm" id="jrAddFeeder">+ Add entry cutoff</button>
@@ -633,6 +641,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     DB.sends.forEach(function (s) {
       if (!s.kind) s.kind="send";
       if (typeof s.cutoff!=="string") s.cutoff="";
+      if (typeof s.sendOn!=="string") s.sendOn="";
       if (s.kind==="triggered") {
         if (!s.trigger || typeof s.trigger!=="object") s.trigger={ preset:"", text:"" };
         if (typeof s.trigger.preset!=="string") s.trigger.preset="";
@@ -920,9 +929,14 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       if (!da) return 1; if (!db2) return -1; return da-db2;
     });
   }
-  /* An automation has no send date, so its window start stands in wherever the
-     plan needs to place it in time (sorting, term filtering, CSV order). */
-  function effectiveDate(s){ return isAuto(s) ? (s.activeFrom||"") : (s.date||""); }
+  /* Where a message sits in time. An automation has no send date, so its window
+     start stands in. An entry email keeps `date` as the day its cohort opens and
+     `sendOn` as the day it actually goes out — the calendar wants the latter. */
+  function effectiveDate(s) {
+    if (isAuto(s)) return s.activeFrom||"";
+    if ((s.kind||"send")==="feeder") return s.sendOn||s.date||"";
+    return s.date||"";
+  }
   /* Feeders ordered by date; each covers entrants from its own date until the
      day before the next. "Before 9/16" and "on or after 9/16" fall out of the
      ordering rather than needing a rule stored per feeder. */
@@ -939,6 +953,10 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
      has none, so it's only ever checked against its own week. */
   function windowFor(s) {
     if (isAuto(s)) return { from:s.activeFrom||"", until:s.activeUntil||"" };
+    // Once an entry email has a fixed send date it goes out once, to whoever is
+    // in the cohort by then — so its content only has to hold on that day, not
+    // across the whole entry window. Without one it still fires on entry.
+    if ((s.kind||"send")==="feeder" && s.sendOn) return null;
     if ((s.kind||"send")==="feeder" && s.journeyId) {
       var j=journeyById(s.journeyId);
       if (!j) return null;
@@ -993,6 +1011,50 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (cov.partial) t+=" ("+cov.partial+" partly)";
     if (cov.none) t+=" · "+cov.none+" cohort"+(cov.none===1?"":"s")+" excluded";
     return { text:t+".", bad:false };
+  }
+  function entryWindowOf(s) {
+    var jr=s.journeyId?journeyById(s.journeyId):null;
+    if (!jr) return null;
+    var ws=feederWindows(jr);
+    for (var i=0;i<ws.length;i++) {
+      if (ws[i].send.id===s.id) {
+        // The last cohort always runs to the journey's end because there is no
+        // next cutoff to close it — that's structural, not a mistake.
+        ws[i].isLast=(i===ws.length-1);
+        return ws[i];
+      }
+    }
+    return null;
+  }
+  /* An entry email has two jobs: it names a cohort, and it goes out on a day.
+     Those can disagree — sending before the cohort closes strands everyone who
+     joins in the remaining days, since they're assigned to an email already gone. */
+  function describeFeeder(s) {
+    var w=entryWindowOf(s);
+    var open=okDate(s.date), send=okDate(s.sendOn), close=w?okDate(w.until):null;
+    var who="Entrants "+(w?describeWindow(w):"—");
+    if (!send) {
+      return { text:who+" · no send date, so it fires when each person joins.", bad:false };
+    }
+    if (open && send<open) {
+      return { text:"Sends "+fmtShort(send)+" but the cohort doesn't open until "+
+        fmtShort(open)+", so nobody has joined it yet.", bad:true };
+    }
+    if (close && send<close) {
+      var missed=Math.round((close-send)/86400000);
+      // On the final cohort this is just "the sequence hasn't been extended yet",
+      // which is a nudge to add the next one, not an error in this one.
+      if (w && w.isLast) {
+        return { text:"Entrants "+(okDate(w.from)?fmtShort(okDate(w.from)):"?")+" → "+
+          fmtShort(send)+" · sends "+fmtDay(send)+". Last in the sequence, so anyone joining "+
+          "in the "+missed+" day(s) after it has nothing queued — add the next entry email "+
+          "to cover them.", bad:false };
+      }
+      return { text:"Sends "+fmtShort(send)+" but the cohort stays open until "+fmtShort(close)+
+        " — anyone joining in the last "+missed+" day(s) is assigned to this email and never "+
+        "receives it. Send on "+iso(close)+" or later, or close the cohort earlier.", bad:true };
+    }
+    return { text:who+" · sends "+fmtDay(send)+".", bad:false };
   }
   /* The cutoff is a journey concept: it decides which cohort of entrants a
      dated message reaches. A standalone send has no cohorts to sort. */
@@ -1086,8 +1148,25 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
     });
     if (undatedFeeders.length) items.push({ level:"warn",
-      msg:"Entry email(s) with no cutoff date, so no one is routed to them: "+
+      msg:"Entry email(s) with no cohort-opens date, so no one is routed to them: "+
         undatedFeeders.slice(0,3).join("; ")+(undatedFeeders.length>3?" and "+(undatedFeeders.length-3)+" more":"")+"." });
+    // A send date that lands before its cohort closes strands the last joiners.
+    var feederGaps=[], onEntry=[];
+    DB.journeys.forEach(function (j) {
+      sendsInJourney(j.id,"feeder").forEach(function (f) {
+        if (!f.date) return;
+        var fd=describeFeeder(f);
+        if (fd.bad) feederGaps.push((f.title||"untitled")+" — "+fd.text);
+        else if (!f.sendOn) onEntry.push(f.title||"untitled");
+      });
+    });
+    if (feederGaps.length) items.push({ level:"warn",
+      msg:"Entry email(s) whose send date and cohort disagree: "+feederGaps.slice(0,2).join(" | ")+
+        (feederGaps.length>2?" and "+(feederGaps.length-2)+" more":"") });
+    if (onEntry.length) items.push({ level:"info",
+      msg:onEntry.length+" entry email(s) have no send date, so they fire when each person joins rather than going out on a day: "+
+        onEntry.slice(0,4).join("; ")+(onEntry.length>4?", …":"")+
+        ". Add a “sends on” date if they're meant to go out as a scheduled digest." });
     // An automation is only real once it has both a trigger and a window: no
     // trigger means nothing fires it, no window means nobody knows when it stops.
     var noTrigger=[], noWindow=[], openEnded=[], staleAuto=[];
@@ -1304,9 +1383,9 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         var astrip=autoStripEl(myAutos,w,we,res,term);
         if (astrip) c.appendChild(astrip);
         mine.filter(function (s) {
-          var d=okDate(s.date);
+          var d=okDate(effectiveDate(s));
           return !!d && d>=w.start && d<we;
-        }).sort(function(a,b){ return parseISO(a.date)-parseISO(b.date); })
+        }).sort(function(a,b){ return parseISO(effectiveDate(a))-parseISO(effectiveDate(b)); })
           .forEach(function (s) { c.appendChild(stickyEl(s,ch,res)); });
         var add=document.createElement("button");
         add.type="button"; add.className="add-cell"; add.textContent="+";
@@ -1341,27 +1420,41 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var b=document.createElement("button"); b.type="button";
     b.className="sticky status-"+(s.status||"draft");
     b.style.borderLeftColor=ch.color; b.style.background=hexToSoft(ch.color);
-    var d=parseISO(s.date);
+    var d=parseISO(effectiveDate(s));
     var segCount=(s.segments||[]).length;
     var slotCount=(s.segments||[]).reduce(function(a,x){ return a+((x.items||[]).length); },0);
     var warn=sendHasWarning(s,res);
     var isFeeder=(s.kind||"send")==="feeder";
     var jr=s.journeyId?journeyById(s.journeyId):null;
-    var cut="", el=null;
+    var cut="", el=null, bad=false;
     if (cutoffApplies(s)) {
       el=describeEligibility(s);
+      bad=el.bad;
       if (s.cutoff) {
         var cd=okDate(s.cutoff);
         cut='<span class="sticky-cut'+(el.bad?" bad":"")+'">⊣ in by '+
           esc(cd?fmtDay(cd).replace(/^\w+ /,""):s.cutoff)+"</span>";
       }
     }
-    b.innerHTML='<span class="sticky-day">'+(isFeeder?"⤷ entry · ":"")+esc(fmtDay(d))+
-        ((warn||(el&&el.bad))?' <span class="sticky-warn">!</span>':"")+"</span>"+
+    if (isFeeder) {
+      el=describeFeeder(s);
+      bad=el.bad;
+      var ew=entryWindowOf(s);
+      // The cohort window is the point of an entry email, so it rides on the
+      // note rather than hiding in a tooltip.
+      if (ew) {
+        var o=okDate(ew.from), u=okDate(ew.until);
+        cut='<span class="sticky-cut'+(el.bad?" bad":"")+'">⊣ joined '+
+          esc(o?fmtShort(o):"?")+"–"+esc(u?fmtShort(u):"open")+"</span>";
+      }
+    }
+    b.innerHTML='<span class="sticky-day">'+(isFeeder?(s.sendOn?"⤷ digest · ":"⤷ on entry · "):"")+
+        esc(fmtDay(d))+((warn||bad)?' <span class="sticky-warn">!</span>':"")+"</span>"+
       '<span class="sticky-title">'+esc(s.title||(isFeeder?"Untitled entry email":"Untitled send"))+"</span>"+
       cut+
       '<span class="sticky-segs">'+(jr?esc(jr.name)+" · ":"")+segCount+" seg · "+slotCount+" item"+(slotCount===1?"":"s")+"</span>";
-    b.title=(s.title||"Untitled")+" — sends "+fmtDay(d)+
+    b.title=(s.title||"Untitled")+
+      (isFeeder&&!s.sendOn ? " — cohort opens "+fmtDay(d) : " — sends "+fmtDay(d))+
       (el?"\n"+el.text:"")+"\n\n"+describeSend(s);
     b.addEventListener("click", function(){ openEditor(s.id); });
     return b;
@@ -1591,6 +1684,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("edTitle").value=s.title||"";
     document.getElementById("edDate").value=s.date||"";
     document.getElementById("edCutoff").value=s.cutoff||"";
+    document.getElementById("edSendOn").value=s.sendOn||"";
     document.getElementById("edStatus").value=s.status||"draft";
     document.getElementById("edNotes").value=s.notes||"";
     var cs=document.getElementById("edChannel"); cs.innerHTML="";
@@ -1628,11 +1722,20 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var isFeeder=kind==="feeder", triggered=kind==="triggered";
     document.getElementById("edTriggerBox").classList.toggle("hidden", !triggered);
     document.getElementById("edDateWrap").style.display=triggered?"none":"";
-    document.getElementById("edDateLabel").textContent=isFeeder?"Cohort starts":"Send date";
+    document.getElementById("edDateLabel").textContent=isFeeder?"Cohort opens":"Send date";
     // The cutoff row only appears where it has meaning — a dated message inside
     // a journey. Elsewhere it would be a field that silently does nothing.
     var showCutoff=cutoffApplies({ kind:kind, journeyId:jid });
     document.getElementById("edCutoffRow").style.display=showCutoff?"":"none";
+    document.getElementById("edFeederRow").style.display=isFeeder?"":"none";
+    if (isFeeder) {
+      var fd=describeFeeder({ kind:"feeder", id:editingId, journeyId:jid,
+                              date:document.getElementById("edDate").value,
+                              sendOn:document.getElementById("edSendOn").value });
+      var fh=document.getElementById("edFeederHint");
+      fh.textContent=fd.text;
+      fh.style.color=fd.bad?"var(--rust)":"";
+    }
     if (showCutoff) {
       var el=describeEligibility({ date:document.getElementById("edDate").value,
                                    cutoff:document.getElementById("edCutoff").value,
@@ -1853,14 +1956,18 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       host.appendChild(h);
     }
     wins.forEach(function (fw) {
-      var box=document.createElement("div"); box.className="feeder";
+      var fd=describeFeeder(fw.send);
+      var box=document.createElement("div"); box.className="feeder"+(fd.bad?" msg bad":"");
       var head=document.createElement("div"); head.className="feeder-head";
-      head.appendChild(miniField("Entry email", "text", fw.send.title, "1 1 210px",
-        "e.g. Welcome to Fall (pre-orientation)",
+      head.appendChild(miniField("Entry email", "text", fw.send.title, "1 1 160px",
+        "e.g. WD 1",
         function (v) { fw.send.title=v; saveDB(); renderJourneyDetail(); render(); }));
-      head.appendChild(miniField("Cohort opens", "date", fw.send.date, "0 0 148px",
+      head.appendChild(miniField("Cohort opens", "date", fw.send.date, "0 0 134px",
         "Entrants from this date get this email, until the next cutoff",
         function (v) { fw.send.date=v; saveDB(); renderJourneyDetail(); render(); }));
+      head.appendChild(miniField("Sends on", "date", fw.send.sendOn, "0 0 134px",
+        "The day this email goes out to its cohort. Leave empty to fire when each person joins instead.",
+        function (v) { fw.send.sendOn=v; saveDB(); renderJourneyDetail(); render(); }));
       var ed=document.createElement("button"); ed.className="btn btn-sm"; ed.textContent="Content…";
       ed.addEventListener("click", function () {
         document.getElementById("journeyOverlay").classList.add("hidden");
@@ -1876,8 +1983,8 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       head.appendChild(rm);
       box.appendChild(head);
       var slots=(fw.send.segments||[]).reduce(function(a,x){ return a+((x.items||[]).length); },0);
-      var win=document.createElement("div"); win.className="feeder-win";
-      win.textContent="Entrants "+describeWindow(fw)+" · "+(fw.send.segments||[]).length+
+      var win=document.createElement("div"); win.className="feeder-win"+(fd.bad?" msg-sub bad":"");
+      win.textContent=(fd.bad?"⚠ ":"")+fd.text+"  ·  "+(fw.send.segments||[]).length+
         " segment(s), "+slots+" content item(s)";
       box.appendChild(win);
       host.appendChild(box);
@@ -2091,14 +2198,15 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         var auto=kind==="triggered", isFeeder=kind==="feeder";
         var eff=effectiveDate(s), effD=okDate(eff);
         var w=windowFor(s);
-        var typeLabel=auto?"Automation (triggered)":(isFeeder?"Entry email":"Scheduled send");
-        var elig=cutoffApplies(s)?describeEligibility(s):null;
+        var typeLabel=auto?"Automation (triggered)":
+          (isFeeder?(s.sendOn?"Entry email (dated)":"Entry email (on entry)"):"Scheduled send");
+        var elig=cutoffApplies(s)?describeEligibility(s):(isFeeder?describeFeeder(s):null);
         var pre=[ eff||"", (effD && !auto)?DOW[effD.getDay()]:"—",
                   ch?ch.name:"?", jr?(jr.name||"Untitled"):"",
                   typeLabel, auto?triggerText(s):"",
                   auto?(s.delay||0):"",
                   w?describeWindow(w):"",
-                  cutoffApplies(s)?(s.cutoff||"no cutoff"):"",
+                  cutoffApplies(s)?(s.cutoff||"no cutoff"):(isFeeder?("cohort opens "+(s.date||"?")):""),
                   elig?((elig.bad?"CHECK — ":"")+elig.text):"",
                   s.title||"", s.status||"" ];
         if (!s.segments || !s.segments.length) { rows.push(pre.concat(["","","","","","",s.notes||""])); return; }
@@ -2217,6 +2325,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         var el=describeEligibility(s);
         if (el.bad && !window.confirm(el.text+"\n\nSave it anyway?")) return;
       }
+      if (s.kind==="feeder") {
+        s.sendOn=document.getElementById("edSendOn").value;
+        var fd=describeFeeder(s);
+        if (fd.bad && !window.confirm(fd.text+"\n\nSave it anyway?")) return;
+      }
       closeEditor(false);
     });
     document.getElementById("edDelete").addEventListener("click", function () {
@@ -2236,6 +2349,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("edDate").addEventListener("change", function () {
       var s=currentSend(); if (s) { s.date=document.getElementById("edDate").value; saveDB(); }
       renderEditorSegments(); updateKindUi();
+    });
+    document.getElementById("edSendOn").addEventListener("change", function () {
+      var s=currentSend();
+      if (s && (s.kind||"send")==="feeder") { s.sendOn=document.getElementById("edSendOn").value; saveDB(); }
+      updateKindUi(); renderEditorSegments();
     });
     document.getElementById("edCutoff").addEventListener("change", function () {
       var s=currentSend();
@@ -2292,9 +2410,14 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("jrAddFeeder").addEventListener("click", function () {
       var j=currentJourney(); if (!j) return;
       var existing=sendsInJourney(j.id,"feeder");
+      var prev=existing.length?existing[existing.length-1]:null;
+      // Continue whatever cadence is already there rather than starting blank —
+      // a weekly digest is the common case, and a wrong guess is one click to fix.
+      var prevOpen=prev?okDate(prev.date):null, prevSend=prev?okDate(prev.sendOn):null;
       DB.sends.push({
         id:uid("snd"), channelId:j.channelId, journeyId:j.id, kind:"feeder",
-        date: existing.length ? "" : (j.start||""),
+        date: prev ? (prevOpen?iso(addDays(prevOpen,7)):"") : (j.start||""),
+        sendOn: prevSend?iso(addDays(prevSend,7)):"",
         title: existing.length ? "" : "Welcome",
         status:"draft", segments:[], notes:""
       });

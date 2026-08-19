@@ -4,11 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>i-lab Communications Plan — Fall 2026 / Spring 2027</title>
-
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" />
-
 <style>
 :root {
   color-scheme: light;
@@ -20,20 +18,17 @@
 body { margin:0; font-family:'Inter',-apple-system,sans-serif; color:var(--ink);
   background:var(--paper); font-size:14px; line-height:1.4; }
 .wrap { max-width:1600px; margin:0 auto; padding:22px 22px 90px; }
-
 .app-nav { display:flex; gap:6px; margin:0 0 16px; flex-wrap:wrap; }
 .app-nav a { font-family:'IBM Plex Mono',monospace; font-size:11.5px; text-decoration:none;
   padding:7px 14px; border-radius:999px; border:1px solid var(--border);
   background:var(--panel); color:var(--ink-soft); transition:border-color .12s,color .12s; }
 .app-nav a:hover { border-color:var(--ink-soft); color:var(--ink); }
 .app-nav a[aria-current="page"] { background:var(--ink); color:#fff; border-color:var(--ink); }
-
 .banner { background:var(--ink); color:#EDF1F7; border-radius:14px; padding:20px 24px;
   display:flex; justify-content:space-between; align-items:flex-start; gap:22px;
   flex-wrap:wrap; box-shadow:0 8px 24px rgba(22,35,63,.18); }
 .banner-title { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:23px; margin:0 0 5px; }
 .banner-sub { color:#B7C2D6; font-size:13px; max-width:660px; }
-
 .controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:16px 0 10px; }
 .btn { border:1px solid var(--border); background:var(--panel); color:var(--ink);
   font-family:'IBM Plex Mono',monospace; font-size:11.5px; padding:7px 12px;
@@ -49,21 +44,18 @@ select, input[type=text], input[type=number], input[type=date], textarea {
 select, input[type=number], input[type=date] { font-family:'IBM Plex Mono',monospace; font-size:11.5px; }
 label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft);
   display:flex; align-items:center; gap:6px; }
-
 .health { background:var(--panel); border:1px solid var(--border); border-radius:12px;
   padding:11px 15px; margin-bottom:13px; font-family:'IBM Plex Mono',monospace;
   font-size:11.5px; color:var(--ink-soft); }
 .health.bad { border-color:var(--rust); background:#FDF4F2; color:#7A2318; }
 .health b { color:var(--ink); } .health.bad b { color:#7A2318; }
 .health ul { margin:7px 0 0; padding-left:18px; } .health li { margin:2px 0; }
-
 .panel { background:var(--panel); border:1px solid var(--border); border-radius:14px;
   overflow:hidden; margin-bottom:16px; }
 .panel-head { display:flex; align-items:center; gap:10px; padding:11px 15px;
   border-bottom:1px solid var(--border); flex-wrap:wrap; }
 .panel-title { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px; }
 .panel-note { font-size:11.5px; color:var(--ink-soft); }
-
 .grid-scroll { overflow-x:auto; }
 .grid-inner { min-width:max-content; }
 .row { display:flex; align-items:stretch; border-top:1px solid #F0F2F4; }
@@ -79,7 +71,6 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .track { display:flex; flex:1 1 auto; }
 .cell { flex:0 0 var(--week-w); width:var(--week-w); border-left:1px solid #F0F2F4;
   padding:5px 4px; display:flex; flex-direction:column; gap:4px; min-height:56px; }
-
 .hdr { background:#F7F8FA; }
 .hdr .cell { min-height:0; padding:7px 5px; font-family:'IBM Plex Mono',monospace;
   font-size:10px; color:var(--ink-soft); align-items:flex-start; }
@@ -89,7 +80,6 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
    otherwise stay white while the rest of its row is tinted. */
 .ctx-row .lane { background:#FBFCFD; }
 .hdr-month { font-weight:600; color:var(--ink); font-size:11px; }
-
 .ctx-row { background:#FBFCFD; border-bottom:1px solid var(--border); }
 .ctx-ev { font-size:9.5px; line-height:1.3; padding:2px 4px; border-radius:4px;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -98,7 +88,6 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .pin.deadline { color:var(--rust); font-weight:600; }
 .pin.term { color:var(--ink); font-weight:600; }
-
 .sticky { border:none; border-left:4px solid #888; border-radius:6px; padding:5px 6px;
   text-align:left; cursor:pointer; font-family:'Inter',sans-serif; width:100%;
   box-shadow:0 1px 2px rgba(22,35,63,.10); }
@@ -114,7 +103,6 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .add-cell { border:1px dashed transparent; background:none; color:transparent;
   font-size:14px; cursor:pointer; border-radius:6px; padding:1px; line-height:1; }
 .cell:hover .add-cell { border-color:var(--border); color:var(--ink-soft); }
-
 /* Journey spans: one slice per week, bleeding past cell padding so adjacent
    weeks join into a continuous bar. Every journey renders a slice in every
    week (transparent when idle) so bars keep their row across the term. */
@@ -129,10 +117,36 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .jr-cut { position:absolute; top:-2px; bottom:-2px; width:2px; background:#fff;
   box-shadow:0 0 0 1px rgba(22,35,63,.35); }
 .jr-swatch { width:11px; height:11px; border-radius:3px; display:inline-block; flex:0 0 auto; }
+/* Automation spans use the same geometry as journeys but a hatched fill, so a
+   window that is "live, waiting on a trigger" never reads as a scheduled run. */
+.tg-strip { display:flex; flex-direction:column; gap:2px; margin:0 -4px 3px; }
+.tg-slice { height:13px; position:relative; }
+.tg-slice.on {
+  background-color:var(--tg,#888);
+  background-image:repeating-linear-gradient(135deg,
+    rgba(255,255,255,.40) 0 5px, rgba(255,255,255,0) 5px 10px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.45); }
+.tg-slice.start { border-top-left-radius:7px; border-bottom-left-radius:7px; }
+.tg-slice.end { border-top-right-radius:7px; border-bottom-right-radius:7px; }
+.tg-slice.open-end::after { content:""; position:absolute; right:0; top:0; bottom:0; width:9px;
+  background:linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.9)); }
+.tg-label { position:absolute; left:6px; top:0; font-family:'IBM Plex Mono',monospace;
+  font-size:9px; line-height:13px; color:#fff; white-space:nowrap; pointer-events:none;
+  text-shadow:0 1px 2px rgba(0,0,0,.45); font-weight:500; }
+.tg-swatch { width:11px; height:11px; border-radius:3px; display:inline-block; flex:0 0 auto;
+  background-image:repeating-linear-gradient(135deg,
+    rgba(255,255,255,.45) 0 3px, rgba(255,255,255,0) 3px 6px); }
+.legend { display:flex; gap:14px; align-items:center; flex-wrap:wrap;
+  font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft); }
+.legend span.k { display:flex; align-items:center; gap:5px; }
+.legend i { width:20px; height:9px; border-radius:4px; display:inline-block; background:#7B8797; }
+.legend i.hatch { background-image:repeating-linear-gradient(135deg,
+  rgba(255,255,255,.45) 0 4px, rgba(255,255,255,0) 4px 8px); }
+.legend i.note { width:11px; height:11px; border-radius:3px; border-left:3px solid #7B8797;
+  background:#EDF0F3; }
 .feeder { border:1px solid var(--border); border-radius:9px; padding:9px 11px; margin-bottom:8px; }
 .feeder-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .feeder-win { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft); margin-top:5px; }
-
 .overlay { position:fixed; inset:0; background:rgba(22,35,63,.42); z-index:40;
   display:flex; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; }
 .overlay.hidden { display:none; }
@@ -149,7 +163,12 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
   text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); }
 .fld-row { display:flex; gap:12px; flex-wrap:wrap; }
 .fld-row > .fld { flex:1 1 160px; }
-
+.trigger-box { border:1px solid var(--border); border-left:3px solid var(--ink);
+  border-radius:10px; padding:12px 13px 2px; margin:0 0 12px; background:#FBFCFD; }
+.trigger-box.hidden { display:none; }
+.trigger-box-title { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13px;
+  margin-bottom:3px; }
+.trigger-box-sub { font-size:11.5px; color:var(--ink-soft); margin-bottom:11px; }
 .seg { border:1px solid var(--border); border-radius:10px; padding:11px 12px; margin-bottom:10px; }
 .seg-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
 .seg-label { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; }
@@ -159,13 +178,12 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .slot select, .slot input { flex:1 1 auto; min-width:0; }
 .warn { font-size:11px; color:var(--rust); margin:4px 0 0 22px; font-family:'IBM Plex Mono',monospace; }
 .hint { font-size:11px; color:var(--ink-soft); margin-top:3px; }
-
 .tag { display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:9.5px;
   padding:2px 6px; border-radius:4px; background:#EEF1F4; color:var(--ink-soft);
   margin:1px 2px 1px 0; white-space:nowrap; }
 .tag.persona { background:#E6EFF7; color:#2A4E70; }
+.tag.trig { background:#EDE7F6; color:#4A2E7A; }
 .chip-static { font-size:10px; border-radius:5px; padding:3px 5px; display:block; }
-
 .view { display:none; } .view.active { display:block; }
 .foot-note { margin-top:14px; font-size:12px; color:var(--ink-soft); line-height:1.6; }
 .foot-note b { color:var(--ink); }
@@ -180,20 +198,19 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
 </head>
 <body>
 <div class="wrap">
-
   <nav class="app-nav" aria-label="i-lab planning tools">
     <a href="index.html">Planning board</a>
     <a href="comms.html" aria-current="page">Communications plan</a>
   </nav>
-
   <div class="banner">
     <div>
       <div class="banner-title">i-lab Communications Plan</div>
       <div class="banner-sub">
         Channels as lanes, sends as sticky notes on the day they go out. Journeys run
-        as spans with entry cutoffs. Content in each slot is picked from what is
-        actually on the calendar that week, so a plan cannot quietly promote
-        something that isn't running.
+        as spans with entry cutoffs, and automations run as hatched spans — live for a
+        window, waiting on a trigger. Content in each slot is picked from what is
+        actually on the calendar, so a plan cannot quietly promote something that
+        isn't running.
       </div>
     </div>
     <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end">
@@ -201,13 +218,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       <span id="saveStatus" style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#B7C2D6"></span>
     </div>
   </div>
-
   <div id="health" class="health">Loading…</div>
-
   <div class="controls">
     <button class="btn active" data-view="comms">Communications plan</button>
     <button class="btn" data-view="timeline">Program timeline</button>
-    <button class="btn" data-view="setup">Journeys, channels &amp; segments</button>
+    <button class="btn" data-view="setup">Journeys, automations &amp; channels</button>
     <span class="spacer"></span>
     <button class="btn" id="promoBtn">Generate promo sends…</button>
     <button class="btn" id="importEventsBtn">Import events CSV…</button>
@@ -215,13 +230,13 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     <button class="btn" id="exportJsonBtn">Export plan</button>
     <button class="btn" id="importJsonBtn">Import plan</button>
   </div>
-
   <div class="view active" id="view-comms">
     <div class="panel">
       <div class="panel-head">
         <span class="panel-title">Communications calendar</span>
         <span class="panel-note" id="commsNote"></span>
         <span class="spacer"></span>
+        <button class="btn" id="quickAutoBtn">+ Automation</button>
         <button class="btn" id="quickJourneyBtn">+ Journey</button>
         <label class="ctl">Show <select id="densitySel">
           <option value="all">all sends</option>
@@ -229,16 +244,24 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           <option value="ready">ready only</option>
         </select></label>
       </div>
+      <div style="padding:9px 15px; border-bottom:1px solid var(--border)">
+        <div class="legend">
+          <span class="k"><i class="note"></i> dated send</span>
+          <span class="k"><i></i> journey (scheduled run)</span>
+          <span class="k"><i class="hatch"></i> automation (trigger-fired)</span>
+          <span class="k">│ entry cutoff</span>
+        </div>
+      </div>
       <div class="grid-scroll"><div class="grid-inner" id="commsGrid"></div></div>
     </div>
     <div class="foot-note">
-      <b>Click the + in any cell to add a send; click a journey bar to open it.</b>
+      <b>Click the + in any cell to add a dated send; click a bar to open the journey or automation behind it.</b>
       The events row at the top shows what is running that week — the pool your
       content slots draw from. A send showing <span class="sticky-warn">!</span> has a
-      slot pointing at an event that isn't tagged for that segment.
+      slot pointing at an event that isn't tagged for that segment, or one that will
+      already be over for part of the window it's promoted in.
     </div>
   </div>
-
   <div class="view" id="view-timeline">
     <div class="panel">
       <div class="panel-head">
@@ -248,8 +271,19 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       <div class="grid-scroll"><div class="grid-inner" id="timeline"></div></div>
     </div>
   </div>
-
   <div class="view" id="view-setup">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Automations</span>
+        <span class="panel-note">Emails that fire on an action rather than a date. Each is live for a window and does nothing outside it.</span>
+        <span class="spacer"></span>
+        <button class="btn btn-accent" id="addAutoBtn">+ Add automation</button>
+      </div>
+      <table class="grid">
+        <thead><tr><th>Name</th><th style="width:210px">Trigger</th><th style="width:90px">Delay</th><th style="width:150px">Channel</th><th style="width:190px">Active</th><th style="width:110px">Content</th><th style="width:130px"></th></tr></thead>
+        <tbody id="autoBody"></tbody>
+      </table>
+    </div>
     <div class="panel">
       <div class="panel-head">
         <span class="panel-title">Journeys</span>
@@ -287,9 +321,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       </table>
     </div>
   </div>
-
 </div>
-
 <div class="overlay hidden" id="editorOverlay">
   <div class="modal">
     <div class="modal-head">
@@ -303,7 +335,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           <input type="text" id="edTitle" placeholder="e.g. Weekly Digest" /></label>
         <label class="fld" style="flex:0 0 170px"><span>Channel</span>
           <select id="edChannel"></select></label>
-        <label class="fld" style="flex:0 0 150px"><span id="edDateLabel">Send date</span>
+        <label class="fld" style="flex:0 0 150px" id="edDateWrap"><span id="edDateLabel">Send date</span>
           <input type="date" id="edDate" /></label>
         <label class="fld" style="flex:0 0 120px"><span>Status</span>
           <select id="edStatus">
@@ -315,13 +347,39 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       <div class="fld-row">
         <label class="fld" style="flex:0 0 230px"><span>Part of journey</span>
           <select id="edJourney"></select></label>
-        <label class="fld" style="flex:0 0 210px"><span>Type</span>
+        <label class="fld" style="flex:0 0 230px"><span>Type</span>
           <select id="edKind">
-            <option value="send">Scheduled send</option>
+            <option value="send">Scheduled send (goes out on a date)</option>
+            <option value="triggered">Automated (fires on an action)</option>
             <option value="feeder">Feeder / entry email</option>
           </select></label>
         <div class="fld" style="flex:1 1 200px"><span>&nbsp;</span>
           <div class="hint" id="edKindHint" style="margin-top:0"></div></div>
+      </div>
+      <div class="trigger-box hidden" id="edTriggerBox">
+        <div class="trigger-box-title">Automation</div>
+        <div class="trigger-box-sub">
+          This email has no send date. It fires when the action below happens, but only
+          while the automation is switched on.
+        </div>
+        <div class="fld-row">
+          <label class="fld" style="flex:1 1 260px"><span>Trigger action</span>
+            <select id="edTrigger"></select></label>
+          <label class="fld" style="flex:0 0 130px"><span>Send delay</span>
+            <input type="number" id="edDelay" min="0" max="365" step="1" value="0" /></label>
+          <div class="fld" style="flex:1 1 170px"><span>&nbsp;</span>
+            <div class="hint" id="edDelayHint" style="margin-top:0"></div></div>
+        </div>
+        <label class="fld" id="edTriggerTextWrap"><span>Describe the trigger</span>
+          <input type="text" id="edTriggerText" placeholder="e.g. Adds a venture to the ClickUp intake form" /></label>
+        <div class="fld-row">
+          <label class="fld" style="flex:0 0 160px"><span>Active from</span>
+            <input type="date" id="edActiveFrom" /></label>
+          <label class="fld" style="flex:0 0 160px"><span>Active until</span>
+            <input type="date" id="edActiveUntil" /></label>
+          <div class="fld" style="flex:1 1 220px"><span>&nbsp;</span>
+            <div class="hint" id="edWindowHint" style="margin-top:0"></div></div>
+        </div>
       </div>
       <div class="fld">
         <span>Segments &amp; content</span>
@@ -342,7 +400,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     </div>
   </div>
 </div>
-
 <div class="overlay hidden" id="journeyOverlay">
   <div class="modal" style="width:min(760px,100%)">
     <div class="modal-head">
@@ -378,6 +435,10 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         <span>Scheduled sends in this journey</span>
         <div id="jrSends"></div>
       </div>
+      <div class="fld">
+        <span>Automations in this journey</span>
+        <div id="jrAutos"></div>
+      </div>
       <label class="fld"><span>Notes</span>
         <textarea id="jrNotes" rows="2" placeholder="Entry criteria, automation platform, anything the builder needs"></textarea></label>
     </div>
@@ -389,7 +450,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     </div>
   </div>
 </div>
-
 <div class="overlay hidden" id="promoOverlay">
   <div class="modal" style="width:min(680px,100%)">
     <div class="modal-head">
@@ -422,14 +482,12 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     </div>
   </div>
 </div>
-
 <!-- Optional. In the planning app this 404s harmlessly — events come from the
      shared plan instead. Dropped into the Wayfinder repo, it picks up EVENTS. -->
 <script src="ilab-data.js" onerror="void 0"></script>
 <script>
 (function () {
   "use strict";
-
   var TERMS = [
     { id:"fall2026", label:"Fall 2026", start:"2026-08-03", end:"2026-12-19",
       months:[7,8,9,10,11], year:2026,
@@ -453,7 +511,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         {date:"2027-05-15",label:"Finals end",kind:"term"}
       ] }
   ];
-
   var PERSONA_FALLBACK = {
     explorer:"Explorer", validator:"Validator", builder:"Sprint Builder",
     propeller:"Growth Founder", community:"Community First", impact:"Impact Founder"
@@ -462,14 +519,59 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   var MONTHS_FULL = ["january","february","march","april","may","june","july",
                      "august","september","october","november","december"];
   var DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-
   var DEFAULT_CHANNELS = [
     { id:"ch_mcj",    name:"MC Journey",    color:"#4A5A73" },
     { id:"ch_mcs",    name:"MC Standalone", color:"#2A7F7F" },
     { id:"ch_slack",  name:"Slack",         color:"#6B3FA0" },
     { id:"ch_ginbox", name:"General inbox", color:"#B24C3D" }
   ];
-
+  /* Trigger vocabulary. Keeping these as ids with labels means the CSV export
+     groups cleanly across the plan; `custom` carries free text for anything the
+     list doesn't cover, so nothing is blocked by the preset list. */
+  var TRIGGERS = [
+    { id:"membership_join",     label:"Joins membership" },
+    { id:"account_created",     label:"Creates an account / first login" },
+    { id:"application_submit",  label:"Submits an application" },
+    { id:"application_accept",  label:"Application accepted" },
+    { id:"application_decline", label:"Application declined / waitlisted" },
+    { id:"event_rsvp",          label:"RSVPs to an event" },
+    { id:"event_attended",      label:"Attends an event" },
+    { id:"event_noshow",        label:"Registers but doesn't attend" },
+    { id:"oh_booked",           label:"Books office hours / advising" },
+    { id:"oh_completed",        label:"Completes office hours / advising" },
+    { id:"program_start",       label:"Starts a program or cohort" },
+    { id:"program_complete",    label:"Completes a program or cohort" },
+    { id:"team_formed",         label:"Joins or forms a team" },
+    { id:"inactive",            label:"Goes inactive (no engagement)" },
+    { id:"form_submit",         label:"Submits a form or survey" },
+    { id:"custom",              label:"Something else — describe it" }
+  ];
+  function triggerLabel(id) {
+    for (var i=0;i<TRIGGERS.length;i++) if (TRIGGERS[i].id===id) return TRIGGERS[i].label;
+    return "";
+  }
+  /* What a delay of N days means depends on the trigger, so the hint changes
+     with it rather than saying something generically true and unhelpful. */
+  function delayHint(id, n) {
+    if (!n) return "Sends immediately when this happens.";
+    var d=n+" day"+(n===1?"":"s");
+    switch (id) {
+      case "event_attended":  return "Sends "+d+" after they attend.";
+      case "event_noshow":    return "Sends "+d+" after the event they missed.";
+      case "event_rsvp":      return "Sends "+d+" after they RSVP.";
+      case "membership_join": return "Sends "+d+" after they join.";
+      case "inactive":        return "Sends after "+d+" with no engagement.";
+      case "oh_completed":    return "Sends "+d+" after the session.";
+      case "program_complete":return "Sends "+d+" after they finish.";
+      default:                return "Sends "+d+" after the trigger fires.";
+    }
+  }
+  function triggerText(s) {
+    if (!s || !s.trigger) return "";
+    var p=s.trigger.preset||"";
+    if (p==="custom") return (s.trigger.text||"").trim() || "custom (not described yet)";
+    return triggerLabel(p) || "no trigger set";
+  }
   /* Stored alongside the planning board: GET/PUT /api/board/ilab-comms-v1.
      localStorage is only an offline mirror — opened from disk there is no
      server, so it says so rather than appearing to save. */
@@ -478,7 +580,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   var termIdx=0, editingId=null, editingJourney=null;
   var problems=[], serverOk=false, lastMeta=null;
   var saveTimer=null, saving=false, saveState="saved";
-
   function uid(p){ return p+"_"+Math.random().toString(36).slice(2,9); }
   function lsGet(k){ try { return window.localStorage.getItem(k); } catch(e){ return null; } }
   function lsSet(k,v){ try { window.localStorage.setItem(k,v); } catch(e){} }
@@ -491,7 +592,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     return n||"";
   }
   function setSaveStatus(t){ var el=document.getElementById("saveStatus"); if (el) el.textContent=t; }
-
   function normalizeDB() {
     if (!DB || typeof DB!=="object") DB={};
     if (!Array.isArray(DB.channels) || !DB.channels.length) DB.channels=DEFAULT_CHANNELS.slice();
@@ -504,9 +604,20 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (!Array.isArray(DB.journeys)) DB.journeys=[];
     if (!Array.isArray(DB.events))   DB.events=[];
     if (!DB.eventsMeta || typeof DB.eventsMeta!=="object") DB.eventsMeta={};
-    DB.sends.forEach(function(s){ if (!s.kind) s.kind="send"; });
+    DB.sends.forEach(function (s) {
+      if (!s.kind) s.kind="send";
+      if (s.kind==="triggered") {
+        if (!s.trigger || typeof s.trigger!=="object") s.trigger={ preset:"", text:"" };
+        if (typeof s.trigger.preset!=="string") s.trigger.preset="";
+        if (typeof s.trigger.text!=="string")   s.trigger.text="";
+        // An older record converted to an automation keeps its date as the
+        // window start, so nothing loses its place on the calendar.
+        if (!s.activeFrom)  s.activeFrom=s.date||"";
+        if (!s.activeUntil) s.activeUntil="";
+        var d=parseInt(s.delay,10); s.delay=isNaN(d)||d<0?0:d;
+      }
+    });
   }
-
   function loadDB(done) {
     var mirrored=null, raw=lsGet(MIRROR_KEY);
     if (raw) { try { mirrored=JSON.parse(raw); } catch(e){} }
@@ -538,7 +649,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         normalizeDB(); done();
       });
   }
-
   function saveDB() {
     lsSet(MIRROR_KEY, JSON.stringify(DB));
     if (!serverOk) { setSaveStatus("Local only — not shared"); return; }
@@ -561,15 +671,17 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   window.addEventListener("beforeunload", function (e) {
     if (saveState==="dirty" || saving) { e.preventDefault(); e.returnValue=""; }
   });
-
   function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
   function parseISO(s){ var p=String(s).split("-"); return new Date(+p[0], +p[1]-1, +p[2]); }
+  function okDate(s) {
+    if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(String(s))) return null;
+    var d=parseISO(s); return isNaN(d.getTime())?null:d;
+  }
   function addDays(d,n){ var x=new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
   function startOfWeek(d){ var x=new Date(d.getTime()); x.setDate(x.getDate()-x.getDay()); x.setHours(0,0,0,0); return x; }
   function fmtShort(d){ return MONTHS[d.getMonth()]+" "+d.getDate(); }
   function fmtDay(d){ return DOW[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate(); }
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-
   function parseDisplayDate(str, term) {
     if (!str || typeof str!=="string") return null;
     var s=str.trim();
@@ -590,7 +702,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     while (cur<=end && guard++<60) { out.push({start:new Date(cur.getTime()), key:iso(cur)}); cur=addDays(cur,7); }
     return out;
   }
-
   var _gc={};
   function g(name) {
     if (Object.prototype.hasOwnProperty.call(_gc,name)) return _gc[name];
@@ -609,7 +720,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (P && P[k]) return P[k].name||P[k].title||P[k].label||PERSONA_FALLBACK[k]||k;
     return PERSONA_FALLBACK[k]||k;
   }
-
   var EVENTS=[], CATS=[], OHS_LIST=[];
   function loadData() {
     var src="";
@@ -637,7 +747,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (untagged) problems.push({ level:"info", msg:untagged+" of "+EVENTS.length+
       " events have no audience tags, so content slots using them can't be checked against a segment. Add a Best For column to the ClickUp export to fix this at source." });
   }
-
   function resolvedEvents(term) {
     var out=[], unresolved=[], outside=0, fromIso=0, fromGuess=0;
     var tS=parseISO(term.start), tE=parseISO(term.end);
@@ -656,7 +765,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     out.sort(function(a,b){ return a.date-b.date; });
     return { list:out, unresolved:unresolved, outside:outside, fromIso:fromIso, fromGuess:fromGuess };
   }
-
   var CATEGORY_MAP = {
     "founder fundamentals": { con:"Founder Fundamentals",    cbg:"#C1F4A8", ctx:"#27500A" },
     "community":            { con:"Community",               cbg:"#FFC7C8", ctx:"#711213" },
@@ -669,7 +777,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     "pic":                  { con:"Venture Growth",          cbg:"#cbcafa", ctx:"#232262" }
   };
   var OTHER_CAT={ con:"Other", cbg:"#EEF1F4", ctx:"#4B5A72" };
-
   /* Written out rather than split(",") because Task Names contain commas. */
   function parseCsv(text) {
     var rows=[], row=[], field="", i=0, inQ=false;
@@ -705,7 +812,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (m[4]) time=parseInt(m[4],10)+":"+m[5]+" "+m[6].replace(/\./g,"").toUpperCase();
     return { date:d, time:time };
   }
-
   function importEventsCsv(text, fileName) {
     var rows=parseCsv(text);
     if (rows.length<2) { window.alert("That file has no rows I can read."); return; }
@@ -769,7 +875,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
                     fileName:fileName||"", rowCount:out.length };
     saveDB(); problems=[]; loadData(); render();
   }
-
   function channelById(id){ for (var i=0;i<DB.channels.length;i++) if (DB.channels[i].id===id) return DB.channels[i]; return null; }
   function segmentById(id){ for (var i=0;i<DB.segments.length;i++) if (DB.segments[i].id===id) return DB.segments[i]; return null; }
   function sendById(id){ for (var i=0;i<DB.sends.length;i++) if (DB.sends[i].id===id) return DB.sends[i]; return null; }
@@ -777,16 +882,20 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   function journeyById(id){ for (var i=0;i<DB.journeys.length;i++) if (DB.journeys[i].id===id) return DB.journeys[i]; return null; }
   function journeysForChannel(chId){ return DB.journeys.filter(function(j){ return j.channelId===chId; }); }
   function segmentUsage(segId){ return DB.sends.filter(function(s){ return (s.segments||[]).some(function(x){ return x.segId===segId; }); }).length; }
-
+  function isAuto(s){ return (s&&(s.kind||"send"))==="triggered"; }
+  function automations(){ return DB.sends.filter(isAuto); }
+  function autosForChannel(chId){ return automations().filter(function(s){ return s.channelId===chId; }); }
   function sendsInJourney(jId, kind) {
     return DB.sends.filter(function (s) {
       return s.journeyId===jId && (!kind || (s.kind||"send")===kind);
     }).sort(function (a,b) {
-      var da=a.date?parseISO(a.date):null, db2=b.date?parseISO(b.date):null;
+      var da=okDate(effectiveDate(a)), db2=okDate(effectiveDate(b));
       if (!da) return 1; if (!db2) return -1; return da-db2;
     });
   }
-
+  /* An automation has no send date, so its window start stands in wherever the
+     plan needs to place it in time (sorting, term filtering, CSV order). */
+  function effectiveDate(s){ return isAuto(s) ? (s.activeFrom||"") : (s.date||""); }
   /* Feeders ordered by date; each covers entrants from its own date until the
      day before the next. "Before 9/16" and "on or after 9/16" fall out of the
      ordering rather than needing a rule stored per feeder. */
@@ -798,18 +907,40 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
                until: next && next.date ? iso(addDays(parseISO(next.date),-1)) : (jr.end||"") };
     });
   }
+  /* The one span a piece of content has to stay true across. For a feeder it's
+     the entry window; for an automation it's the active window; a dated send
+     has none, so it's only ever checked against its own week. */
+  function windowFor(s) {
+    if (isAuto(s)) return { from:s.activeFrom||"", until:s.activeUntil||"" };
+    if ((s.kind||"send")==="feeder" && s.journeyId) {
+      var j=journeyById(s.journeyId);
+      if (!j) return null;
+      var ws=feederWindows(j);
+      for (var i=0;i<ws.length;i++) if (ws[i].send.id===s.id) return { from:ws[i].from, until:ws[i].until };
+    }
+    return null;
+  }
   function describeWindow(w) {
+    if (!w) return "";
     if (!w.from && !w.until) return "any time";
     if (!w.until) return "from "+w.from;
     if (!w.from)  return "until "+w.until;
     return w.from+" → "+w.until;
   }
   function eventsInWeekOf(dateStr, res) {
-    if (!dateStr) return [];
-    var d=parseISO(dateStr);
-    if (isNaN(d.getTime())) return [];
+    var d=okDate(dateStr);
+    if (!d) return [];
     var ws=startOfWeek(d), we=addDays(ws,7);
     return res.list.filter(function(r){ return r.date>=ws && r.date<we; });
+  }
+  function eventsInWindow(w, res) {
+    if (!w) return [];
+    var f=okDate(w.from), u=okDate(w.until);
+    return res.list.filter(function (r) {
+      if (f && r.date<f) return false;
+      if (u && r.date>u) return false;
+      return true;
+    });
   }
   /* Reported, never auto-corrected — a deliberate cross-promotion is valid. */
   function slotMismatch(seg, ev) {
@@ -817,26 +948,48 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var tags=Array.isArray(ev.tags)?ev.tags:[];
     return tags.indexOf(seg.persona)<0;
   }
-  function sendHasWarning(send) {
+  /* An automation live until Nov 30 that promotes an Oct 8 event will still be
+     sending that invitation for seven weeks after the doors closed. Same logic
+     for an entry email covering a window that outlives its content. */
+  function slotStale(send, ev, res) {
+    var w=windowFor(send);
+    if (!w || !ev) return null;
+    var until=okDate(w.until);
+    if (!until) return null;
+    var evd=null;
+    for (var i=0;i<res.list.length;i++) if (res.list[i].ev.id===ev.id) { evd=res.list[i].date; break; }
+    if (!evd) return null;
+    if (evd>=until) return null;
+    var days=Math.round((until-evd)/86400000);
+    return { evDate:evd, days:days };
+  }
+  function sendHasWarning(send, res) {
     if (!send || !Array.isArray(send.segments)) return false;
     for (var i=0;i<send.segments.length;i++) {
       var seg=segmentById(send.segments[i].segId);
       var items=send.segments[i].items||[];
       for (var j=0;j<items.length;j++) {
-        if (items[j].type==="event") {
-          var ev=eventById(items[j].ref);
-          if (!ev || slotMismatch(seg,ev)) return true;
-        }
+        if (items[j].type!=="event") continue;
+        var ev=eventById(items[j].ref);
+        if (!ev) return true;
+        if (slotMismatch(seg,ev)) return true;
+        if (res && slotStale(send,ev,res)) return true;
       }
     }
     return false;
   }
+  /* Dated sends need their day inside the term; automations only need their
+     window to overlap it, or they'd vanish from a term they are live across. */
   function inTerm(send, term) {
-    if (!send.date) return false;
-    var d=parseISO(send.date);
-    return !isNaN(d.getTime()) && d>=parseISO(term.start) && d<=parseISO(term.end);
+    var tS=parseISO(term.start), tE=parseISO(term.end);
+    if (isAuto(send)) {
+      var f=okDate(send.activeFrom), u=okDate(send.activeUntil);
+      if (!f && !u) return false;
+      return (!f || f<=tE) && (!u || u>=tS);
+    }
+    var d=okDate(send.date);
+    return !!d && d>=tS && d<=tE;
   }
-
   function renderHealth(res, term) {
     var el=document.getElementById("health"), items=problems.slice();
     if (res.unresolved.length) items.push({ level:"warn",
@@ -846,7 +999,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       msg:res.fromGuess+" event(s) lack an `iso` field, so their year was inferred from the display string." });
     if (!res.list.length && EVENTS.length) items.push({ level:"warn",
       msg:"No events fall inside "+term.label+". Content slots will have nothing to offer — check the term tab." });
-
     // A feeder with no date has no boundary, so it routes nobody.
     var undatedFeeders=[];
     DB.journeys.forEach(function (j) {
@@ -857,31 +1009,72 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (undatedFeeders.length) items.push({ level:"warn",
       msg:"Entry email(s) with no cutoff date, so no one is routed to them: "+
         undatedFeeders.slice(0,3).join("; ")+(undatedFeeders.length>3?" and "+(undatedFeeders.length-3)+" more":"")+"." });
-
+    // An automation is only real once it has both a trigger and a window: no
+    // trigger means nothing fires it, no window means nobody knows when it stops.
+    var noTrigger=[], noWindow=[], openEnded=[], staleAuto=[];
+    automations().forEach(function (s) {
+      var nm=s.title||"untitled automation";
+      var p=s.trigger&&s.trigger.preset;
+      if (!p || (p==="custom" && !(s.trigger.text||"").trim())) noTrigger.push(nm);
+      if (!okDate(s.activeFrom)) noWindow.push(nm);
+      else if (!okDate(s.activeUntil)) openEnded.push(nm);
+    });
+    // A dated send with no date sits in the plan but paints in no week, so it
+    // would otherwise disappear silently.
+    var undated=DB.sends.filter(function (s) {
+      return (s.kind||"send")==="send" && !okDate(s.date);
+    }).map(function(s){ return s.title||"untitled send"; });
+    if (undated.length) items.push({ level:"warn",
+      msg:"Scheduled send(s) with no date, so they appear nowhere on the calendar: "+
+        undated.slice(0,3).join("; ")+(undated.length>3?" and "+(undated.length-3)+" more":"")+
+        ". Give them a date, or switch them to an automation." });
+    if (noTrigger.length) items.push({ level:"warn",
+      msg:"Automation(s) with no trigger action set, so nothing fires them: "+noTrigger.slice(0,3).join("; ")+
+        (noTrigger.length>3?" and "+(noTrigger.length-3)+" more":"")+"." });
+    if (noWindow.length) items.push({ level:"warn",
+      msg:"Automation(s) with no “active from” date, so they don't appear on the calendar: "+
+        noWindow.slice(0,3).join("; ")+(noWindow.length>3?" and "+(noWindow.length-3)+" more":"")+"." });
+    if (openEnded.length) items.push({ level:"info",
+      msg:"Automation(s) with no end date — they will keep firing indefinitely unless someone switches them off: "+
+        openEnded.slice(0,3).join("; ")+(openEnded.length>3?" and "+(openEnded.length-3)+" more":"")+"." });
+    DB.sends.forEach(function (s) {
+      if (!windowFor(s)) return;
+      (s.segments||[]).forEach(function (sg) {
+        (sg.items||[]).forEach(function (it) {
+          if (it.type!=="event" || !it.ref) return;
+          var ev=eventById(it.ref); if (!ev) return;
+          var st=slotStale(s,ev,res);
+          if (st) staleAuto.push((s.title||"untitled")+" → "+(ev.name||ev.id)+" ("+st.days+"d after it's over)");
+        });
+      });
+    });
+    if (staleAuto.length) items.push({ level:"warn",
+      msg:"Content promoted past its own date: "+staleAuto.slice(0,3).join("; ")+
+        (staleAuto.length>3?" and "+(staleAuto.length-3)+" more":"")+
+        ". Either end the window on the event date or swap the content." });
     var fatal=items.some(function(i){ return i.level==="fatal"; });
     el.className="health"+(fatal?" bad":"");
+    var autoN=automations().length;
     var head="<b>"+EVENTS.length+"</b> events · <b>"+res.list.length+"</b> in "+term.label+
       " (<b>"+res.fromIso+"</b> exact, <b>"+res.fromGuess+"</b> inferred) · <b>"+
-      DB.journeys.length+"</b> journeys · <b>"+DB.channels.length+"</b> channels · <b>"+
-      DB.segments.length+"</b> segments · <b>"+DB.sends.length+"</b> sends";
+      DB.journeys.length+"</b> journeys · <b>"+autoN+"</b> automations · <b>"+
+      DB.channels.length+"</b> channels · <b>"+DB.segments.length+"</b> segments · <b>"+
+      DB.sends.length+"</b> sends";
     el.innerHTML=head+(items.length?"<ul>"+items.map(function(i){ return "<li>"+esc(i.msg)+"</li>"; }).join("")+"</ul>":"");
   }
-
   function laneEl(name, meta, color) {
     var d=document.createElement("div"); d.className="lane";
     d.innerHTML='<div class="lane-name">'+(color?'<span class="lane-swatch" style="background:'+esc(color)+'"></span>':"")+
       esc(name)+'</div><div class="lane-meta">'+esc(meta)+"</div>";
     return d;
   }
-
   function journeyStripEl(jrs, w, we) {
     if (!jrs.length) return null;
     var strip=document.createElement("div"); strip.className="jr-strip";
     jrs.forEach(function (jr) {
       var slice=document.createElement("div"); slice.className="jr-slice";
-      var s=jr.start?parseISO(jr.start):null, e=jr.end?parseISO(jr.end):null;
-      var valid=s&&e&&!isNaN(s.getTime())&&!isNaN(e.getTime());
-      if (valid && s<we && e>=w.start) {
+      var s=okDate(jr.start), e=okDate(jr.end);
+      if (s && e && s<we && e>=w.start) {
         slice.className+=" on";
         slice.style.setProperty("--jr", jr.color||"#888");
         var startsHere=s>=w.start && s<we, endsHere=e>=w.start && e<we;
@@ -893,8 +1086,8 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         }
         feederWindows(jr).forEach(function (fw) {
           if (!fw.from) return;
-          var fd=parseISO(fw.from);
-          if (isNaN(fd.getTime()) || fd<w.start || fd>=we) return;
+          var fd=okDate(fw.from);
+          if (!fd || fd<w.start || fd>=we) return;
           // Day-count, not millisecond maths — a DST shift inside the week
           // would nudge the marker off by a fraction of a day.
           var dayOffset=Math.round((fd-w.start)/86400000);
@@ -913,11 +1106,48 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
     return strip;
   }
-
+  /* Automations get their own strip below the journey strip: same geometry so
+     the eye reads both as spans, hatched fill so nobody mistakes "waiting on a
+     trigger" for "sending on schedule". */
+  function autoStripEl(autos, w, we, res, term) {
+    if (!autos.length) return null;
+    var strip=document.createElement("div"); strip.className="tg-strip";
+    var termEnd=parseISO(term.end);
+    autos.forEach(function (a) {
+      var slice=document.createElement("div"); slice.className="tg-slice";
+      var s=okDate(a.activeFrom);
+      var e=okDate(a.activeUntil);
+      var openEnded=!e;
+      var eff=e||termEnd;
+      if (s && s<we && eff>=w.start) {
+        var ch=channelById(a.channelId);
+        slice.className+=" on";
+        slice.style.setProperty("--tg", (ch&&ch.color)||"#4A5A73");
+        var startsHere=s>=w.start && s<we, endsHere=!!e && e>=w.start && e<we;
+        if (startsHere) slice.className+=" start";
+        if (endsHere)   slice.className+=" end";
+        if (openEnded && eff>=w.start && eff<we) slice.className+=" open-end";
+        if (startsHere) {
+          var lab=document.createElement("span"); lab.className="tg-label";
+          lab.textContent="⚡ "+(a.title||"Automation");
+          slice.appendChild(lab);
+        }
+        var slots=(a.segments||[]).reduce(function(x,y){ return x+((y.items||[]).length); },0);
+        slice.style.cursor="pointer";
+        slice.title="⚡ "+(a.title||"Automation")+"\nTrigger: "+triggerText(a)+
+          "\n"+delayHint(a.trigger&&a.trigger.preset, a.delay||0)+
+          "\nActive: "+(a.activeFrom||"?")+" → "+(a.activeUntil||"no end date")+
+          "\n"+(a.segments||[]).length+" segment(s), "+slots+" content item(s)"+
+          (sendHasWarning(a,res)?"\n⚠ a content slot needs attention":"");
+        slice.addEventListener("click", function (ev) { ev.stopPropagation(); openEditor(a.id); });
+      }
+      strip.appendChild(slice);
+    });
+    return strip;
+  }
   function renderComms(res, term, weeks) {
     var root=document.getElementById("commsGrid"); root.innerHTML="";
     var filter=document.getElementById("densitySel").value;
-
     var hdr=document.createElement("div"); hdr.className="row hdr";
     hdr.appendChild(laneEl("Channel", weeks.length+" weeks", null));
     var ht=document.createElement("div"); ht.className="track"; var lastMo=-1;
@@ -929,7 +1159,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       lastMo=mo; ht.appendChild(c);
     });
     hdr.appendChild(ht); root.appendChild(hdr);
-
     var ctx=document.createElement("div"); ctx.className="row ctx-row";
     ctx.appendChild(laneEl("What's running","content pool",null));
     var ct=document.createElement("div"); ct.className="track";
@@ -959,25 +1188,31 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       ct.appendChild(c);
     });
     ctx.appendChild(ct); root.appendChild(ctx);
-
     DB.channels.forEach(function (ch) {
-      var mine=DB.sends.filter(function(s){ return s.channelId===ch.id && (filter==="all"||s.status===filter); });
+      var mine=DB.sends.filter(function (s) {
+        return s.channelId===ch.id && !isAuto(s) && (filter==="all"||s.status===filter);
+      });
+      var myAutos=autosForChannel(ch.id).filter(function (s) {
+        return filter==="all"||s.status===filter;
+      });
       var jrs=journeysForChannel(ch.id);
       var row=document.createElement("div"); row.className="row";
-      var meta=mine.length+" send"+(mine.length===1?"":"s")+
-        (jrs.length?" · "+jrs.length+" journey"+(jrs.length===1?"":"s"):"");
-      row.appendChild(laneEl(ch.name, meta, ch.color));
+      var bits=[mine.length+" send"+(mine.length===1?"":"s")];
+      if (jrs.length)     bits.push(jrs.length+" journey"+(jrs.length===1?"":"s"));
+      if (myAutos.length) bits.push(myAutos.length+" automation"+(myAutos.length===1?"":"s"));
+      row.appendChild(laneEl(ch.name, bits.join(" · "), ch.color));
       var tr=document.createElement("div"); tr.className="track";
       weeks.forEach(function (w) {
         var c=document.createElement("div"); c.className="cell"; var we=addDays(w.start,7);
         var strip=journeyStripEl(jrs,w,we);
         if (strip) c.appendChild(strip);
+        var astrip=autoStripEl(myAutos,w,we,res,term);
+        if (astrip) c.appendChild(astrip);
         mine.filter(function (s) {
-          if (!s.date) return false;
-          var d=parseISO(s.date);
-          return !isNaN(d.getTime()) && d>=w.start && d<we;
+          var d=okDate(s.date);
+          return !!d && d>=w.start && d<we;
         }).sort(function(a,b){ return parseISO(a.date)-parseISO(b.date); })
-          .forEach(function (s) { c.appendChild(stickyEl(s,ch)); });
+          .forEach(function (s) { c.appendChild(stickyEl(s,ch,res)); });
         var add=document.createElement("button");
         add.type="button"; add.className="add-cell"; add.textContent="+";
         add.title="Add a send in this week";
@@ -987,17 +1222,17 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
       row.appendChild(tr); root.appendChild(row);
     });
-
     if (!DB.channels.length) {
       var empty=document.createElement("div");
       empty.style.padding="22px"; empty.className="muted";
-      empty.textContent="No channels yet. Open Journeys, channels & segments to add one.";
+      empty.textContent="No channels yet. Open Journeys, automations & channels to add one.";
       root.appendChild(empty);
     }
+    var thisTerm=DB.sends.filter(function(s){ return inTerm(s,term); });
+    var autoN=thisTerm.filter(isAuto).length;
     document.getElementById("commsNote").textContent=
-      term.label+" · "+DB.sends.filter(function(s){ return inTerm(s,term); }).length+" sends this term";
+      term.label+" · "+(thisTerm.length-autoN)+" dated sends, "+autoN+" automations live";
   }
-
   function hexToSoft(hex) {
     try {
       var h=String(hex).replace("#","");
@@ -1007,15 +1242,14 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       return "rgba("+r+","+g2+","+b+",0.10)";
     } catch(e){ return "#F7F8FA"; }
   }
-
-  function stickyEl(s, ch) {
+  function stickyEl(s, ch, res) {
     var b=document.createElement("button"); b.type="button";
     b.className="sticky status-"+(s.status||"draft");
     b.style.borderLeftColor=ch.color; b.style.background=hexToSoft(ch.color);
     var d=parseISO(s.date);
     var segCount=(s.segments||[]).length;
     var slotCount=(s.segments||[]).reduce(function(a,x){ return a+((x.items||[]).length); },0);
-    var warn=sendHasWarning(s);
+    var warn=sendHasWarning(s,res);
     var isFeeder=(s.kind||"send")==="feeder";
     var jr=s.journeyId?journeyById(s.journeyId):null;
     b.innerHTML='<span class="sticky-day">'+(isFeeder?"⤷ entry · ":"")+esc(fmtDay(d))+
@@ -1026,7 +1260,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     b.addEventListener("click", function(){ openEditor(s.id); });
     return b;
   }
-
   function describeSend(s) {
     if (!s.segments || !s.segments.length) return "No segments defined yet.";
     return s.segments.map(function (sg) {
@@ -1038,7 +1271,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       return (seg?seg.name:"[deleted segment]")+": "+(items.length?items.join("; "):"—");
     }).join("\n");
   }
-
   function renderTimeline(res, term, weeks) {
     var root=document.getElementById("timeline"); root.innerHTML="";
     var hdr=document.createElement("div"); hdr.className="row hdr";
@@ -1070,8 +1302,55 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       row.appendChild(tr); root.appendChild(row);
     });
   }
-
-  function renderSetup() {
+  function renderSetup(res) {
+    var ab=document.getElementById("autoBody"); ab.innerHTML="";
+    var autos=automations().slice().sort(function (a,b) {
+      var da=okDate(a.activeFrom), db2=okDate(b.activeFrom);
+      if (!da) return 1; if (!db2) return -1; return da-db2;
+    });
+    if (!autos.length) {
+      var trA=document.createElement("tr"), tdA=document.createElement("td");
+      tdA.colSpan=7; tdA.className="muted"; tdA.style.padding="14px";
+      tdA.textContent="No automations yet. Use these for anything that fires on an action rather than a date — a welcome after someone joins, a follow-up after office hours, a nudge to a no-show.";
+      trA.appendChild(tdA); ab.appendChild(trA);
+    }
+    autos.forEach(function (a) {
+      var tr=document.createElement("tr");
+      var t0=document.createElement("td");
+      var ch=channelById(a.channelId);
+      t0.innerHTML='<span class="tg-swatch" style="background-color:'+esc((ch&&ch.color)||"#888")+
+        '"></span> '+esc(a.title||"Untitled")+
+        (sendHasWarning(a,res)?' <span class="sticky-warn">!</span>':"");
+      tr.appendChild(t0);
+      var t1=document.createElement("td");
+      var p=a.trigger&&a.trigger.preset;
+      if (!p || (p==="custom" && !(a.trigger.text||"").trim())) {
+        t1.innerHTML='<span class="sticky-warn">no trigger set</span>';
+      } else t1.innerHTML='<span class="tag trig">'+esc(triggerText(a))+"</span>";
+      tr.appendChild(t1);
+      var t2=document.createElement("td"); t2.className="wk";
+      t2.textContent=(a.delay||0)?("+"+a.delay+"d"):"immediate"; tr.appendChild(t2);
+      var t3=document.createElement("td"); t3.textContent=ch?ch.name:"—"; tr.appendChild(t3);
+      var t4=document.createElement("td"); t4.className="wk";
+      t4.textContent=(a.activeFrom||"?")+" → "+(a.activeUntil||"no end"); tr.appendChild(t4);
+      var slots=(a.segments||[]).reduce(function(x,y){ return x+((y.items||[]).length); },0);
+      var t5=document.createElement("td");
+      t5.innerHTML='<span class="tag">'+(a.segments||[]).length+" seg · "+slots+" items</span>";
+      tr.appendChild(t5);
+      var t6=document.createElement("td");
+      var op=document.createElement("button"); op.className="btn btn-sm"; op.textContent="Edit";
+      op.addEventListener("click", function(){ openEditor(a.id); });
+      t6.appendChild(op);
+      var dup=document.createElement("button"); dup.className="btn btn-sm"; dup.textContent="Duplicate";
+      dup.style.marginLeft="4px";
+      dup.addEventListener("click", function () {
+        var copy=JSON.parse(JSON.stringify(a));
+        copy.id=uid("snd"); copy.title=(a.title||"Untitled")+" (copy)"; copy.status="draft";
+        DB.sends.push(copy); saveDB(); render(); openEditor(copy.id);
+      });
+      t6.appendChild(dup); tr.appendChild(t6);
+      ab.appendChild(tr);
+    });
     var jb=document.getElementById("journeyBody"); jb.innerHTML="";
     if (!DB.journeys.length) {
       var tr0=document.createElement("tr"), td0=document.createElement("td");
@@ -1090,7 +1369,9 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var t3=document.createElement("td"); t3.className="wk";
       t3.textContent=(j.start||"?")+" → "+(j.end||"?"); tr.appendChild(t3);
       var t4=document.createElement("td"); t4.textContent=sendsInJourney(j.id,"feeder").length; tr.appendChild(t4);
-      var t5=document.createElement("td"); t5.textContent=sendsInJourney(j.id,"send").length; tr.appendChild(t5);
+      var t5=document.createElement("td");
+      var nS=sendsInJourney(j.id,"send").length, nA=sendsInJourney(j.id,"triggered").length;
+      t5.textContent=nS+(nA?" (+"+nA+"⚡)":""); tr.appendChild(t5);
       var t6=document.createElement("td");
       var op=document.createElement("button"); op.className="btn btn-sm"; op.textContent="Edit";
       op.addEventListener("click", function(){ openJourney(j.id); });
@@ -1101,7 +1382,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       t6.appendChild(del); tr.appendChild(t6);
       jb.appendChild(tr);
     });
-
     var cb=document.getElementById("channelBody"); cb.innerHTML="";
     DB.channels.forEach(function (ch) {
       var tr=document.createElement("tr");
@@ -1117,22 +1397,27 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       col.addEventListener("change", function(){ ch.color=col.value||"#888"; saveDB(); render(); });
       td2.appendChild(col); tr.appendChild(td2);
       var n=DB.sends.filter(function(s){ return s.channelId===ch.id; }).length;
-      var td3=document.createElement("td"); td3.textContent=n; tr.appendChild(td3);
+      var nAuto=autosForChannel(ch.id).length;
+      var td3=document.createElement("td"); td3.textContent=n+(nAuto?" ("+nAuto+"⚡)":""); tr.appendChild(td3);
       var td4=document.createElement("td");
       var del=document.createElement("button"); del.className="btn btn-sm"; del.textContent="Delete";
       del.addEventListener("click", function () {
-        // Deleting a lane takes its journeys with it, so name them rather than
-        // burying that under a send count. An empty channel goes quietly.
-        var jrs=journeysForChannel(ch.id), msg;
+        // Deleting a lane takes its journeys and automations with it, so name
+        // them rather than burying that under a send count. Empty goes quietly.
+        var jrs=journeysForChannel(ch.id), auts=autosForChannel(ch.id), msg;
         if (!n && !jrs.length) {
           msg="Delete the “"+ch.name+"” channel? It has nothing in it.";
         } else {
           msg="Delete “"+ch.name+"”?\n\nThis also deletes:\n· "+n+" send(s)";
+          if (auts.length) {
+            msg+="\n· "+auts.length+" automation(s), which will stop firing:\n    "+
+              auts.map(function(a){ return (a.title||"Untitled")+" — "+triggerText(a); }).join("\n    ");
+          }
           if (jrs.length) {
             msg+="\n· "+jrs.length+" journey(s), including their entry cutoffs:\n    "+
               jrs.map(function(j){ return j.name||"Untitled"; }).join("\n    ");
           }
-          msg+="\n\nThis cannot be undone. To keep the journeys, reassign them to another channel first.";
+          msg+="\n\nThis cannot be undone. To keep them, reassign to another channel first.";
         }
         if (!window.confirm(msg)) return;
         DB.sends=DB.sends.filter(function(s){ return s.channelId!==ch.id; });
@@ -1143,7 +1428,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       td4.appendChild(del); tr.appendChild(td4);
       cb.appendChild(tr);
     });
-
     var sb=document.getElementById("segmentBody"); sb.innerHTML="";
     DB.segments.forEach(function (sg) {
       var tr=document.createElement("tr");
@@ -1174,19 +1458,22 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       sb.appendChild(tr);
     });
   }
-
   function currentSend(){ return sendById(editingId); }
-
-  function openEditor(sendId, presetChannel, presetDate) {
-    var s;
+  function openEditor(sendId, presetChannel, presetDate, presetKind) {
+    var s, term=TERMS[termIdx];
     if (sendId) { s=sendById(sendId); if (!s) return; editingId=sendId; }
     else {
       s={ id:uid("snd"), channelId:presetChannel||(DB.channels[0]&&DB.channels[0].id)||"",
           date:presetDate||iso(new Date()), title:"", status:"draft",
-          journeyId:"", kind:"send", segments:[], notes:"" };
+          journeyId:"", kind:presetKind||"send", segments:[], notes:"",
+          trigger:{preset:"",text:""}, delay:0,
+          activeFrom:presetKind==="triggered"?term.start:"",
+          activeUntil:presetKind==="triggered"?term.end:"" };
       DB.sends.push(s); editingId=s.id;
     }
-    document.getElementById("editorTitle").textContent=sendId?"Edit send":"New send";
+    document.getElementById("editorTitle").textContent=
+      sendId ? (isAuto(s)?"Edit automation":"Edit send")
+             : (presetKind==="triggered"?"New automation":"New send");
     document.getElementById("edTitle").value=s.title||"";
     document.getElementById("edDate").value=s.date||"";
     document.getElementById("edStatus").value=s.status||"draft";
@@ -1203,20 +1490,48 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
     js.value=s.journeyId||"";
     document.getElementById("edKind").value=s.kind||"send";
+    var ts=document.getElementById("edTrigger"); ts.innerHTML="";
+    var t0=document.createElement("option"); t0.value=""; t0.textContent="— pick a trigger —"; ts.appendChild(t0);
+    TRIGGERS.forEach(function (t) {
+      var o=document.createElement("option"); o.value=t.id; o.textContent=t.label; ts.appendChild(o);
+    });
+    ts.value=(s.trigger&&s.trigger.preset)||"";
+    document.getElementById("edTriggerText").value=(s.trigger&&s.trigger.text)||"";
+    document.getElementById("edDelay").value=s.delay||0;
+    document.getElementById("edActiveFrom").value=s.activeFrom||"";
+    document.getElementById("edActiveUntil").value=s.activeUntil||"";
     updateKindUi();
     renderEditorSegments();
     document.getElementById("editorOverlay").classList.remove("hidden");
   }
-
-  /* A feeder isn't sent on a date — it's what someone gets on entry. Relabel
-     the date field so it can't be mistaken for a send date. */
+  /* Three kinds share one form, so the fields that don't apply are hidden
+     rather than left to be filled in wrongly: a feeder isn't sent on a date,
+     and an automation has no date at all. */
   function updateKindUi() {
     var kind=document.getElementById("edKind").value;
     var jid=document.getElementById("edJourney").value;
-    var isFeeder=kind==="feeder";
+    var isFeeder=kind==="feeder", triggered=kind==="triggered";
+    document.getElementById("edTriggerBox").classList.toggle("hidden", !triggered);
+    document.getElementById("edDateWrap").style.display=triggered?"none":"";
     document.getElementById("edDateLabel").textContent=isFeeder?"Cohort starts":"Send date";
+    var preset=document.getElementById("edTrigger").value;
+    document.getElementById("edTriggerTextWrap").style.display=preset==="custom"?"":"none";
+    document.getElementById("edDelayHint").textContent=
+      delayHint(preset, parseInt(document.getElementById("edDelay").value,10)||0);
+    var from=document.getElementById("edActiveFrom").value;
+    var until=document.getElementById("edActiveUntil").value;
+    var wh="";
+    if (!from) wh="Set a start date or this won't appear on the calendar.";
+    else if (!until) wh="No end date — it keeps firing until someone turns it off.";
+    else if (okDate(from) && okDate(until) && parseISO(until)<parseISO(from))
+      wh="The end date is before the start, so this is never live.";
+    else wh="Live for "+(Math.round((parseISO(until)-parseISO(from))/86400000)+1)+" days.";
+    document.getElementById("edWindowHint").textContent=wh;
     var hint="";
-    if (isFeeder && !jid) hint="An entry email needs a journey — pick one, or switch back to a scheduled send.";
+    if (triggered) {
+      hint=preset ? "Fires per person, whenever this happens inside the active window."
+                  : "Pick the action that fires this email.";
+    } else if (isFeeder && !jid) hint="An entry email needs a journey — pick one, or switch back to a scheduled send.";
     else if (isFeeder) {
       var j=journeyById(jid), wins=j?feederWindows(j):[], me=null;
       for (var i=0;i<wins.length;i++) if (wins[i].send.id===editingId) me=wins[i];
@@ -1225,14 +1540,32 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     } else if (jid) hint="Runs inside the journey, with its own content for this week.";
     document.getElementById("edKindHint").textContent=hint;
   }
-
   function renderEditorSegments() {
     var s=currentSend(); if (!s) return;
     var host=document.getElementById("edSegments"); host.innerHTML="";
     var term=TERMS[termIdx], res=resolvedEvents(term);
-    var dateStr=document.getElementById("edDate").value || s.date;
-    var weekEvents=eventsInWeekOf(dateStr,res);
-
+    var kind=document.getElementById("edKind").value;
+    var triggered=kind==="triggered";
+    // Live form values, not saved ones — the pool has to follow the dates the
+    // person is typing, or they pick content against the wrong window.
+    var probe;
+    if (triggered) {
+      probe={ kind:"triggered",
+              activeFrom:document.getElementById("edActiveFrom").value,
+              activeUntil:document.getElementById("edActiveUntil").value };
+    } else {
+      probe={ kind:kind, date:document.getElementById("edDate").value||s.date,
+              journeyId:document.getElementById("edJourney").value, id:s.id };
+    }
+    var win=windowFor(probe);
+    var pool, poolLabel;
+    if (triggered) {
+      pool=eventsInWindow(win,res);
+      poolLabel="In the active window ("+pool.length+")";
+    } else {
+      pool=eventsInWeekOf(probe.date,res);
+      poolLabel="This week ("+pool.length+")";
+    }
     (s.segments||[]).forEach(function (sg, si) {
       var seg=segmentById(sg.segId);
       var box=document.createElement("div"); box.className="seg";
@@ -1256,28 +1589,26 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       rmSeg.addEventListener("click", function(){ s.segments.splice(si,1); saveDB(); renderEditorSegments(); });
       head.appendChild(rmSeg);
       box.appendChild(head);
-
       (sg.items||[]).forEach(function (it, ii) {
         var rowEl=document.createElement("div"); rowEl.className="slot";
         var n=document.createElement("span"); n.className="slot-n"; n.textContent=(ii+1)+"."; rowEl.appendChild(n);
-        var kind=document.createElement("select"); kind.style.flex="0 0 92px";
+        var kindSel=document.createElement("select"); kindSel.style.flex="0 0 92px";
         [["event","Event"],["text","Free text"]].forEach(function (k) {
-          var o=document.createElement("option"); o.value=k[0]; o.textContent=k[1]; kind.appendChild(o);
+          var o=document.createElement("option"); o.value=k[0]; o.textContent=k[1]; kindSel.appendChild(o);
         });
-        kind.value=it.type||"event";
-        kind.addEventListener("change", function(){ it.type=kind.value; saveDB(); renderEditorSegments(); });
-        rowEl.appendChild(kind);
-
+        kindSel.value=it.type||"event";
+        kindSel.addEventListener("change", function(){ it.type=kindSel.value; saveDB(); renderEditorSegments(); });
+        rowEl.appendChild(kindSel);
         if (it.type==="event") {
           var sel=document.createElement("select");
           var op0=document.createElement("option"); op0.value=""; op0.textContent="— pick content —"; sel.appendChild(op0);
-          var gWeek=document.createElement("optgroup"); gWeek.label="This week ("+weekEvents.length+")";
-          weekEvents.forEach(function (r) { gWeek.appendChild(evOption(r,seg)); });
-          if (weekEvents.length) sel.appendChild(gWeek);
+          var gPool=document.createElement("optgroup"); gPool.label=poolLabel;
+          pool.forEach(function (r) { gPool.appendChild(evOption(r,seg,probe,res)); });
+          if (pool.length) sel.appendChild(gPool);
           var gRest=document.createElement("optgroup"); gRest.label="Elsewhere in "+term.label;
           res.list.forEach(function (r) {
-            if (weekEvents.indexOf(r)>=0) return;
-            gRest.appendChild(evOption(r,seg));
+            if (pool.indexOf(r)>=0) return;
+            gRest.appendChild(evOption(r,seg,probe,res));
           });
           sel.appendChild(gRest);
           sel.value=it.ref||"";
@@ -1293,22 +1624,26 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         rm.addEventListener("click", function(){ sg.items.splice(ii,1); saveDB(); renderEditorSegments(); });
         rowEl.appendChild(rm);
         box.appendChild(rowEl);
-
         if (it.type==="event" && it.ref) {
           var ev=eventById(it.ref);
           if (!ev) box.appendChild(warnEl("That event is no longer in the loaded set — it may have been renamed or removed."));
-          else if (slotMismatch(seg,ev)) box.appendChild(warnEl("“"+(ev.name||ev.id)+"” is not tagged for "+seg.persona+
-            ". Fine if the cross-promotion is deliberate — flagging it so it isn't an accident."));
+          else {
+            if (slotMismatch(seg,ev)) box.appendChild(warnEl("“"+(ev.name||ev.id)+"” is not tagged for "+seg.persona+
+              ". Fine if the cross-promotion is deliberate — flagging it so it isn't an accident."));
+            var st=slotStale(probe,ev,res);
+            if (st) box.appendChild(warnEl("“"+(ev.name||ev.id)+"” is on "+fmtShort(st.evDate)+
+              ", but this stays live for "+st.days+" more day(s) — anyone triggering it after "+
+              fmtShort(st.evDate)+" gets an invitation to something already over. End the window on "+
+              iso(st.evDate)+", or use evergreen content."));
+          }
         }
       });
-
       if (!sg.items || !sg.items.length) {
         var h=document.createElement("div"); h.className="hint";
         h.textContent="No content yet — use + Content to add slot 1."; box.appendChild(h);
       }
       host.appendChild(box);
     });
-
     if (!s.segments || !s.segments.length) {
       var h2=document.createElement("div"); h2.className="hint";
       h2.textContent="No segments yet. Add one below to start breaking this send down.";
@@ -1322,18 +1657,20 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (!sel2.options.length) {
       var o=document.createElement("option"); o.value=""; o.textContent="all segments added"; sel2.appendChild(o);
     }
-    document.getElementById("edMeta").textContent=
-      weekEvents.length+" event(s) available the week of "+(dateStr||"—");
+    document.getElementById("edMeta").textContent = triggered
+      ? pool.length+" event(s) fall inside "+(describeWindow(win)||"this window")
+      : pool.length+" event(s) available the week of "+(probe.date||"—");
   }
-
-  function evOption(r, seg) {
+  function evOption(r, seg, probe, res) {
     var o=document.createElement("option");
     o.value=r.ev.id;
-    o.textContent=fmtShort(r.date)+" · "+(r.ev.name||r.ev.id)+(slotMismatch(seg,r.ev)?" ⚠":"");
+    var flags="";
+    if (slotMismatch(seg,r.ev)) flags+=" ⚠";
+    if (slotStale(probe,r.ev,res)) flags+=" ⏳";
+    o.textContent=fmtShort(r.date)+" · "+(r.ev.name||r.ev.id)+flags;
     return o;
   }
   function warnEl(msg){ var d=document.createElement("div"); d.className="warn"; d.textContent="⚠ "+msg; return d; }
-
   function closeEditor(discardIfEmpty) {
     var s=currentSend();
     if (s && discardIfEmpty && !s.title && !(s.segments||[]).length) {
@@ -1343,9 +1680,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("editorOverlay").classList.add("hidden");
     render();
   }
-
   function currentJourney(){ return journeyById(editingJourney); }
-
   function openJourney(id, presetChannel) {
     var j;
     if (id) { j=journeyById(id); if (!j) return; }
@@ -1369,7 +1704,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     renderJourneyDetail();
     document.getElementById("journeyOverlay").classList.remove("hidden");
   }
-
   function renderJourneyDetail() {
     var j=currentJourney(); if (!j) return;
     var host=document.getElementById("jrFeeders"); host.innerHTML="";
@@ -1411,7 +1745,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       box.appendChild(win);
       host.appendChild(box);
     });
-
     var sh=document.getElementById("jrSends"); sh.innerHTML="";
     var ss=sendsInJourney(j.id,"send");
     if (!ss.length) {
@@ -1435,15 +1768,53 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
       d.appendChild(b); sh.appendChild(d);
     });
-    document.getElementById("jrMeta").textContent=wins.length+" cutoff(s) · "+ss.length+" scheduled send(s)";
+    var ah=document.getElementById("jrAutos"); ah.innerHTML="";
+    var aa=sendsInJourney(j.id,"triggered");
+    if (!aa.length) {
+      var h3=document.createElement("div"); h3.className="hint";
+      h3.textContent="No automations in this journey. Add one to fire on an action rather than a date — a nudge when someone stalls, a follow-up after they attend.";
+      ah.appendChild(h3);
+    }
+    aa.forEach(function (a) {
+      var d=document.createElement("div");
+      d.style.display="flex"; d.style.gap="8px"; d.style.alignItems="center";
+      d.style.padding="3px 0"; d.style.fontSize="12px";
+      var sp=document.createElement("span"); sp.style.flex="1";
+      sp.innerHTML="⚡ "+esc(a.title||"Untitled")+' <span class="tag trig">'+esc(triggerText(a))+
+        '</span> <span class="tag">'+esc((a.activeFrom||"?")+" → "+(a.activeUntil||"no end"))+"</span>";
+      d.appendChild(sp);
+      var b=document.createElement("button"); b.className="btn btn-sm"; b.textContent="Open";
+      b.addEventListener("click", function () {
+        document.getElementById("journeyOverlay").classList.add("hidden");
+        openEditor(a.id);
+      });
+      d.appendChild(b); ah.appendChild(d);
+    });
+    var addA=document.createElement("button");
+    addA.className="btn btn-sm"; addA.textContent="+ Add automation to this journey";
+    addA.style.marginTop="6px";
+    addA.addEventListener("click", function () {
+      var jj=currentJourney(); if (!jj) return;
+      var s={ id:uid("snd"), channelId:jj.channelId, journeyId:jj.id, kind:"triggered",
+              date:"", title:"", status:"draft", segments:[], notes:"",
+              trigger:{preset:"",text:""}, delay:0,
+              activeFrom:jj.start||TERMS[termIdx].start, activeUntil:jj.end||TERMS[termIdx].end };
+      DB.sends.push(s); saveDB();
+      document.getElementById("journeyOverlay").classList.add("hidden");
+      openEditor(s.id);
+    });
+    ah.appendChild(addA);
+    document.getElementById("jrMeta").textContent=
+      wins.length+" cutoff(s) · "+ss.length+" scheduled send(s) · "+aa.length+" automation(s)";
   }
-
   function deleteJourney(id) {
     var j=journeyById(id); if (!j) return;
-    var feeders=sendsInJourney(id,"feeder").length, sends=sendsInJourney(id,"send").length;
+    var feeders=sendsInJourney(id,"feeder").length,
+        sends=sendsInJourney(id,"send").length,
+        autos=sendsInJourney(id,"triggered").length;
     if (!window.confirm("Delete “"+(j.name||"journey")+"”?\n\n"+
         feeders+" entry email(s) will be deleted with it.\n"+
-        sends+" scheduled send(s) will be kept and become standalone.")) return;
+        sends+" scheduled send(s) and "+autos+" automation(s) will be kept and become standalone.")) return;
     DB.sends=DB.sends.filter(function(s){ return !(s.journeyId===id && (s.kind||"send")==="feeder"); });
     DB.sends.forEach(function(s){ if (s.journeyId===id) s.journeyId=""; });
     DB.journeys=DB.journeys.filter(function(x){ return x.id!==id; });
@@ -1451,9 +1822,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("journeyOverlay").classList.add("hidden");
     render();
   }
-
   function intVal(id,d){ var v=parseInt(document.getElementById(id).value,10); return isNaN(v)?d:v; }
-
   function openPromo() {
     var term=TERMS[termIdx], res=resolvedEvents(term);
     var cs=document.getElementById("pgChannel"); cs.innerHTML="";
@@ -1476,7 +1845,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("pgCount").textContent="";
     document.getElementById("promoOverlay").classList.remove("hidden");
   }
-
   function generatePromos() {
     var term=TERMS[termIdx], res=resolvedEvents(term);
     var chId=document.getElementById("pgChannel").value;
@@ -1518,7 +1886,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       made+" draft(s) created"+(skipped?", "+skipped+" skipped (outside term)":"")+".";
     render();
   }
-
   function toCsv(rows) {
     return rows.map(function (r) {
       return r.map(function (c) {
@@ -1533,24 +1900,29 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(a.href); },1000);
   }
-
   function commsCsv() {
-    var term=TERMS[termIdx];
-    var rows=[["Date","Weekday","Channel","Journey","Type","Entry window","Title","Status",
-               "Segment","Persona","Slot","Content","Content date","Tag match","Notes"]];
-    var winByFeeder={};
-    DB.journeys.forEach(function (j) {
-      feederWindows(j).forEach(function (fw) { winByFeeder[fw.send.id]=describeWindow(fw); });
-    });
+    var term=TERMS[termIdx], res=resolvedEvents(term);
+    var rows=[["Date / active from","Weekday","Channel","Journey","Type","Trigger","Delay (days)",
+               "Window","Title","Status","Segment","Persona","Slot","Content","Content date",
+               "Tag match","Window check","Notes"]];
     DB.sends.filter(function(s){ return inTerm(s,term); })
-      .sort(function(a,b){ return parseISO(a.date)-parseISO(b.date); })
+      .sort(function (a,b) {
+        var da=okDate(effectiveDate(a)), db2=okDate(effectiveDate(b));
+        if (!da) return 1; if (!db2) return -1; return da-db2;
+      })
       .forEach(function (s) {
-        var ch=channelById(s.channelId), d=parseISO(s.date);
+        var ch=channelById(s.channelId);
         var jr=s.journeyId?journeyById(s.journeyId):null;
-        var isFeeder=(s.kind||"send")==="feeder";
-        var pre=[ s.date, DOW[d.getDay()], ch?ch.name:"?", jr?(jr.name||"Untitled"):"",
-                  isFeeder?"Entry email":"Scheduled send",
-                  isFeeder?(winByFeeder[s.id]||""):"", s.title||"", s.status||"" ];
+        var kind=s.kind||"send";
+        var auto=kind==="triggered", isFeeder=kind==="feeder";
+        var eff=effectiveDate(s), effD=okDate(eff);
+        var w=windowFor(s);
+        var typeLabel=auto?"Automation (triggered)":(isFeeder?"Entry email":"Scheduled send");
+        var pre=[ eff||"", (effD && !auto)?DOW[effD.getDay()]:"—",
+                  ch?ch.name:"?", jr?(jr.name||"Untitled"):"",
+                  typeLabel, auto?triggerText(s):"",
+                  auto?(s.delay||0):"",
+                  w?describeWindow(w):"", s.title||"", s.status||"" ];
         if (!s.segments || !s.segments.length) { rows.push(pre.concat(["","","","","","",s.notes||""])); return; }
         s.segments.forEach(function (sg) {
           var seg=segmentById(sg.segId);
@@ -1558,20 +1930,25 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           var items=sg.items||[];
           if (!items.length) { rows.push(pre.concat(segCols,["","","","",s.notes||""])); return; }
           items.forEach(function (it,i) {
-            var content="", cdate="", match="";
+            var content="", cdate="", match="", wcheck="";
             if (it.type==="event") {
               var ev=eventById(it.ref);
               content=ev?(ev.name||ev.id):"[missing event]";
               if (ev) cdate=ev.iso||ev.date||"";
               match=ev?(slotMismatch(seg,ev)?"MISMATCH":"ok"):"MISSING";
-            } else { content=it.text||""; match="n/a (free text)"; }
-            rows.push(pre.concat(segCols,[i+1,content,cdate,match,s.notes||""]));
+              if (!w) wcheck="n/a (dated send)";
+              else if (!ev) wcheck="";
+              else {
+                var st=slotStale(s,ev,res);
+                wcheck=st?("STALE — over "+st.days+"d before window ends"):"ok";
+              }
+            } else { content=it.text||""; match="n/a (free text)"; wcheck="n/a (free text)"; }
+            rows.push(pre.concat(segCols,[i+1,content,cdate,match,wcheck,s.notes||""]));
           });
         });
       });
     download("ilab-comms-plan-"+term.id+".csv", toCsv(rows));
   }
-
   function exportJson(){ download("ilab-comms-plan.json", JSON.stringify(DB,null,2), "application/json"); }
   function importJson() {
     var inp=document.createElement("input"); inp.type="file"; inp.accept=".json,application/json";
@@ -1591,15 +1968,16 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
     inp.click();
   }
-
   function render() {
     var term=TERMS[termIdx], res=resolvedEvents(term), weeks=weeksFor(term);
     renderHealth(res,term);
     renderComms(res,term,weeks);
     renderTimeline(res,term,weeks);
-    renderSetup();
+    renderSetup(res);
   }
-
+  function newAutomation() {
+    openEditor(null, (DB.channels[0]&&DB.channels[0].id)||"", "", "triggered");
+  }
   function init() {
     problems=[];
     var ts=document.getElementById("termSel");
@@ -1607,7 +1985,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var o=document.createElement("option"); o.value=i; o.textContent=t.label; ts.appendChild(o);
     });
     ts.addEventListener("change", function(){ termIdx=parseInt(ts.value,10); render(); });
-
     document.querySelectorAll(".btn[data-view]").forEach(function (b) {
       b.addEventListener("click", function () {
         document.querySelectorAll(".btn[data-view]").forEach(function(x){ x.classList.toggle("active", x===b); });
@@ -1617,7 +1994,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
     });
     document.getElementById("densitySel").addEventListener("change", render);
-
     document.getElementById("addChannelBtn").addEventListener("click", function () {
       var palette=["#4A5A73","#2A7F7F","#6B3FA0","#C98A2B","#B24C3D","#3B6E91","#1E7A5F","#A63E85"];
       DB.channels.push({ id:uid("ch"), name:"New channel", color:palette[DB.channels.length%palette.length] });
@@ -1627,24 +2003,42 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       DB.segments.push({ id:uid("seg"), name:"New segment", persona:null });
       saveDB(); render();
     });
-
     document.getElementById("editorClose").addEventListener("click", function(){ closeEditor(true); });
     document.getElementById("edSave").addEventListener("click", function () {
       var s=currentSend(); if (!s) return;
       s.title=document.getElementById("edTitle").value;
       s.channelId=document.getElementById("edChannel").value;
-      s.date=document.getElementById("edDate").value;
       s.status=document.getElementById("edStatus").value;
       s.notes=document.getElementById("edNotes").value;
       s.journeyId=document.getElementById("edJourney").value;
       s.kind=document.getElementById("edKind").value;
       // A feeder with no journey has nowhere to live; demote rather than lose it.
       if (s.kind==="feeder" && !s.journeyId) s.kind="send";
+      if (s.kind==="triggered") {
+        s.trigger={ preset:document.getElementById("edTrigger").value,
+                    text:document.getElementById("edTriggerText").value };
+        var dv=parseInt(document.getElementById("edDelay").value,10);
+        s.delay=isNaN(dv)||dv<0?0:dv;
+        s.activeFrom=document.getElementById("edActiveFrom").value;
+        s.activeUntil=document.getElementById("edActiveUntil").value;
+        s.date="";
+        // Reversed dates would render as a bar that is never live, which looks
+        // like a bug rather than a mistake — say so instead of silently fixing.
+        if (okDate(s.activeFrom) && okDate(s.activeUntil) &&
+            parseISO(s.activeUntil)<parseISO(s.activeFrom)) {
+          if (!window.confirm("“Active until” is before “active from”, so this automation is never live. Save it anyway?")) return;
+        }
+      } else {
+        // Switching an automation back to a dated send leaves the date field
+        // empty, and a send with no date renders nowhere at all — fall back to
+        // the window it used to be live from rather than vanishing.
+        s.date=document.getElementById("edDate").value || s.activeFrom || iso(new Date());
+      }
       closeEditor(false);
     });
     document.getElementById("edDelete").addEventListener("click", function () {
       var s=currentSend(); if (!s) return;
-      if (!window.confirm("Delete this send?")) return;
+      if (!window.confirm(isAuto(s)?"Delete this automation? It will stop firing.":"Delete this send?")) return;
       DB.sends=DB.sends.filter(function(x){ return x.id!==s.id; });
       editingId=null; saveDB();
       document.getElementById("editorOverlay").classList.add("hidden");
@@ -1660,11 +2054,29 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var s=currentSend(); if (s) { s.date=document.getElementById("edDate").value; saveDB(); }
       renderEditorSegments(); updateKindUi();
     });
-    document.getElementById("edKind").addEventListener("change", updateKindUi);
-    document.getElementById("edJourney").addEventListener("change", updateKindUi);
-
+    document.getElementById("edKind").addEventListener("change", function () {
+      updateKindUi(); renderEditorSegments();
+    });
+    document.getElementById("edJourney").addEventListener("change", function () {
+      updateKindUi(); renderEditorSegments();
+    });
+    document.getElementById("edTrigger").addEventListener("change", updateKindUi);
+    document.getElementById("edDelay").addEventListener("input", updateKindUi);
+    ["edActiveFrom","edActiveUntil"].forEach(function (id) {
+      document.getElementById(id).addEventListener("change", function () {
+        var s=currentSend();
+        if (s && isAuto(s)) {
+          s.activeFrom=document.getElementById("edActiveFrom").value;
+          s.activeUntil=document.getElementById("edActiveUntil").value;
+          saveDB();
+        }
+        updateKindUi(); renderEditorSegments();
+      });
+    });
     document.getElementById("addJourneyBtn").addEventListener("click", function(){ openJourney(null); });
     document.getElementById("quickJourneyBtn").addEventListener("click", function(){ openJourney(null); });
+    document.getElementById("addAutoBtn").addEventListener("click", newAutomation);
+    document.getElementById("quickAutoBtn").addEventListener("click", newAutomation);
     document.getElementById("jrClose").addEventListener("click", function () {
       editingJourney=null; saveDB();
       document.getElementById("journeyOverlay").classList.add("hidden"); render();
@@ -1677,10 +2089,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       j.end=document.getElementById("jrEnd").value;
       j.color=document.getElementById("jrColor").value||"#4A5A73";
       j.notes=document.getElementById("jrNotes").value;
-      // Keep the journey's own emails in its channel, so the bar and its
-      // feeders never end up in different lanes.
+      // Keep the journey's own emails in its channel, so the bar, its feeders
+      // and its automations never end up in different lanes.
       DB.sends.forEach(function (s) {
-        if (s.journeyId===j.id && (s.kind||"send")==="feeder") s.channelId=j.channelId;
+        var k=s.kind||"send";
+        if (s.journeyId===j.id && (k==="feeder"||k==="triggered")) s.channelId=j.channelId;
       });
       editingJourney=null; saveDB();
       document.getElementById("journeyOverlay").classList.add("hidden"); render();
@@ -1699,7 +2112,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
       saveDB(); renderJourneyDetail(); render();
     });
-
     document.getElementById("promoBtn").addEventListener("click", openPromo);
     document.getElementById("promoClose").addEventListener("click", function () {
       document.getElementById("promoOverlay").classList.add("hidden");
@@ -1708,7 +2120,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("commsCsvBtn").addEventListener("click", commsCsv);
     document.getElementById("exportJsonBtn").addEventListener("click", exportJson);
     document.getElementById("importJsonBtn").addEventListener("click", importJson);
-
     document.getElementById("importEventsBtn").addEventListener("click", function () {
       var inp=document.createElement("input"); inp.type="file"; inp.accept=".csv,text/csv";
       inp.addEventListener("change", function () {
@@ -1720,7 +2131,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
       inp.click();
     });
-
     document.addEventListener("keydown", function (e) {
       if (e.key==="Escape") {
         if (!document.getElementById("editorOverlay").classList.contains("hidden")) closeEditor(true);
@@ -1731,7 +2141,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         document.getElementById("promoOverlay").classList.add("hidden");
       }
     });
-
     // Data first, then paint — loadDB is async because it may hit the server.
     setSaveStatus("Loading…");
     loadDB(function () {
@@ -1741,7 +2150,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         : "Local only — not shared");
     });
   }
-
   if (document.readyState==="loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();

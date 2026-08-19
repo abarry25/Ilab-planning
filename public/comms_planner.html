@@ -97,6 +97,9 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
   overflow:hidden; text-overflow:ellipsis; }
 .sticky-segs { font-family:'IBM Plex Mono',monospace; font-size:8.5px; opacity:.8;
   display:block; margin-top:2px; }
+.sticky-cut { font-family:'IBM Plex Mono',monospace; font-size:8.5px; display:block;
+  margin-top:1px; color:#2A4E70; }
+.sticky-cut.bad { color:var(--rust); font-weight:600; }
 .sticky.status-draft { opacity:.72; border-style:dashed; }
 .sticky.status-sent { opacity:.5; }
 .sticky-warn { color:var(--rust); font-weight:700; }
@@ -145,8 +148,17 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .legend i.note { width:11px; height:11px; border-radius:3px; border-left:3px solid #7B8797;
   background:#EDF0F3; }
 .feeder { border:1px solid var(--border); border-radius:9px; padding:9px 11px; margin-bottom:8px; }
-.feeder-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.feeder-head { display:flex; align-items:end; gap:8px; flex-wrap:wrap; }
 .feeder-win { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft); margin-top:5px; }
+.msg { border:1px solid var(--border); border-radius:9px; padding:9px 11px; margin-bottom:8px; }
+.msg.bad { border-color:var(--rust); background:#FDF7F5; }
+.msg-head { display:flex; align-items:end; gap:8px; flex-wrap:wrap; }
+.msg-sub { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft);
+  margin-top:6px; line-height:1.45; }
+.msg-sub.bad { color:var(--rust); }
+.fld-mini { display:flex; flex-direction:column; gap:2px; }
+.fld-mini > span { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--ink-soft);
+  text-transform:uppercase; letter-spacing:.03em; }
 .overlay { position:fixed; inset:0; background:rgba(22,35,63,.42); z-index:40;
   display:flex; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; }
 .overlay.hidden { display:none; }
@@ -257,9 +269,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     <div class="foot-note">
       <b>Click the + in any cell to add a dated send; click a bar to open the journey or automation behind it.</b>
       The events row at the top shows what is running that week — the pool your
-      content slots draw from. A send showing <span class="sticky-warn">!</span> has a
-      slot pointing at an event that isn't tagged for that segment, or one that will
-      already be over for part of the window it's promoted in.
+      content slots draw from. <b>⊣ in by</b> on a journey message is its enrolment
+      cutoff: someone who joins after that date doesn't receive it. A send showing
+      <span class="sticky-warn">!</span> has a slot pointing at an event that isn't
+      tagged for that segment, one that will already be over for part of the window
+      it's promoted in, or a cutoff that excludes everyone.
     </div>
   </div>
   <div class="view" id="view-timeline">
@@ -356,6 +370,12 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         <div class="fld" style="flex:1 1 200px"><span>&nbsp;</span>
           <div class="hint" id="edKindHint" style="margin-top:0"></div></div>
       </div>
+      <div class="fld-row" id="edCutoffRow">
+        <label class="fld" style="flex:0 0 190px"><span>Must be in system by</span>
+          <input type="date" id="edCutoff" /></label>
+        <div class="fld" style="flex:1 1 300px"><span>Who receives this</span>
+          <div class="hint" id="edCutoffHint" style="margin-top:0"></div></div>
+      </div>
       <div class="trigger-box hidden" id="edTriggerBox">
         <div class="trigger-box-title">Automation</div>
         <div class="trigger-box-sub">
@@ -432,7 +452,13 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         <button class="btn btn-sm" id="jrAddFeeder">+ Add entry cutoff</button>
       </div>
       <div class="fld">
-        <span>Scheduled sends in this journey</span>
+        <span>Messages in this journey</span>
+        <div class="hint" style="margin:0 0 8px">
+          Each message has two dates. <b>Must be in system by</b> is the enrolment
+          cutoff — someone who joins after it doesn't receive this one. <b>Sends on</b>
+          is the day it goes out. Leave the cutoff empty to send to everyone in the
+          system on the send date.
+        </div>
         <div id="jrSends"></div>
       </div>
       <div class="fld">
@@ -606,6 +632,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (!DB.eventsMeta || typeof DB.eventsMeta!=="object") DB.eventsMeta={};
     DB.sends.forEach(function (s) {
       if (!s.kind) s.kind="send";
+      if (typeof s.cutoff!=="string") s.cutoff="";
       if (s.kind==="triggered") {
         if (!s.trigger || typeof s.trigger!=="object") s.trigger={ preset:"", text:"" };
         if (typeof s.trigger.preset!=="string") s.trigger.preset="";
@@ -920,6 +947,58 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     }
     return null;
   }
+  /* A message's enrolment cutoff only means something against the cohorts the
+     journey actually has, so coverage is counted rather than asserted: a cohort
+     is fully in if its entry window closes on or before the cutoff, partly in if
+     it straddles it, out if it opens after it. */
+  function cohortCoverage(jr, cutoffStr) {
+    var wins=jr?feederWindows(jr):[];
+    if (!wins.length) return null;
+    var C=okDate(cutoffStr);
+    var cov={ total:wins.length, full:0, partial:0, none:0 };
+    wins.forEach(function (w) {
+      if (!C) { cov.full++; return; }
+      var f=okDate(w.from), u=okDate(w.until);
+      if (f && f>C)   { cov.none++;    return; }
+      if (u && u<=C)  { cov.full++;    return; }
+      cov.partial++;
+    });
+    return cov;
+  }
+  /* One sentence answering "who actually gets this", because a cutoff and a send
+     date can disagree in ways that are invisible when you only look at one. */
+  function describeEligibility(s) {
+    var sd=okDate(s.date);
+    var jr=s.journeyId?journeyById(s.journeyId):null;
+    if (!s.cutoff) {
+      return { text:"Everyone in the system on "+(sd?fmtShort(sd):"the send date")+
+                    " — no enrolment cutoff.", bad:false };
+    }
+    var C=okDate(s.cutoff);
+    if (!C) return { text:"The cutoff isn't a usable date, so nobody is selected.", bad:true };
+    if (sd && C>sd) {
+      return { text:"Requires enrolment by "+fmtShort(C)+" but sends "+fmtShort(sd)+
+        " — the cutoff falls after the send, so it can only ever exclude people. "+
+        "Move the cutoff to "+fmtShort(sd)+" or earlier.", bad:true };
+    }
+    var cov=cohortCoverage(jr,s.cutoff);
+    if (!cov) return { text:"Everyone in the system by "+fmtShort(C)+".", bad:false };
+    var reach=cov.full+cov.partial;
+    if (!reach) {
+      return { text:"Every entry cohort opens after "+fmtShort(C)+
+        ", so nobody joining through this journey receives it.", bad:true };
+    }
+    var t="Everyone in by "+fmtShort(C)+" · "+reach+" of "+cov.total+
+      " entry cohort"+(cov.total===1?"":"s");
+    if (cov.partial) t+=" ("+cov.partial+" partly)";
+    if (cov.none) t+=" · "+cov.none+" cohort"+(cov.none===1?"":"s")+" excluded";
+    return { text:t+".", bad:false };
+  }
+  /* The cutoff is a journey concept: it decides which cohort of entrants a
+     dated message reaches. A standalone send has no cohorts to sort. */
+  function cutoffApplies(s) {
+    return (s.kind||"send")==="send" && !!s.journeyId;
+  }
   function describeWindow(w) {
     if (!w) return "";
     if (!w.from && !w.until) return "any time";
@@ -1028,6 +1107,22 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       msg:"Scheduled send(s) with no date, so they appear nowhere on the calendar: "+
         undated.slice(0,3).join("; ")+(undated.length>3?" and "+(undated.length-3)+" more":"")+
         ". Give them a date, or switch them to an automation." });
+    // A cutoff that lands after its own send date, or after every cohort has
+    // opened, silently sends to nobody — the two dates have to be read together.
+    var badCutoffs=[], orphanCutoffs=[];
+    DB.sends.forEach(function (s) {
+      if ((s.kind||"send")!=="send" || !s.cutoff) return;
+      if (!s.journeyId) { orphanCutoffs.push(s.title||"untitled send"); return; }
+      var el=describeEligibility(s);
+      if (el.bad) badCutoffs.push((s.title||"untitled")+" — "+el.text);
+    });
+    if (badCutoffs.length) items.push({ level:"warn",
+      msg:"Message(s) whose enrolment cutoff excludes everyone: "+badCutoffs.slice(0,2).join(" | ")+
+        (badCutoffs.length>2?" and "+(badCutoffs.length-2)+" more":"") });
+    if (orphanCutoffs.length) items.push({ level:"info",
+      msg:"Send(s) carrying an enrolment cutoff but not attached to a journey, so the cutoff is ignored: "+
+        orphanCutoffs.slice(0,3).join("; ")+(orphanCutoffs.length>3?" and "+(orphanCutoffs.length-3)+" more":"")+
+        ". Attach them to a journey, or clear the cutoff." });
     if (noTrigger.length) items.push({ level:"warn",
       msg:"Automation(s) with no trigger action set, so nothing fires them: "+noTrigger.slice(0,3).join("; ")+
         (noTrigger.length>3?" and "+(noTrigger.length-3)+" more":"")+"." });
@@ -1252,11 +1347,22 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var warn=sendHasWarning(s,res);
     var isFeeder=(s.kind||"send")==="feeder";
     var jr=s.journeyId?journeyById(s.journeyId):null;
+    var cut="", el=null;
+    if (cutoffApplies(s)) {
+      el=describeEligibility(s);
+      if (s.cutoff) {
+        var cd=okDate(s.cutoff);
+        cut='<span class="sticky-cut'+(el.bad?" bad":"")+'">⊣ in by '+
+          esc(cd?fmtDay(cd).replace(/^\w+ /,""):s.cutoff)+"</span>";
+      }
+    }
     b.innerHTML='<span class="sticky-day">'+(isFeeder?"⤷ entry · ":"")+esc(fmtDay(d))+
-        (warn?' <span class="sticky-warn">!</span>':"")+"</span>"+
+        ((warn||(el&&el.bad))?' <span class="sticky-warn">!</span>':"")+"</span>"+
       '<span class="sticky-title">'+esc(s.title||(isFeeder?"Untitled entry email":"Untitled send"))+"</span>"+
+      cut+
       '<span class="sticky-segs">'+(jr?esc(jr.name)+" · ":"")+segCount+" seg · "+slotCount+" item"+(slotCount===1?"":"s")+"</span>";
-    b.title=(s.title||"Untitled")+" — "+fmtDay(d)+"\n"+describeSend(s);
+    b.title=(s.title||"Untitled")+" — sends "+fmtDay(d)+
+      (el?"\n"+el.text:"")+"\n\n"+describeSend(s);
     b.addEventListener("click", function(){ openEditor(s.id); });
     return b;
   }
@@ -1370,8 +1476,16 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       t3.textContent=(j.start||"?")+" → "+(j.end||"?"); tr.appendChild(t3);
       var t4=document.createElement("td"); t4.textContent=sendsInJourney(j.id,"feeder").length; tr.appendChild(t4);
       var t5=document.createElement("td");
-      var nS=sendsInJourney(j.id,"send").length, nA=sendsInJourney(j.id,"triggered").length;
-      t5.textContent=nS+(nA?" (+"+nA+"⚡)":""); tr.appendChild(t5);
+      var msgs=sendsInJourney(j.id,"send"), nA=sendsInJourney(j.id,"triggered").length;
+      var withCut=msgs.filter(function(m){ return !!m.cutoff; }).length;
+      t5.textContent=msgs.length+(nA?" (+"+nA+"⚡)":"");
+      t5.title=msgs.length
+        ? msgs.map(function (m) {
+            return (m.date||"no date")+" · "+(m.title||"Untitled")+
+                   (m.cutoff?"  [in by "+m.cutoff+"]":"  [no cutoff]");
+          }).join("\n")+"\n\n"+withCut+" of "+msgs.length+" have an enrolment cutoff."
+        : "No messages yet.";
+      tr.appendChild(t5);
       var t6=document.createElement("td");
       var op=document.createElement("button"); op.className="btn btn-sm"; op.textContent="Edit";
       op.addEventListener("click", function(){ openJourney(j.id); });
@@ -1476,6 +1590,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
              : (presetKind==="triggered"?"New automation":"New send");
     document.getElementById("edTitle").value=s.title||"";
     document.getElementById("edDate").value=s.date||"";
+    document.getElementById("edCutoff").value=s.cutoff||"";
     document.getElementById("edStatus").value=s.status||"draft";
     document.getElementById("edNotes").value=s.notes||"";
     var cs=document.getElementById("edChannel"); cs.innerHTML="";
@@ -1514,6 +1629,18 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("edTriggerBox").classList.toggle("hidden", !triggered);
     document.getElementById("edDateWrap").style.display=triggered?"none":"";
     document.getElementById("edDateLabel").textContent=isFeeder?"Cohort starts":"Send date";
+    // The cutoff row only appears where it has meaning — a dated message inside
+    // a journey. Elsewhere it would be a field that silently does nothing.
+    var showCutoff=cutoffApplies({ kind:kind, journeyId:jid });
+    document.getElementById("edCutoffRow").style.display=showCutoff?"":"none";
+    if (showCutoff) {
+      var el=describeEligibility({ date:document.getElementById("edDate").value,
+                                   cutoff:document.getElementById("edCutoff").value,
+                                   journeyId:jid });
+      var ch=document.getElementById("edCutoffHint");
+      ch.textContent=el.text;
+      ch.style.color=el.bad?"var(--rust)":"";
+    }
     var preset=document.getElementById("edTrigger").value;
     document.getElementById("edTriggerTextWrap").style.display=preset==="custom"?"":"none";
     document.getElementById("edDelayHint").textContent=
@@ -1704,6 +1831,18 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     renderJourneyDetail();
     document.getElementById("journeyOverlay").classList.remove("hidden");
   }
+  /* Two date inputs side by side are indistinguishable without labels, and this
+     is exactly the pair people get backwards, so each one carries its own. */
+  function miniField(labelText, type, value, flex, tip, onChange) {
+    var wrap=document.createElement("label"); wrap.className="fld-mini";
+    wrap.style.flex=flex||"0 0 140px";
+    var l=document.createElement("span"); l.textContent=labelText;
+    var i=document.createElement("input"); i.type=type; i.value=value||"";
+    if (type==="text") i.placeholder=tip||""; else i.title=tip||"";
+    i.style.width="100%";
+    i.addEventListener("change", function(){ onChange(i.value); });
+    wrap.appendChild(l); wrap.appendChild(i); return wrap;
+  }
   function renderJourneyDetail() {
     var j=currentJourney(); if (!j) return;
     var host=document.getElementById("jrFeeders"); host.innerHTML="";
@@ -1716,14 +1855,12 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     wins.forEach(function (fw) {
       var box=document.createElement("div"); box.className="feeder";
       var head=document.createElement("div"); head.className="feeder-head";
-      var nm=document.createElement("input"); nm.type="text"; nm.value=fw.send.title||"";
-      nm.placeholder="e.g. Welcome to Fall (pre-orientation)"; nm.style.flex="1 1 210px";
-      nm.addEventListener("change", function(){ fw.send.title=nm.value; saveDB(); renderJourneyDetail(); render(); });
-      head.appendChild(nm);
-      var dt=document.createElement("input"); dt.type="date"; dt.value=fw.send.date||"";
-      dt.style.flex="0 0 148px"; dt.title="Entrants from this date get this email";
-      dt.addEventListener("change", function(){ fw.send.date=dt.value; saveDB(); renderJourneyDetail(); render(); });
-      head.appendChild(dt);
+      head.appendChild(miniField("Entry email", "text", fw.send.title, "1 1 210px",
+        "e.g. Welcome to Fall (pre-orientation)",
+        function (v) { fw.send.title=v; saveDB(); renderJourneyDetail(); render(); }));
+      head.appendChild(miniField("Cohort opens", "date", fw.send.date, "0 0 148px",
+        "Entrants from this date get this email, until the next cutoff",
+        function (v) { fw.send.date=v; saveDB(); renderJourneyDetail(); render(); }));
       var ed=document.createElement("button"); ed.className="btn btn-sm"; ed.textContent="Content…";
       ed.addEventListener("click", function () {
         document.getElementById("journeyOverlay").classList.add("hidden");
@@ -1749,25 +1886,59 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var ss=sendsInJourney(j.id,"send");
     if (!ss.length) {
       var h2=document.createElement("div"); h2.className="hint";
-      h2.textContent="No sends attached yet. Add a send on the calendar and set “Part of journey” to this one — each keeps its own weekly content.";
+      h2.textContent="No messages yet. Add one below, or set “Part of journey” on an existing send on the calendar.";
       sh.appendChild(h2);
     }
     ss.forEach(function (s) {
-      var d=document.createElement("div");
-      d.style.display="flex"; d.style.gap="8px"; d.style.alignItems="center";
-      d.style.padding="3px 0"; d.style.fontSize="12px";
-      var slots=(s.segments||[]).reduce(function(a,x){ return a+((x.items||[]).length); },0);
-      var sp=document.createElement("span"); sp.style.flex="1";
-      sp.innerHTML="<b>"+esc(s.date||"—")+"</b> · "+esc(s.title||"Untitled")+
-        ' <span class="tag">'+(s.segments||[]).length+" seg · "+slots+" items</span>";
-      d.appendChild(sp);
-      var b=document.createElement("button"); b.className="btn btn-sm"; b.textContent="Open";
-      b.addEventListener("click", function () {
+      var el=describeEligibility(s);
+      var box=document.createElement("div"); box.className="msg"+(el.bad?" bad":"");
+      var head=document.createElement("div"); head.className="msg-head";
+      head.appendChild(miniField("Message", "text", s.title, "1 1 190px",
+        "e.g. Week 2: Find your people",
+        function (v) { s.title=v; saveDB(); renderJourneyDetail(); render(); }));
+      head.appendChild(miniField("Must be in system by", "date", s.cutoff, "0 0 142px",
+        "Someone joining after this date does not receive this message. Leave empty to send to everyone in the system on the send date.",
+        function (v) { s.cutoff=v; saveDB(); renderJourneyDetail(); render(); }));
+      head.appendChild(miniField("Sends on", "date", s.date, "0 0 142px",
+        "The day this message goes out",
+        function (v) { s.date=v; saveDB(); renderJourneyDetail(); render(); }));
+      var ed=document.createElement("button"); ed.className="btn btn-sm"; ed.textContent="Content…";
+      ed.addEventListener("click", function () {
         document.getElementById("journeyOverlay").classList.add("hidden");
         openEditor(s.id);
       });
-      d.appendChild(b); sh.appendChild(d);
+      head.appendChild(ed);
+      var rm=document.createElement("button"); rm.className="btn btn-sm"; rm.textContent="×";
+      rm.addEventListener("click", function () {
+        if (!window.confirm("Delete “"+(s.title||"this message")+"” and its content?")) return;
+        DB.sends=DB.sends.filter(function(x){ return x.id!==s.id; });
+        saveDB(); renderJourneyDetail(); render();
+      });
+      head.appendChild(rm);
+      box.appendChild(head);
+      var slots=(s.segments||[]).reduce(function(a,x){ return a+((x.items||[]).length); },0);
+      var sub=document.createElement("div"); sub.className="msg-sub"+(el.bad?" bad":"");
+      sub.textContent=(el.bad?"⚠ ":"")+el.text+"  ·  "+(s.segments||[]).length+
+        " segment(s), "+slots+" content item(s)"+
+        (okDate(s.date)?"":"  ·  ⚠ no send date, so it appears nowhere on the calendar");
+      box.appendChild(sub);
+      sh.appendChild(box);
     });
+    var addM=document.createElement("button");
+    addM.className="btn btn-sm"; addM.textContent="+ Add message";
+    addM.addEventListener("click", function () {
+      var jj=currentJourney(); if (!jj) return;
+      // Default to a week after the last message so a weekly sequence builds by
+      // clicking, and leave the cutoff open rather than inventing a policy.
+      var prev=sendsInJourney(jj.id,"send"), last=prev.length?okDate(prev[prev.length-1].date):null;
+      var when=last?addDays(last,7):okDate(jj.start);
+      var endD=okDate(jj.end);
+      if (when && endD && when>endD) when=endD;
+      DB.sends.push({ id:uid("snd"), channelId:jj.channelId, journeyId:jj.id, kind:"send",
+        date: when?iso(when):"", cutoff:"", title:"", status:"draft", segments:[], notes:"" });
+      saveDB(); renderJourneyDetail(); render();
+    });
+    sh.appendChild(addM);
     var ah=document.getElementById("jrAutos"); ah.innerHTML="";
     var aa=sendsInJourney(j.id,"triggered");
     if (!aa.length) {
@@ -1804,8 +1975,10 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       openEditor(s.id);
     });
     ah.appendChild(addA);
+    var gated=ss.filter(function(m){ return !!m.cutoff; }).length;
     document.getElementById("jrMeta").textContent=
-      wins.length+" cutoff(s) · "+ss.length+" scheduled send(s) · "+aa.length+" automation(s)";
+      wins.length+" entry cohort(s) · "+ss.length+" message(s), "+gated+" with a cutoff · "+
+      aa.length+" automation(s)";
   }
   function deleteJourney(id) {
     var j=journeyById(id); if (!j) return;
@@ -1903,7 +2076,8 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   function commsCsv() {
     var term=TERMS[termIdx], res=resolvedEvents(term);
     var rows=[["Date / active from","Weekday","Channel","Journey","Type","Trigger","Delay (days)",
-               "Window","Title","Status","Segment","Persona","Slot","Content","Content date",
+               "Window","Must be in system by","Who receives it","Title","Status",
+               "Segment","Persona","Slot","Content","Content date",
                "Tag match","Window check","Notes"]];
     DB.sends.filter(function(s){ return inTerm(s,term); })
       .sort(function (a,b) {
@@ -1918,11 +2092,15 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         var eff=effectiveDate(s), effD=okDate(eff);
         var w=windowFor(s);
         var typeLabel=auto?"Automation (triggered)":(isFeeder?"Entry email":"Scheduled send");
+        var elig=cutoffApplies(s)?describeEligibility(s):null;
         var pre=[ eff||"", (effD && !auto)?DOW[effD.getDay()]:"—",
                   ch?ch.name:"?", jr?(jr.name||"Untitled"):"",
                   typeLabel, auto?triggerText(s):"",
                   auto?(s.delay||0):"",
-                  w?describeWindow(w):"", s.title||"", s.status||"" ];
+                  w?describeWindow(w):"",
+                  cutoffApplies(s)?(s.cutoff||"no cutoff"):"",
+                  elig?((elig.bad?"CHECK — ":"")+elig.text):"",
+                  s.title||"", s.status||"" ];
         if (!s.segments || !s.segments.length) { rows.push(pre.concat(["","","","","","",s.notes||""])); return; }
         s.segments.forEach(function (sg) {
           var seg=segmentById(sg.segId);
@@ -2034,6 +2212,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         // the window it used to be live from rather than vanishing.
         s.date=document.getElementById("edDate").value || s.activeFrom || iso(new Date());
       }
+      if (cutoffApplies(s)) {
+        s.cutoff=document.getElementById("edCutoff").value;
+        var el=describeEligibility(s);
+        if (el.bad && !window.confirm(el.text+"\n\nSave it anyway?")) return;
+      }
       closeEditor(false);
     });
     document.getElementById("edDelete").addEventListener("click", function () {
@@ -2053,6 +2236,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("edDate").addEventListener("change", function () {
       var s=currentSend(); if (s) { s.date=document.getElementById("edDate").value; saveDB(); }
       renderEditorSegments(); updateKindUi();
+    });
+    document.getElementById("edCutoff").addEventListener("change", function () {
+      var s=currentSend();
+      if (s && cutoffApplies(s)) { s.cutoff=document.getElementById("edCutoff").value; saveDB(); }
+      updateKindUi();
     });
     document.getElementById("edKind").addEventListener("change", function () {
       updateKindUi(); renderEditorSegments();

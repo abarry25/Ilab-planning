@@ -12,14 +12,22 @@
 <style>
 :root {
   color-scheme: light;
-  --ink: #16233F; --ink-soft: #4B5A72; --paper: #EEF1F4; --paper-line: #DCE1E7;
-  --panel: #FFFFFF; --border: #D6DBE1; --rust: #B24C3D;
-  --week-w: 132px; --lane-w: 190px;
+  --ink:#16233F; --ink-soft:#4B5A72; --paper:#EEF1F4; --paper-line:#DCE1E7;
+  --panel:#FFFFFF; --border:#D6DBE1; --rust:#B24C3D;
+  --week-w:132px; --lane-w:190px;
 }
-* { box-sizing: border-box; }
+* { box-sizing:border-box; }
 body { margin:0; font-family:'Inter',-apple-system,sans-serif; color:var(--ink);
   background:var(--paper); font-size:14px; line-height:1.4; }
 .wrap { max-width:1600px; margin:0 auto; padding:22px 22px 90px; }
+
+/* cross-app nav */
+.app-nav { display:flex; gap:6px; margin:0 0 16px; flex-wrap:wrap; }
+.app-nav a { font-family:'IBM Plex Mono',monospace; font-size:11.5px; text-decoration:none;
+  padding:7px 14px; border-radius:999px; border:1px solid var(--border);
+  background:var(--panel); color:var(--ink-soft); transition:border-color .12s,color .12s; }
+.app-nav a:hover { border-color:var(--ink-soft); color:var(--ink); }
+.app-nav a[aria-current="page"] { background:var(--ink); color:#fff; border-color:var(--ink); }
 
 .banner { background:var(--ink); color:#EDF1F7; border-radius:14px; padding:20px 24px;
   display:flex; justify-content:space-between; align-items:flex-start; gap:22px;
@@ -57,7 +65,7 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .panel-title { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px; }
 .panel-note { font-size:11.5px; color:var(--ink-soft); }
 
-/* ---------- lane grid ---------- */
+/* lane grid */
 .grid-scroll { overflow-x:auto; }
 .grid-inner { min-width:max-content; }
 .row { display:flex; align-items:stretch; border-top:1px solid #F0F2F4; }
@@ -70,11 +78,9 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
   display:flex; align-items:center; gap:6px; }
 .lane-swatch { width:10px; height:10px; border-radius:3px; flex:0 0 auto; }
 .lane-meta { font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--ink-soft); }
-.lane-actions { display:flex; gap:4px; margin-top:2px; }
 .track { display:flex; flex:1 1 auto; }
 .cell { flex:0 0 var(--week-w); width:var(--week-w); border-left:1px solid #F0F2F4;
   padding:5px 4px; display:flex; flex-direction:column; gap:4px; min-height:56px; }
-.cell.recess { background:#F8F6F3; }
 
 .hdr { background:#F7F8FA; }
 .hdr .cell { min-height:0; padding:7px 5px; font-family:'IBM Plex Mono',monospace;
@@ -86,7 +92,6 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .ctx-row .lane { background:#FBFCFD; }
 .hdr-month { font-weight:600; color:var(--ink); font-size:11px; }
 
-/* events context row */
 .ctx-row { background:#FBFCFD; border-bottom:1px solid var(--border); }
 .ctx-ev { font-size:9.5px; line-height:1.3; padding:2px 4px; border-radius:4px;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -96,7 +101,6 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .pin.deadline { color:var(--rust); font-weight:600; }
 .pin.term { color:var(--ink); font-weight:600; }
 
-/* sticky note */
 .sticky { border:none; border-left:4px solid #888; border-radius:6px; padding:5px 6px;
   text-align:left; cursor:pointer; font-family:'Inter',sans-serif; width:100%;
   box-shadow:0 1px 2px rgba(22,35,63,.10); }
@@ -107,13 +111,31 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .sticky-segs { font-family:'IBM Plex Mono',monospace; font-size:8.5px; opacity:.8;
   display:block; margin-top:2px; }
 .sticky.status-draft { opacity:.72; border-style:dashed; }
-.sticky.status-sent  { opacity:.5; }
+.sticky.status-sent { opacity:.5; }
 .sticky-warn { color:var(--rust); font-weight:700; }
 .add-cell { border:1px dashed transparent; background:none; color:transparent;
   font-size:14px; cursor:pointer; border-radius:6px; padding:1px; line-height:1; }
 .cell:hover .add-cell { border-color:var(--border); color:var(--ink-soft); }
 
-/* ---------- modal ---------- */
+/* journey spans — one slice per week, bleeding past cell padding so adjacent
+   weeks join into a continuous bar. Every journey renders a slice in every
+   week (transparent when idle) so bars keep their row across the term. */
+.jr-strip { display:flex; flex-direction:column; gap:2px; margin:0 -4px 3px; }
+.jr-slice { height:13px; position:relative; }
+.jr-slice.on { background:var(--jr,#888); }
+.jr-slice.start { border-top-left-radius:7px; border-bottom-left-radius:7px; }
+.jr-slice.end { border-top-right-radius:7px; border-bottom-right-radius:7px; }
+.jr-label { position:absolute; left:6px; top:0; font-family:'IBM Plex Mono',monospace;
+  font-size:9px; line-height:13px; color:#fff; white-space:nowrap; pointer-events:none;
+  text-shadow:0 1px 1px rgba(0,0,0,.25); }
+.jr-cut { position:absolute; top:-2px; bottom:-2px; width:2px; background:#fff;
+  box-shadow:0 0 0 1px rgba(22,35,63,.35); }
+.jr-swatch { width:11px; height:11px; border-radius:3px; display:inline-block; flex:0 0 auto; }
+.feeder { border:1px solid var(--border); border-radius:9px; padding:9px 11px; margin-bottom:8px; }
+.feeder-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.feeder-win { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft); margin-top:5px; }
+
+/* modal */
 .overlay { position:fixed; inset:0; background:rgba(22,35,63,.42); z-index:40;
   display:flex; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; }
 .overlay.hidden { display:none; }
@@ -138,8 +160,7 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .slot-n { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft);
   flex:0 0 16px; text-align:right; }
 .slot select, .slot input { flex:1 1 auto; min-width:0; }
-.warn { font-size:11px; color:var(--rust); margin:4px 0 0 22px;
-  font-family:'IBM Plex Mono',monospace; }
+.warn { font-size:11px; color:var(--rust); margin:4px 0 0 22px; font-family:'IBM Plex Mono',monospace; }
 .hint { font-size:11px; color:var(--ink-soft); margin-top:3px; }
 
 .tag { display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:9.5px;
@@ -152,6 +173,7 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .foot-note { margin-top:14px; font-size:12px; color:var(--ink-soft); line-height:1.6; }
 .foot-note b { color:var(--ink); }
 .muted { color:var(--ink-soft); font-style:italic; font-size:11.5px; }
+.wk { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); white-space:nowrap; }
 table.grid { border-collapse:collapse; width:100%; font-size:12.5px; }
 table.grid th { font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase;
   letter-spacing:.03em; color:var(--ink-soft); text-align:left; padding:9px 10px;
@@ -161,19 +183,20 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
 </head>
 <body>
 <div class="wrap">
-   <nav class="app-nav" aria-label="i-lab planning tools">
+
+  <nav class="app-nav" aria-label="i-lab planning tools">
     <a href="index.html">Planning board</a>
-    <a href="comms_planner.html" aria-current="page">Communications plan</a>
+    <a href="comms.html" aria-current="page">Communications plan</a>
   </nav>
 
   <div class="banner">
     <div>
       <div class="banner-title">i-lab Communications Plan</div>
       <div class="banner-sub">
-        Channels as lanes, sends as sticky notes on the day they go out. Each send
-        breaks down by segment, and the content in each slot is picked from what is
-        actually on the calendar that week — so a plan cannot quietly promote something
-        that isn't running.
+        Channels as lanes, sends as sticky notes on the day they go out. Journeys run
+        as spans with entry cutoffs. Content in each slot is picked from what is
+        actually on the calendar that week, so a plan cannot quietly promote
+        something that isn't running.
       </div>
     </div>
     <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end">
@@ -182,12 +205,12 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     </div>
   </div>
 
-  <div id="health" class="health">Loading <code>ilab-data.js</code>…</div>
+  <div id="health" class="health">Loading…</div>
 
   <div class="controls">
     <button class="btn active" data-view="comms">Communications plan</button>
     <button class="btn" data-view="timeline">Program timeline</button>
-    <button class="btn" data-view="setup">Channels &amp; segments</button>
+    <button class="btn" data-view="setup">Journeys, channels &amp; segments</button>
     <span class="spacer"></span>
     <button class="btn" id="promoBtn">Generate promo sends…</button>
     <button class="btn" id="importEventsBtn">Import events CSV…</button>
@@ -196,13 +219,14 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     <button class="btn" id="importJsonBtn">Import plan</button>
   </div>
 
-  <!-- ================= COMMS ================= -->
+  <!-- ============ COMMS ============ -->
   <div class="view active" id="view-comms">
     <div class="panel">
       <div class="panel-head">
         <span class="panel-title">Communications calendar</span>
         <span class="panel-note" id="commsNote"></span>
         <span class="spacer"></span>
+        <button class="btn" id="quickJourneyBtn">+ Journey</button>
         <label class="ctl">Show <select id="densitySel">
           <option value="all">all sends</option>
           <option value="draft">drafts only</option>
@@ -212,26 +236,39 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       <div class="grid-scroll"><div class="grid-inner" id="commsGrid"></div></div>
     </div>
     <div class="foot-note">
-      <b>Click the + in any cell to add a send.</b> The events row at the top is context —
-      it shows what is running that week, which is the pool your content slots draw from.
-      A send showing <span class="sticky-warn">!</span> has a slot pointing at an event
-      that isn't tagged for that segment.
+      <b>Click the + in any cell to add a send; click a journey bar to open it.</b>
+      The events row at the top is context — it shows what is running that week, which
+      is the pool your content slots draw from. A send showing
+      <span class="sticky-warn">!</span> has a slot pointing at an event that isn't
+      tagged for that segment.
     </div>
   </div>
 
-  <!-- ================= TIMELINE ================= -->
+  <!-- ============ TIMELINE ============ -->
   <div class="view" id="view-timeline">
     <div class="panel">
       <div class="panel-head">
         <span class="panel-title">Program timeline</span>
-        <span class="panel-note">The content underneath the comms plan — six categories from <code>ilab-data.js</code>.</span>
+        <span class="panel-note">The content underneath the comms plan.</span>
       </div>
       <div class="grid-scroll"><div class="grid-inner" id="timeline"></div></div>
     </div>
   </div>
 
-  <!-- ================= SETUP ================= -->
+  <!-- ============ SETUP ============ -->
   <div class="view" id="view-setup">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Journeys</span>
+        <span class="panel-note">Programs that run over a span. Entry cutoffs decide which welcome someone gets based on when they join.</span>
+        <span class="spacer"></span>
+        <button class="btn btn-accent" id="addJourneyBtn">+ Add journey</button>
+      </div>
+      <table class="grid">
+        <thead><tr><th style="width:34px"></th><th>Name</th><th style="width:150px">Channel</th><th style="width:190px">Runs</th><th style="width:110px">Cutoffs</th><th style="width:80px">Sends</th><th style="width:130px"></th></tr></thead>
+        <tbody id="journeyBody"></tbody>
+      </table>
+    </div>
     <div class="panel">
       <div class="panel-head">
         <span class="panel-title">Channels</span>
@@ -247,7 +284,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     <div class="panel">
       <div class="panel-head">
         <span class="panel-title">Segments</span>
-        <span class="panel-note">The six Wayfinder personas are preloaded. A segment linked to a persona can check its content; a custom one cannot.</span>
+        <span class="panel-note">The six Wayfinder personas are preloaded. A segment linked to a persona can have its content checked; a custom one cannot.</span>
         <span class="spacer"></span>
         <button class="btn btn-accent" id="addSegmentBtn">+ Add segment</button>
       </div>
@@ -260,7 +297,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
 
 </div>
 
-<!-- ================= SEND EDITOR ================= -->
+<!-- ============ SEND EDITOR ============ -->
 <div class="overlay hidden" id="editorOverlay">
   <div class="modal">
     <div class="modal-head">
@@ -274,7 +311,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           <input type="text" id="edTitle" placeholder="e.g. Weekly Digest" /></label>
         <label class="fld" style="flex:0 0 170px"><span>Channel</span>
           <select id="edChannel"></select></label>
-        <label class="fld" style="flex:0 0 150px"><span>Send date</span>
+        <label class="fld" style="flex:0 0 150px"><span id="edDateLabel">Send date</span>
           <input type="date" id="edDate" /></label>
         <label class="fld" style="flex:0 0 120px"><span>Status</span>
           <select id="edStatus">
@@ -282,6 +319,18 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
             <option value="ready">Ready</option>
             <option value="sent">Sent</option>
           </select></label>
+      </div>
+
+      <div class="fld-row">
+        <label class="fld" style="flex:0 0 230px"><span>Part of journey</span>
+          <select id="edJourney"></select></label>
+        <label class="fld" style="flex:0 0 210px"><span>Type</span>
+          <select id="edKind">
+            <option value="send">Scheduled send</option>
+            <option value="feeder">Feeder / entry email</option>
+          </select></label>
+        <div class="fld" style="flex:1 1 200px"><span>&nbsp;</span>
+          <div class="hint" id="edKindHint" style="margin-top:0"></div></div>
       </div>
 
       <div class="fld">
@@ -305,7 +354,58 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   </div>
 </div>
 
-<!-- ================= PROMO GENERATOR ================= -->
+<!-- ============ JOURNEY EDITOR ============ -->
+<div class="overlay hidden" id="journeyOverlay">
+  <div class="modal" style="width:min(760px,100%)">
+    <div class="modal-head">
+      <span class="modal-title">Journey</span>
+      <span class="spacer"></span>
+      <button class="btn" id="jrClose">Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="fld-row">
+        <label class="fld"><span>Name</span>
+          <input type="text" id="jrName" placeholder="e.g. Membership Weekly Digest" /></label>
+        <label class="fld" style="flex:0 0 170px"><span>Channel</span>
+          <select id="jrChannel"></select></label>
+      </div>
+      <div class="fld-row">
+        <label class="fld" style="flex:0 0 160px"><span>Runs from</span>
+          <input type="date" id="jrStart" /></label>
+        <label class="fld" style="flex:0 0 160px"><span>Runs until</span>
+          <input type="date" id="jrEnd" /></label>
+        <label class="fld" style="flex:0 0 140px"><span>Colour</span>
+          <input type="text" id="jrColor" placeholder="#4A5A73" /></label>
+      </div>
+
+      <div class="fld">
+        <span>Entry cutoffs — which welcome someone gets</span>
+        <div class="hint" style="margin:0 0 8px">
+          Ordered by date. Each one covers everyone entering from its date until the
+          next one starts. The first covers everyone from the journey's start.
+        </div>
+        <div id="jrFeeders"></div>
+        <button class="btn btn-sm" id="jrAddFeeder">+ Add entry cutoff</button>
+      </div>
+
+      <div class="fld">
+        <span>Scheduled sends in this journey</span>
+        <div id="jrSends"></div>
+      </div>
+
+      <label class="fld"><span>Notes</span>
+        <textarea id="jrNotes" rows="2" placeholder="Entry criteria, automation platform, anything the builder needs"></textarea></label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-accent" id="jrSave">Save journey</button>
+      <button class="btn" id="jrDelete">Delete</button>
+      <span class="spacer"></span>
+      <span class="muted" id="jrMeta"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PROMO GENERATOR ============ -->
 <div class="overlay hidden" id="promoOverlay">
   <div class="modal" style="width:min(680px,100%)">
     <div class="modal-head">
@@ -315,9 +415,9 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     </div>
     <div class="modal-body">
       <p class="hint" style="margin-top:0">
-        Pick events and a channel. Each event becomes a set of draft sends on the beats
-        below, pre-filled with that event as content for every segment it is tagged for.
-        They land as normal drafts — edit or delete them like anything else.
+        Pick events and a channel. Each becomes a set of draft sends on the beats
+        below, pre-filled with that event as content for every segment it is tagged
+        for. They land as normal drafts — edit or delete them like anything else.
       </p>
       <div class="fld-row">
         <label class="fld" style="flex:0 0 190px"><span>Into channel</span>
@@ -340,9 +440,8 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   </div>
 </div>
 
-<!-- Optional. In the planning app this 404s harmlessly and the console will say
-     so — events come from the shared plan instead. If you ever drop this file
-     into the Wayfinder repo, it will pick up EVENTS from here automatically. -->
+<!-- Optional. In the planning app this 404s harmlessly — events come from the
+     shared plan instead. Dropped into the Wayfinder repo, it picks up EVENTS. -->
 <script src="ilab-data.js" onerror="void 0"></script>
 <script>
 (function () {
@@ -379,39 +478,34 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   };
   var SECTOR_TAGS = ["lifesci","deeptech","climate","socialimpact","general"];
   var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var MONTHS_FULL = ["january","february","march","april","may","june","july",
+                     "august","september","october","november","december"];
   var DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
   var DEFAULT_CHANNELS = [
-    { id:"ch_mcj",   name:"MC Journey",     color:"#4A5A73" },
-    { id:"ch_mcs",   name:"MC Standalone",  color:"#2A7F7F" },
-    { id:"ch_slack", name:"Slack",          color:"#6B3FA0" },
-    { id:"ch_pinbox",name:"Personal inbox", color:"#C98A2B" },
-    { id:"ch_ginbox",name:"General inbox",  color:"#B24C3D" }
+    { id:"ch_mcj",    name:"MC Journey",     color:"#4A5A73" },
+    { id:"ch_mcs",    name:"MC Standalone",  color:"#2A7F7F" },
+    { id:"ch_slack",  name:"Slack",          color:"#6B3FA0" },
+    { id:"ch_pinbox", name:"Personal inbox", color:"#C98A2B" },
+    { id:"ch_ginbox", name:"General inbox",  color:"#B24C3D" }
   ];
 
   /* ===================== STATE & PERSISTENCE =====================
-     The plan is stored in the same Turso-backed table as the planning board,
-     as one more row: GET/PUT /api/board/ilab-comms-v1. That makes it shared
-     and attributed rather than trapped in one person's browser.
-
-     localStorage is kept only as an offline mirror. Opening this file directly
-     from disk (file://) means there is no server to talk to, so it degrades to
-     local-only and says so in the health panel rather than appearing to save.
-     ================================================================ */
+     Stored in the same Turso-backed table as the planning board, as one more
+     row: GET/PUT /api/board/ilab-comms-v1. Shared and attributed rather than
+     trapped in one browser. localStorage is only an offline mirror — opening
+     this file from disk means there is no server, so it says so instead of
+     appearing to save. ============================================ */
   var BOARD_KEY  = "ilab-comms-v1";
   var MIRROR_KEY = "ilab-comms-mirror";
   var NAME_KEY   = "ilab-editor-name";
 
-  var DB = { channels:[], segments:[], sends:[], events:[], eventsMeta:{} };
-  var termIdx = 0;
-  var editingId = null;
-  var problems = [];
-  var serverOk = false;      // did we successfully reach /api/board?
-  var lastMeta = null;       // {updatedBy, updatedAt} from the server
+  var DB = { channels:[], segments:[], sends:[], journeys:[], events:[], eventsMeta:{} };
+  var termIdx = 0, editingId = null, editingJourney = null;
+  var problems = [], serverOk = false, lastMeta = null;
   var saveTimer = null, saving = false, saveState = "saved";
 
-  function uid(p) { return p + "_" + Math.random().toString(36).slice(2,9); }
-
+  function uid(p){ return p+"_"+Math.random().toString(36).slice(2,9); }
   function lsGet(k){ try { return window.localStorage.getItem(k); } catch(e){ return null; } }
   function lsSet(k,v){ try { window.localStorage.setItem(k,v); } catch(e){} }
 
@@ -423,11 +517,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     }
     return n || "";
   }
-
-  function setSaveStatus(txt) {
-    var el = document.getElementById("saveStatus");
-    if (el) el.textContent = txt;
-  }
+  function setSaveStatus(t){ var el=document.getElementById("saveStatus"); if (el) el.textContent=t; }
 
   function normalizeDB() {
     if (!DB || typeof DB !== "object") DB = {};
@@ -437,27 +527,27 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         return { id:"seg_"+k, name:PERSONA_FALLBACK[k], persona:k };
       });
     }
-    if (!Array.isArray(DB.sends))  DB.sends  = [];
-    if (!Array.isArray(DB.events)) DB.events = [];
+    if (!Array.isArray(DB.sends))    DB.sends    = [];
+    if (!Array.isArray(DB.journeys)) DB.journeys = [];
+    if (!Array.isArray(DB.events))   DB.events   = [];
     if (!DB.eventsMeta || typeof DB.eventsMeta !== "object") DB.eventsMeta = {};
+    DB.sends.forEach(function (s) { if (!s.kind) s.kind = "send"; });
   }
 
   function loadDB(done) {
-    var mirrored = null;
-    var raw = lsGet(MIRROR_KEY);
+    var mirrored = null, raw = lsGet(MIRROR_KEY);
     if (raw) { try { mirrored = JSON.parse(raw); } catch (e) {} }
 
     if (!window.fetch || window.location.protocol === "file:") {
-      // No server to talk to. Say so plainly rather than pretending to save.
       serverOk = false;
       if (mirrored) DB = mirrored;
-      problems.push({ level:"warn", msg:"Opened directly from disk, so there is no server to save to. Changes stay in this browser only. Serve it from the planning app to share the plan with the team." });
+      problems.push({ level:"warn", msg:"Opened directly from disk, so there is no server to save to. Changes stay in this browser only. Serve it from the planning app to share the plan." });
       normalizeDB(); done(); return;
     }
 
     fetch("/api/board/" + encodeURIComponent(BOARD_KEY))
       .then(function (r) {
-        if (r.status === 404) { serverOk = true; return null; }   // first run
+        if (r.status === 404) { serverOk = true; return null; }
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();
       })
@@ -481,281 +571,108 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   }
 
   function saveDB() {
-    lsSet(MIRROR_KEY, JSON.stringify(DB));   // always mirror locally
+    lsSet(MIRROR_KEY, JSON.stringify(DB));
     if (!serverOk) { setSaveStatus("Local only — not shared"); return; }
-    saveState = "dirty";
-    setSaveStatus("Saving…");
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(doSave, 600);
+    saveState = "dirty"; setSaveStatus("Saving…");
+    clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 600);
   }
-
   function doSave() {
     if (saving) { clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 400); return; }
     saving = true;
     var who = editorName();
     fetch("/api/board/" + encodeURIComponent(BOARD_KEY), {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      method:"PUT", headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({ data: DB, updatedBy: who || null })
     })
-      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function () {
-        saveState = "saved";
-        setSaveStatus("Saved" + (who ? " by " + who : "") + " · shared with everyone on this plan");
-      })
-      .catch(function () {
-        saveState = "error";
-        setSaveStatus("Couldn't save — check your connection");
-      })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+      .then(function () { saveState="saved"; setSaveStatus("Saved"+(who?" by "+who:"")+" · shared"); })
+      .catch(function () { saveState="error"; setSaveStatus("Couldn't save — check your connection"); })
       .finally(function () { saving = false; });
   }
-
   window.addEventListener("beforeunload", function (e) {
-    if (saveState === "dirty" || saving) { e.preventDefault(); e.returnValue = ""; }
+    if (saveState==="dirty" || saving) { e.preventDefault(); e.returnValue=""; }
   });
 
-  /* ===================== DATA ===================== */
-  var _gc = {};
-  function g(name) {
-    if (Object.prototype.hasOwnProperty.call(_gc, name)) return _gc[name];
-    var v;
-    try { v = window[name]; } catch (e) {}
-    if (typeof v === "undefined") {
-      try { v = Function("return typeof "+name+" !== 'undefined' ? "+name+" : undefined;")(); }
-      catch (e) { v = undefined; }
-    }
-    _gc[name] = v; return v;
-  }
-  function personaName(k) {
-    var P = g("PERSONAS");
-    if (P && P[k]) return P[k].name || P[k].title || P[k].label || PERSONA_FALLBACK[k] || k;
-    return PERSONA_FALLBACK[k] || k;
-  }
-
-  var EVENTS = [], CATS = [], OHS_LIST = [];
-
-  /* Where the timeline's events come from, in priority order:
-       1. DB.events — imported from ClickUp and saved into the shared plan.
-          Everyone on the team sees the same set.
-       2. A global EVENTS from ilab-data.js, if this file happens to sit next
-          to the Wayfinder data. Harmless 404 otherwise.
-       3. Nothing — with instructions rather than a blank screen. */
-  function loadData() {
-    var src = "";
-    if (Array.isArray(DB.events) && DB.events.length) {
-      EVENTS = DB.events.slice();
-      src = "shared plan";
-    } else {
-      var ev = g("EVENTS");
-      if (Array.isArray(ev) && ev.length) {
-        EVENTS = ev.slice();
-        src = "ilab-data.js";
-      } else {
-        EVENTS = [];
-        problems.push({ level:"warn", msg:"No events loaded yet. Use “Import events CSV…” and pick your Central Intake export from ClickUp — it saves into the shared plan, so you only do this once for the whole team." });
-      }
-    }
-    if (src) {
-      var m = DB.eventsMeta || {};
-      problems.push({ level:"info", msg:"Events loaded from " + src +
-        (m.importedAt ? " (imported " + m.importedAt + (m.importedBy ? " by " + m.importedBy : "") + ")" : "") + "." });
-    }
-
-    var o = g("OHS"); OHS_LIST = Array.isArray(o) ? o.slice() : [];
-
-    var seen = {}; CATS = [];
-    EVENTS.forEach(function (e) {
-      var c = e.con || "Uncategorised";
-      if (!seen[c]) { seen[c]=true; CATS.push({name:c, bg:e.cbg||"#EEF1F4", fg:e.ctx||"#4B5A72"}); }
-    });
-
-    var untagged = EVENTS.filter(function (e) { return !Array.isArray(e.tags) || !e.tags.length; }).length;
-    if (untagged) {
-      problems.push({ level:"info", msg: untagged + " of " + EVENTS.length +
-        " events have no audience tags, so content slots using them can't be checked against a segment. Tag them in ilab-data.js, or add a Best For column to the ClickUp export." });
-    }
-  }
-
-  /* ===================== CLICKUP CSV IMPORT =====================
-     Parses a Central Intake export in the browser. The point is that you can
-     re-import whenever ClickUp changes without anyone editing code.
-     ============================================================== */
-  var MONTHS_FULL = ["january","february","march","april","may","june","july",
-                     "august","september","october","november","december"];
-
-  var CATEGORY_MAP = {
-    "founder fundamentals": { con:"Founder Fundamentals",     cbg:"#C1F4A8", ctx:"#27500A" },
-    "community":            { con:"Community",                cbg:"#FFC7C8", ctx:"#711213" },
-    "membership":           { con:"Membership",               cbg:"#FFC7C8", ctx:"#711213" },
-    "venture incubation":   { con:"Venture Incubation",       cbg:"#f7e4d0", ctx:"#993C1D" },
-    "venture acceleration": { con:"Venture Growth",           cbg:"#cbcafa", ctx:"#232262" },
-    "climate":              { con:"Climate + Social Impact",  cbg:"#cee5f7", ctx:"#2a5a80" },
-    "social impact":        { con:"Climate + Social Impact",  cbg:"#cee5f7", ctx:"#2a5a80" },
-    "life lab":             { con:"Climate + Social Impact",  cbg:"#cee5f7", ctx:"#2a5a80" },
-    "pic":                  { con:"Venture Growth",           cbg:"#cbcafa", ctx:"#232262" }
-  };
-  var OTHER_CAT = { con:"Other", cbg:"#EEF1F4", ctx:"#4B5A72" };
-
-  /* Minimal RFC4180-ish parser: handles quoted fields containing commas,
-     newlines and doubled quotes. Written out rather than split(",") because
-     Task Names in this export contain commas. */
-  function parseCsv(text) {
-    var rows=[], row=[], field="", i=0, inQ=false;
-    text = String(text).replace(/^﻿/, "");
-    while (i < text.length) {
-      var c = text[i];
-      if (inQ) {
-        if (c === '"') {
-          if (text[i+1] === '"') { field += '"'; i += 2; continue; }
-          inQ = false; i++; continue;
-        }
-        field += c; i++; continue;
-      }
-      if (c === '"') { inQ = true; i++; continue; }
-      if (c === ",")  { row.push(field); field=""; i++; continue; }
-      if (c === "\r") { i++; continue; }
-      if (c === "\n") { row.push(field); rows.push(row); row=[]; field=""; i++; continue; }
-      field += c; i++;
-    }
-    if (field.length || row.length) { row.push(field); rows.push(row); }
-    return rows.filter(function (r) { return r.length && r.some(function (x) { return String(x).trim(); }); });
-  }
-
-  function parseClickUpDate(s) {
-    if (!s) return null;
-    var m = String(s).match(/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?[,]?\s+(\d{4})(?:\s*,\s*(\d{1,2}):(\d{2})(?::\d{2})?\s*([ap]\.?m\.?))?/i);
-    if (!m) return null;
-    var mi = MONTHS_FULL.indexOf(m[1].toLowerCase());
-    if (mi < 0) return null;
-    var day = parseInt(m[2],10), yr = parseInt(m[3],10);
-    var d = new Date(yr, mi, day);
-    if (d.getMonth() !== mi) return null;
-    var time = "";
-    if (m[4]) {
-      var hh = parseInt(m[4],10), mm = m[5];
-      var ap = m[6].replace(/\./g,"").toLowerCase();
-      time = hh + ":" + mm + " " + ap.toUpperCase();
-    }
-    return { date:d, time:time };
-  }
-
-  function importEventsCsv(text, fileName) {
-    var rows = parseCsv(text);
-    if (rows.length < 2) { window.alert("That file has no rows I can read."); return; }
-
-    var head = rows[0].map(function (h) { return String(h).trim().toLowerCase(); });
-    function col() {
-      for (var a=0; a<arguments.length; a++) {
-        var idx = head.indexOf(String(arguments[a]).toLowerCase());
-        if (idx >= 0) return idx;
-      }
-      return -1;
-    }
-    var cId   = col("task id");
-    var cName = col("task name","name");
-    var cDue  = col("due date","date");
-    var cProg = col("program offering (drop down)","program offering");
-    var cFmt  = col("event format (labels)","event format","format");
-    var cTags = col("best for:","best for","tags","audience");
-
-    if (cName < 0 || cDue < 0) {
-      window.alert("I need at least a \"Task Name\" and \"Due Date\" column. Found: " + rows[0].join(", "));
-      return;
-    }
-
-    // Keep audience tags from whatever is already loaded, matched on Task ID —
-    // the export has no tag column, and silently dropping them would break
-    // every content check in the plan.
-    var priorTags = {};
-    (DB.events || []).concat(EVENTS).forEach(function (e) {
-      if (e && e.src && Array.isArray(e.tags) && e.tags.length) priorTags[e.src] = e.tags;
-    });
-
-    var out = [], skipped = 0, undated = 0, keptTags = 0;
-    for (var r = 1; r < rows.length; r++) {
-      var row = rows[r];
-      var name = String(row[cName] || "").trim();
-      if (!name) { skipped++; continue; }
-
-      var parsed = parseClickUpDate(row[cDue]);
-      if (!parsed) { undated++; continue; }
-
-      var taskId = cId >= 0 ? String(row[cId] || "").trim() : "";
-      var progRaw = cProg >= 0 ? String(row[cProg] || "").trim() : "";
-      var cat = CATEGORY_MAP[progRaw.toLowerCase()] || OTHER_CAT;
-
-      var fmtRaw = cFmt >= 0 ? String(row[cFmt] || "").toLowerCase() : "";
-      var fmt = fmtRaw.indexOf("virtual") >= 0 ? "REMOTE"
-              : fmtRaw.indexOf("person")  >= 0 ? "INPERSON" : "";
-
-      var tags = [];
-      if (cTags >= 0) {
-        tags = String(row[cTags] || "").split(/[;,|]/)
-          .map(function (t) { return t.trim().toLowerCase().replace(/[\[\]]/g,""); })
-          .filter(Boolean);
-      }
-      if (!tags.length && taskId && priorTags[taskId]) { tags = priorTags[taskId]; keptTags++; }
-
-      out.push({
-        id: taskId ? "ci_" + taskId : uid("ev"),
-        active: true,
-        name: name,
-        con: cat.con, cbg: cat.cbg, ctx: cat.ctx,
-        date: MONTHS[parsed.date.getMonth()] + " " + parsed.date.getDate(),
-        iso: iso(parsed.date),
-        time: parsed.time,
-        format: fmt,
-        tags: tags,
-        desc: "",
-        link: "",
-        src: taskId
-      });
-    }
-
-    if (!out.length) { window.alert("No rows had a readable date, so nothing was imported."); return; }
-
-    var msg = "Import " + out.length + " event(s)?";
-    if (undated)  msg += "\n· " + undated + " row(s) skipped — no readable date.";
-    if (skipped)  msg += "\n· " + skipped + " row(s) skipped — no name.";
-    if (keptTags) msg += "\n· " + keptTags + " kept their existing audience tags.";
-    if (DB.events && DB.events.length) msg += "\n\nThis replaces the current " + DB.events.length + " event(s).";
-    if (!window.confirm(msg)) return;
-
-    DB.events = out;
-    DB.eventsMeta = {
-      importedAt: new Date().toISOString().slice(0,10),
-      importedBy: editorName(),
-      fileName: fileName || "",
-      rowCount: out.length
-    };
-    saveDB();
-    problems = [];
-    loadData();
-    render();
-  }
-
-  /* ---------- dates ---------- */
+  /* ===================== DATE HELPERS ===================== */
   function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
   function parseISO(s){ var p=String(s).split("-"); return new Date(+p[0], +p[1]-1, +p[2]); }
   function addDays(d,n){ var x=new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
   function startOfWeek(d){ var x=new Date(d.getTime()); x.setDate(x.getDate()-x.getDay()); x.setHours(0,0,0,0); return x; }
   function fmtShort(d){ return MONTHS[d.getMonth()]+" "+d.getDate(); }
   function fmtDay(d){ return DOW[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate(); }
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
   function parseDisplayDate(str, term) {
     if (!str || typeof str !== "string") return null;
-    var s = str.trim();
+    var s=str.trim();
     if (!s || /^tb[cad]$/i.test(s)) return null;
-    var m = s.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2})$/);
+    var m=s.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2})$/);
     if (!m) return null;
-    var key = m[1].slice(0,3).toLowerCase();
-    key = key.charAt(0).toUpperCase()+key.slice(1);
-    var mi = MONTHS.indexOf(key);
-    if (mi < 0 || term.months.indexOf(mi) < 0) return null;
-    var day = parseInt(m[2],10);
+    var key=m[1].slice(0,3).toLowerCase();
+    key=key.charAt(0).toUpperCase()+key.slice(1);
+    var mi=MONTHS.indexOf(key);
+    if (mi<0 || term.months.indexOf(mi)<0) return null;
+    var day=parseInt(m[2],10);
     if (!(day>=1 && day<=31)) return null;
-    var d = new Date(term.year, mi, day);
+    var d=new Date(term.year, mi, day);
     return d.getMonth()===mi ? d : null;
+  }
+
+  function weeksFor(term) {
+    var out=[], cur=startOfWeek(parseISO(term.start)), end=parseISO(term.end), guard=0;
+    while (cur<=end && guard++<60) { out.push({start:new Date(cur.getTime()), key:iso(cur)}); cur=addDays(cur,7); }
+    return out;
+  }
+
+  /* ===================== EVENT DATA ===================== */
+  var _gc={};
+  function g(name) {
+    if (Object.prototype.hasOwnProperty.call(_gc,name)) return _gc[name];
+    var v;
+    try { v = window[name]; } catch (e) {}
+    // A top-level `const` in a classic script never becomes a window property,
+    // so window[name] alone would miss it. A Function-constructed lookup runs
+    // in global scope and sees both.
+    if (typeof v === "undefined") {
+      try { v = Function("return typeof "+name+" !== 'undefined' ? "+name+" : undefined;")(); }
+      catch (e) { v = undefined; }
+    }
+    _gc[name]=v; return v;
+  }
+  function personaName(k) {
+    var P=g("PERSONAS");
+    if (P && P[k]) return P[k].name || P[k].title || P[k].label || PERSONA_FALLBACK[k] || k;
+    return PERSONA_FALLBACK[k] || k;
+  }
+
+  var EVENTS=[], CATS=[], OHS_LIST=[];
+  function loadData() {
+    var src="";
+    if (Array.isArray(DB.events) && DB.events.length) { EVENTS=DB.events.slice(); src="shared plan"; }
+    else {
+      var ev=g("EVENTS");
+      if (Array.isArray(ev) && ev.length) { EVENTS=ev.slice(); src="ilab-data.js"; }
+      else {
+        EVENTS=[];
+        problems.push({ level:"warn", msg:"No events loaded yet. Use “Import events CSV…” and pick your Central Intake export from ClickUp — it saves into the shared plan, so you only do this once for the whole team." });
+      }
+    }
+    if (src) {
+      var m=DB.eventsMeta||{};
+      problems.push({ level:"info", msg:"Events loaded from "+src+
+        (m.importedAt?" (imported "+m.importedAt+(m.importedBy?" by "+m.importedBy:"")+")":"")+"." });
+    }
+    var o=g("OHS"); OHS_LIST=Array.isArray(o)?o.slice():[];
+
+    var seen={}; CATS=[];
+    EVENTS.forEach(function (e) {
+      var c=e.con||"Uncategorised";
+      if (!seen[c]) { seen[c]=true; CATS.push({name:c,bg:e.cbg||"#EEF1F4",fg:e.ctx||"#4B5A72"}); }
+    });
+
+    var untagged=EVENTS.filter(function(e){ return !Array.isArray(e.tags)||!e.tags.length; }).length;
+    if (untagged) problems.push({ level:"info", msg:untagged+" of "+EVENTS.length+
+      " events have no audience tags, so content slots using them can't be checked against a segment. Add a Best For column to the ClickUp export to fix this at source." });
   }
 
   function resolvedEvents(term) {
@@ -777,90 +694,288 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     return { list:out, unresolved:unresolved, outside:outside, fromIso:fromIso, fromGuess:fromGuess };
   }
 
-  function weeksFor(term) {
-    var out=[], cur=startOfWeek(parseISO(term.start)), end=parseISO(term.end), guard=0;
-    while (cur<=end && guard++<60) { out.push({start:new Date(cur.getTime()), key:iso(cur)}); cur=addDays(cur,7); }
-    return out;
+  /* ===================== CLICKUP CSV IMPORT ===================== */
+  var CATEGORY_MAP = {
+    "founder fundamentals": { con:"Founder Fundamentals",    cbg:"#C1F4A8", ctx:"#27500A" },
+    "community":            { con:"Community",               cbg:"#FFC7C8", ctx:"#711213" },
+    "membership":           { con:"Membership",              cbg:"#FFC7C8", ctx:"#711213" },
+    "venture incubation":   { con:"Venture Incubation",      cbg:"#f7e4d0", ctx:"#993C1D" },
+    "venture acceleration": { con:"Venture Growth",          cbg:"#cbcafa", ctx:"#232262" },
+    "climate":              { con:"Climate + Social Impact", cbg:"#cee5f7", ctx:"#2a5a80" },
+    "social impact":        { con:"Climate + Social Impact", cbg:"#cee5f7", ctx:"#2a5a80" },
+    "life lab":             { con:"Climate + Social Impact", cbg:"#cee5f7", ctx:"#2a5a80" },
+    "pic":                  { con:"Venture Growth",          cbg:"#cbcafa", ctx:"#232262" }
+  };
+  var OTHER_CAT = { con:"Other", cbg:"#EEF1F4", ctx:"#4B5A72" };
+
+  /* Written out rather than split(",") because Task Names in this export
+     contain commas, and quoted fields would be shredded. */
+  function parseCsv(text) {
+    var rows=[], row=[], field="", i=0, inQ=false;
+    text=String(text).replace(/^﻿/,"");
+    while (i<text.length) {
+      var c=text[i];
+      if (inQ) {
+        if (c==='"') {
+          if (text[i+1]==='"') { field+='"'; i+=2; continue; }
+          inQ=false; i++; continue;
+        }
+        field+=c; i++; continue;
+      }
+      if (c==='"') { inQ=true; i++; continue; }
+      if (c===",")  { row.push(field); field=""; i++; continue; }
+      if (c==="\r") { i++; continue; }
+      if (c==="\n") { row.push(field); rows.push(row); row=[]; field=""; i++; continue; }
+      field+=c; i++;
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows.filter(function(r){ return r.length && r.some(function(x){ return String(x).trim(); }); });
   }
 
-  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function parseClickUpDate(s) {
+    if (!s) return null;
+    var m=String(s).match(/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?[,]?\s+(\d{4})(?:\s*,\s*(\d{1,2}):(\d{2})(?::\d{2})?\s*([ap]\.?m\.?))?/i);
+    if (!m) return null;
+    var mi=MONTHS_FULL.indexOf(m[1].toLowerCase());
+    if (mi<0) return null;
+    var day=parseInt(m[2],10), yr=parseInt(m[3],10);
+    var d=new Date(yr,mi,day);
+    if (d.getMonth()!==mi) return null;
+    var time="";
+    if (m[4]) time=parseInt(m[4],10)+":"+m[5]+" "+m[6].replace(/\./g,"").toUpperCase();
+    return { date:d, time:time };
+  }
 
-  /* ===================== HELPERS ===================== */
+  function importEventsCsv(text, fileName) {
+    var rows=parseCsv(text);
+    if (rows.length<2) { window.alert("That file has no rows I can read."); return; }
+    var head=rows[0].map(function(h){ return String(h).trim().toLowerCase(); });
+    function col() {
+      for (var a=0;a<arguments.length;a++) {
+        var idx=head.indexOf(String(arguments[a]).toLowerCase());
+        if (idx>=0) return idx;
+      }
+      return -1;
+    }
+    var cId=col("task id"), cName=col("task name","name"), cDue=col("due date","date");
+    var cProg=col("program offering (drop down)","program offering");
+    var cFmt=col("event format (labels)","event format","format");
+    var cTags=col("best for:","best for","tags","audience");
+
+    if (cName<0 || cDue<0) {
+      window.alert("I need at least a \"Task Name\" and \"Due Date\" column. Found: "+rows[0].join(", "));
+      return;
+    }
+
+    // The export has no tag column, so carry tags forward by Task ID. Dropping
+    // them would silently disable every content check in the plan.
+    var priorTags={};
+    (DB.events||[]).concat(EVENTS).forEach(function (e) {
+      if (e && e.src && Array.isArray(e.tags) && e.tags.length) priorTags[e.src]=e.tags;
+    });
+
+    var out=[], skipped=0, undated=0, keptTags=0;
+    for (var r=1;r<rows.length;r++) {
+      var row=rows[r];
+      var name=String(row[cName]||"").trim();
+      if (!name) { skipped++; continue; }
+      var parsed=parseClickUpDate(row[cDue]);
+      if (!parsed) { undated++; continue; }
+
+      var taskId=cId>=0?String(row[cId]||"").trim():"";
+      var progRaw=cProg>=0?String(row[cProg]||"").trim():"";
+      var cat=CATEGORY_MAP[progRaw.toLowerCase()]||OTHER_CAT;
+      var fmtRaw=cFmt>=0?String(row[cFmt]||"").toLowerCase():"";
+      var fmt=fmtRaw.indexOf("virtual")>=0?"REMOTE":(fmtRaw.indexOf("person")>=0?"INPERSON":"");
+
+      var tags=[];
+      if (cTags>=0) {
+        tags=String(row[cTags]||"").split(/[;,|]/)
+          .map(function(t){ return t.trim().toLowerCase().replace(/[\[\]]/g,""); })
+          .filter(Boolean);
+      }
+      if (!tags.length && taskId && priorTags[taskId]) { tags=priorTags[taskId]; keptTags++; }
+
+      out.push({
+        id: taskId?("ci_"+taskId):uid("ev"), active:true, name:name,
+        con:cat.con, cbg:cat.cbg, ctx:cat.ctx,
+        date: MONTHS[parsed.date.getMonth()]+" "+parsed.date.getDate(),
+        iso: iso(parsed.date), time: parsed.time, format: fmt,
+        tags: tags, desc:"", link:"", src: taskId
+      });
+    }
+
+    if (!out.length) { window.alert("No rows had a readable date, so nothing was imported."); return; }
+    var msg="Import "+out.length+" event(s)?";
+    if (undated)  msg+="\n· "+undated+" row(s) skipped — no readable date.";
+    if (skipped)  msg+="\n· "+skipped+" row(s) skipped — no name.";
+    if (keptTags) msg+="\n· "+keptTags+" kept their existing audience tags.";
+    if (DB.events && DB.events.length) msg+="\n\nThis replaces the current "+DB.events.length+" event(s).";
+    if (!window.confirm(msg)) return;
+
+    DB.events=out;
+    DB.eventsMeta={ importedAt:new Date().toISOString().slice(0,10), importedBy:editorName(),
+                    fileName:fileName||"", rowCount:out.length };
+    saveDB(); problems=[]; loadData(); render();
+  }
+
+  /* ===================== LOOKUPS ===================== */
   function channelById(id){ for (var i=0;i<DB.channels.length;i++) if (DB.channels[i].id===id) return DB.channels[i]; return null; }
   function segmentById(id){ for (var i=0;i<DB.segments.length;i++) if (DB.segments[i].id===id) return DB.segments[i]; return null; }
   function sendById(id){ for (var i=0;i<DB.sends.length;i++) if (DB.sends[i].id===id) return DB.sends[i]; return null; }
   function eventById(id){ for (var i=0;i<EVENTS.length;i++) if (EVENTS[i].id===id) return EVENTS[i]; return null; }
+  function journeyById(id){ for (var i=0;i<DB.journeys.length;i++) if (DB.journeys[i].id===id) return DB.journeys[i]; return null; }
+  function journeysForChannel(chId){ return DB.journeys.filter(function(j){ return j.channelId===chId; }); }
 
-  /* Events available in the week containing `dateStr`, for slot pickers. */
-  function eventsInWeekOf(dateStr, res) {
-    if (!dateStr) return [];
-    var d = parseISO(dateStr);
-    if (isNaN(d.getTime())) return [];
-    var ws = startOfWeek(d), we = addDays(ws,7);
-    return res.list.filter(function (r) { return r.date>=ws && r.date<we; });
+  function sendsInJourney(jId, kind) {
+    return DB.sends.filter(function (s) {
+      return s.journeyId===jId && (!kind || (s.kind||"send")===kind);
+    }).sort(function (a,b) {
+      var da=a.date?parseISO(a.date):null, db2=b.date?parseISO(b.date):null;
+      if (!da) return 1; if (!db2) return -1; return da-db2;
+    });
   }
 
-  /* A slot is mismatched when the segment is persona-linked and the chosen
-     event is not tagged for that persona. Reported, never auto-corrected —
-     an intentional cross-promotion is a legitimate choice. */
+  /* Feeders are ordered by date; each covers entrants from its own date until
+     the day before the next one. "Before 9/16" and "on or after 9/16" fall out
+     of the ordering rather than needing a rule stored per feeder. */
+  function feederWindows(jr) {
+    var fs=sendsInJourney(jr.id,"feeder");
+    return fs.map(function (f,i) {
+      var next=fs[i+1];
+      return { send:f, from:f.date||jr.start||"",
+               until: next && next.date ? iso(addDays(parseISO(next.date),-1)) : (jr.end||"") };
+    });
+  }
+  function describeWindow(w) {
+    if (!w.from && !w.until) return "any time";
+    if (!w.until) return "from "+w.from;
+    if (!w.from)  return "until "+w.until;
+    return w.from+" → "+w.until;
+  }
+
+  function eventsInWeekOf(dateStr, res) {
+    if (!dateStr) return [];
+    var d=parseISO(dateStr);
+    if (isNaN(d.getTime())) return [];
+    var ws=startOfWeek(d), we=addDays(ws,7);
+    return res.list.filter(function(r){ return r.date>=ws && r.date<we; });
+  }
+
+  /* Reported, never auto-corrected — a deliberate cross-promotion is valid. */
   function slotMismatch(seg, ev) {
     if (!seg || !seg.persona || !ev) return false;
-    var tags = Array.isArray(ev.tags) ? ev.tags : [];
-    return tags.indexOf(seg.persona) < 0;
+    var tags=Array.isArray(ev.tags)?ev.tags:[];
+    return tags.indexOf(seg.persona)<0;
   }
   function sendHasWarning(send) {
     if (!send || !Array.isArray(send.segments)) return false;
     for (var i=0;i<send.segments.length;i++) {
-      var seg = segmentById(send.segments[i].segId);
-      var items = send.segments[i].items || [];
+      var seg=segmentById(send.segments[i].segId);
+      var items=send.segments[i].items||[];
       for (var j=0;j<items.length;j++) {
         if (items[j].type==="event") {
-          var ev = eventById(items[j].ref);
-          if (!ev) return true;
-          if (slotMismatch(seg, ev)) return true;
+          var ev=eventById(items[j].ref);
+          if (!ev || slotMismatch(seg,ev)) return true;
         }
       }
     }
     return false;
   }
+  function inTerm(send, term) {
+    if (!send.date) return false;
+    var d=parseISO(send.date);
+    return !isNaN(d.getTime()) && d>=parseISO(term.start) && d<=parseISO(term.end);
+  }
 
   /* ===================== HEALTH ===================== */
   function renderHealth(res, term) {
     var el=document.getElementById("health"), items=problems.slice();
-    if (res.unresolved.length) items.push({level:"warn",
-      msg: res.unresolved.length+" event(s) have no usable date and cannot be offered as content: "+
-        res.unresolved.slice(0,4).map(function(e){return e.name||e.id;}).join(", ")+(res.unresolved.length>4?", …":"")});
-    if (res.fromGuess>0) items.push({level:"info",
-      msg: res.fromGuess+" event(s) lack an `iso` field, so their year was inferred from the display string."});
-    if (!res.list.length && EVENTS.length) items.push({level:"warn",
-      msg:"No events fall inside "+term.label+". Content slots will have nothing to offer — check the term tab."});
+    if (res.unresolved.length) items.push({ level:"warn",
+      msg: res.unresolved.length+" event(s) have no usable date and can't be offered as content: "+
+        res.unresolved.slice(0,4).map(function(e){return e.name||e.id;}).join(", ")+
+        (res.unresolved.length>4?", …":"") });
+    if (res.fromGuess>0) items.push({ level:"info",
+      msg: res.fromGuess+" event(s) lack an `iso` field, so their year was inferred from the display string." });
+    if (!res.list.length && EVENTS.length) items.push({ level:"warn",
+      msg:"No events fall inside "+term.label+". Content slots will have nothing to offer — check the term tab." });
 
-    var fatal=items.some(function(i){return i.level==="fatal";});
+    // A feeder with no date has no boundary, so it routes nobody.
+    var undatedFeeders=[];
+    DB.journeys.forEach(function (j) {
+      sendsInJourney(j.id,"feeder").forEach(function (f) {
+        if (!f.date) undatedFeeders.push((j.name||"journey")+" → "+(f.title||"untitled entry email"));
+      });
+    });
+    if (undatedFeeders.length) items.push({ level:"warn",
+      msg:"Entry email(s) with no cutoff date, so no one is routed to them: "+
+        undatedFeeders.slice(0,3).join("; ")+
+        (undatedFeeders.length>3?" and "+(undatedFeeders.length-3)+" more":"")+"." });
+
+    var fatal=items.some(function(i){ return i.level==="fatal"; });
     el.className="health"+(fatal?" bad":"");
-    var head="<b>"+EVENTS.length+"</b> events loaded · <b>"+res.list.length+"</b> in "+term.label+
+    var head="<b>"+EVENTS.length+"</b> events · <b>"+res.list.length+"</b> in "+term.label+
       " (<b>"+res.fromIso+"</b> exact, <b>"+res.fromGuess+"</b> inferred) · <b>"+
-      DB.channels.length+"</b> channels · <b>"+DB.segments.length+"</b> segments · <b>"+
-      DB.sends.length+"</b> sends planned";
-    el.innerHTML = head + (items.length ? "<ul>"+items.map(function(i){return "<li>"+esc(i.msg)+"</li>";}).join("")+"</ul>" : "");
+      DB.journeys.length+"</b> journeys · <b>"+DB.channels.length+"</b> channels · <b>"+
+      DB.segments.length+"</b> segments · <b>"+DB.sends.length+"</b> sends";
+    el.innerHTML=head+(items.length?"<ul>"+items.map(function(i){ return "<li>"+esc(i.msg)+"</li>"; }).join("")+"</ul>":"");
   }
 
-  /* ===================== COMMS GRID ===================== */
-  function laneEl(name, meta, color, actionsHtml) {
+  /* ===================== GRID ===================== */
+  function laneEl(name, meta, color) {
     var d=document.createElement("div"); d.className="lane";
     d.innerHTML='<div class="lane-name">'+(color?'<span class="lane-swatch" style="background:'+esc(color)+'"></span>':"")+
-      esc(name)+'</div><div class="lane-meta">'+esc(meta)+"</div>"+(actionsHtml||"");
+      esc(name)+'</div><div class="lane-meta">'+esc(meta)+"</div>";
     return d;
+  }
+
+  function journeyStripEl(jrs, w, we) {
+    if (!jrs.length) return null;
+    var strip=document.createElement("div"); strip.className="jr-strip";
+    jrs.forEach(function (jr) {
+      var slice=document.createElement("div"); slice.className="jr-slice";
+      var s=jr.start?parseISO(jr.start):null, e=jr.end?parseISO(jr.end):null;
+      var valid=s&&e&&!isNaN(s.getTime())&&!isNaN(e.getTime());
+      if (valid && s<we && e>=w.start) {
+        slice.className+=" on";
+        slice.style.setProperty("--jr", jr.color||"#888");
+        var startsHere=s>=w.start && s<we, endsHere=e>=w.start && e<we;
+        if (startsHere) slice.className+=" start";
+        if (endsHere)   slice.className+=" end";
+        if (startsHere) {
+          var lab=document.createElement("span"); lab.className="jr-label";
+          lab.textContent=jr.name||"Journey"; slice.appendChild(lab);
+        }
+        feederWindows(jr).forEach(function (fw) {
+          if (!fw.from) return;
+          var fd=parseISO(fw.from);
+          if (isNaN(fd.getTime()) || fd<w.start || fd>=we) return;
+          // Day-count, not millisecond maths — a DST shift inside the week
+          // would otherwise nudge the marker off by a fraction of a day.
+          var dayOffset=Math.round((fd-w.start)/86400000);
+          var cut=document.createElement("span"); cut.className="jr-cut";
+          cut.style.left=(dayOffset/7*100)+"%";
+          cut.title=(fw.send.title||"Entry email")+"\nEntrants "+describeWindow(fw);
+          slice.appendChild(cut);
+        });
+        slice.style.cursor="pointer";
+        slice.title=(jr.name||"Journey")+"\n"+(jr.start||"?")+" → "+(jr.end||"?")+
+          "\n"+sendsInJourney(jr.id,"feeder").length+" entry cutoff(s), "+
+          sendsInJourney(jr.id,"send").length+" scheduled send(s)";
+        slice.addEventListener("click", function (ev) { ev.stopPropagation(); openJourney(jr.id); });
+      }
+      strip.appendChild(slice);
+    });
+    return strip;
   }
 
   function renderComms(res, term, weeks) {
     var root=document.getElementById("commsGrid"); root.innerHTML="";
     var filter=document.getElementById("densitySel").value;
 
-    // header
     var hdr=document.createElement("div"); hdr.className="row hdr";
     hdr.appendChild(laneEl("Channel", weeks.length+" weeks", null));
-    var ht=document.createElement("div"); ht.className="track";
-    var lastMo=-1;
+    var ht=document.createElement("div"); ht.className="track"; var lastMo=-1;
     weeks.forEach(function (w) {
       var c=document.createElement("div"); c.className="cell";
       var mo=w.start.getMonth();
@@ -870,13 +985,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
     hdr.appendChild(ht); root.appendChild(hdr);
 
-    // events context
     var ctx=document.createElement("div"); ctx.className="row ctx-row";
-    ctx.appendChild(laneEl("What's running", "content pool", null));
+    ctx.appendChild(laneEl("What's running","content pool",null));
     var ct=document.createElement("div"); ct.className="track";
     weeks.forEach(function (w) {
-      var c=document.createElement("div"); c.className="cell";
-      var we=addDays(w.start,7);
+      var c=document.createElement("div"); c.className="cell"; var we=addDays(w.start,7);
       term.milestones.forEach(function (m) {
         var md=parseISO(m.date);
         if (md>=w.start && md<we) {
@@ -885,7 +998,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
       var inWk=res.list.filter(function(r){ return r.date>=w.start && r.date<we; });
       inWk.slice(0,3).forEach(function (r) {
-        var cat=CATS.filter(function(x){return x.name===(r.ev.con||"Uncategorised");})[0]||{bg:"#EEF1F4",fg:"#4B5A72"};
+        var cat=CATS.filter(function(x){ return x.name===(r.ev.con||"Uncategorised"); })[0]||{bg:"#EEF1F4",fg:"#4B5A72"};
         var d=document.createElement("div"); d.className="ctx-ev";
         d.style.background=cat.bg; d.style.color=cat.fg;
         d.textContent=r.ev.name||r.ev.id;
@@ -902,26 +1015,29 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
     ctx.appendChild(ct); root.appendChild(ctx);
 
-    // one lane per channel
     DB.channels.forEach(function (ch) {
       var mine=DB.sends.filter(function(s){ return s.channelId===ch.id && (filter==="all"||s.status===filter); });
+      var jrs=journeysForChannel(ch.id);
       var row=document.createElement("div"); row.className="row";
-      row.appendChild(laneEl(ch.name, mine.length+" send"+(mine.length===1?"":"s"), ch.color));
+      var meta=mine.length+" send"+(mine.length===1?"":"s")+
+        (jrs.length?" · "+jrs.length+" journey"+(jrs.length===1?"":"s"):"");
+      row.appendChild(laneEl(ch.name, meta, ch.color));
       var tr=document.createElement("div"); tr.className="track";
       weeks.forEach(function (w) {
-        var c=document.createElement("div"); c.className="cell";
-        var we=addDays(w.start,7);
+        var c=document.createElement("div"); c.className="cell"; var we=addDays(w.start,7);
+        var strip=journeyStripEl(jrs,w,we);
+        if (strip) c.appendChild(strip);
         mine.filter(function (s) {
           if (!s.date) return false;
           var d=parseISO(s.date);
           return !isNaN(d.getTime()) && d>=w.start && d<we;
         }).sort(function(a,b){ return parseISO(a.date)-parseISO(b.date); })
-          .forEach(function (s) { c.appendChild(stickyEl(s, ch)); });
+          .forEach(function (s) { c.appendChild(stickyEl(s,ch)); });
 
         var add=document.createElement("button");
         add.type="button"; add.className="add-cell"; add.textContent="+";
         add.title="Add a send in this week";
-        add.addEventListener("click", function () { openEditor(null, ch.id, iso(addDays(w.start,1))); });
+        add.addEventListener("click", function(){ openEditor(null, ch.id, iso(addDays(w.start,1))); });
         c.appendChild(add);
         tr.appendChild(c);
       });
@@ -931,34 +1047,38 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (!DB.channels.length) {
       var empty=document.createElement("div");
       empty.style.padding="22px"; empty.className="muted";
-      empty.textContent="No channels yet. Open Channels & segments to add one.";
+      empty.textContent="No channels yet. Open Journeys, channels & segments to add one.";
       root.appendChild(empty);
     }
-
-    document.getElementById("commsNote").textContent =
-      term.label+" · "+DB.sends.filter(function(s){return inTerm(s,term);}).length+" sends this term";
+    document.getElementById("commsNote").textContent=
+      term.label+" · "+DB.sends.filter(function(s){ return inTerm(s,term); }).length+" sends this term";
   }
 
-  function inTerm(send, term) {
-    if (!send.date) return false;
-    var d=parseISO(send.date);
-    return !isNaN(d.getTime()) && d>=parseISO(term.start) && d<=parseISO(term.end);
+  function hexToSoft(hex) {
+    try {
+      var h=String(hex).replace("#","");
+      if (h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      var r=parseInt(h.slice(0,2),16), g2=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+      if (isNaN(r)||isNaN(g2)||isNaN(b)) return "#F7F8FA";
+      return "rgba("+r+","+g2+","+b+",0.10)";
+    } catch (e) { return "#F7F8FA"; }
   }
 
   function stickyEl(s, ch) {
-    var b=document.createElement("button");
-    b.type="button";
+    var b=document.createElement("button"); b.type="button";
     b.className="sticky status-"+(s.status||"draft");
-    b.style.borderLeftColor=ch.color;
-    b.style.background=hexToSoft(ch.color);
+    b.style.borderLeftColor=ch.color; b.style.background=hexToSoft(ch.color);
     var d=parseISO(s.date);
     var segCount=(s.segments||[]).length;
     var slotCount=(s.segments||[]).reduce(function(a,x){ return a+((x.items||[]).length); },0);
     var warn=sendHasWarning(s);
-    b.innerHTML='<span class="sticky-day">'+esc(fmtDay(d))+(warn?' <span class="sticky-warn">!</span>':"")+"</span>"+
-      '<span class="sticky-title">'+esc(s.title||"Untitled send")+"</span>"+
-      '<span class="sticky-segs">'+segCount+" seg · "+slotCount+" item"+(slotCount===1?"":"s")+"</span>";
-    b.title=(s.title||"Untitled send")+" — "+fmtDay(d)+"\n"+describeSend(s);
+    var isFeeder=(s.kind||"send")==="feeder";
+    var jr=s.journeyId?journeyById(s.journeyId):null;
+    b.innerHTML='<span class="sticky-day">'+(isFeeder?"⤷ entry · ":"")+esc(fmtDay(d))+
+        (warn?' <span class="sticky-warn">!</span>':"")+"</span>"+
+      '<span class="sticky-title">'+esc(s.title||(isFeeder?"Untitled entry email":"Untitled send"))+"</span>"+
+      '<span class="sticky-segs">'+(jr?esc(jr.name)+" · ":"")+segCount+" seg · "+slotCount+" item"+(slotCount===1?"":"s")+"</span>";
+    b.title=(s.title||"Untitled")+" — "+fmtDay(d)+"\n"+describeSend(s);
     b.addEventListener("click", function(){ openEditor(s.id); });
     return b;
   }
@@ -975,17 +1095,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     }).join("\n");
   }
 
-  function hexToSoft(hex) {
-    try {
-      var h=String(hex).replace("#","");
-      if (h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
-      var r=parseInt(h.slice(0,2),16), g2=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
-      if (isNaN(r)||isNaN(g2)||isNaN(b)) return "#F7F8FA";
-      return "rgba("+r+","+g2+","+b+",0.10)";
-    } catch (e) { return "#F7F8FA"; }
-  }
-
-  /* ===================== TIMELINE ===================== */
   function renderTimeline(res, term, weeks) {
     var root=document.getElementById("timeline"); root.innerHTML="";
     var hdr=document.createElement("div"); hdr.className="row hdr";
@@ -1021,32 +1130,59 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
 
   /* ===================== SETUP ===================== */
   function renderSetup() {
+    var jb=document.getElementById("journeyBody"); jb.innerHTML="";
+    if (!DB.journeys.length) {
+      var tr0=document.createElement("tr"), td0=document.createElement("td");
+      td0.colSpan=7; td0.className="muted"; td0.style.padding="14px";
+      td0.textContent="No journeys yet. A journey is anything running over a span with people entering at different times — a welcome sequence, a weekly digest programme.";
+      tr0.appendChild(td0); jb.appendChild(tr0);
+    }
+    DB.journeys.forEach(function (j) {
+      var tr=document.createElement("tr");
+      var t0=document.createElement("td");
+      t0.innerHTML='<span class="jr-swatch" style="background:'+esc(j.color||"#888")+'"></span>';
+      tr.appendChild(t0);
+      var t1=document.createElement("td"); t1.textContent=j.name||"Untitled"; tr.appendChild(t1);
+      var ch=channelById(j.channelId);
+      var t2=document.createElement("td"); t2.textContent=ch?ch.name:"—"; tr.appendChild(t2);
+      var t3=document.createElement("td"); t3.className="wk";
+      t3.textContent=(j.start||"?")+" → "+(j.end||"?"); tr.appendChild(t3);
+      var t4=document.createElement("td"); t4.textContent=sendsInJourney(j.id,"feeder").length; tr.appendChild(t4);
+      var t5=document.createElement("td"); t5.textContent=sendsInJourney(j.id,"send").length; tr.appendChild(t5);
+      var t6=document.createElement("td");
+      var op=document.createElement("button"); op.className="btn btn-sm"; op.textContent="Edit";
+      op.addEventListener("click", function(){ openJourney(j.id); });
+      t6.appendChild(op);
+      var del=document.createElement("button"); del.className="btn btn-sm"; del.textContent="Delete";
+      del.style.marginLeft="4px";
+      del.addEventListener("click", function(){ deleteJourney(j.id); });
+      t6.appendChild(del); tr.appendChild(t6);
+      jb.appendChild(tr);
+    });
+
     var cb=document.getElementById("channelBody"); cb.innerHTML="";
     DB.channels.forEach(function (ch) {
       var tr=document.createElement("tr");
       var td0=document.createElement("td");
       td0.innerHTML='<span class="lane-swatch" style="display:inline-block;background:'+esc(ch.color)+'"></span>';
       tr.appendChild(td0);
-
       var td1=document.createElement("td");
       var nm=document.createElement("input"); nm.type="text"; nm.value=ch.name; nm.style.width="100%";
       nm.addEventListener("change", function(){ ch.name=nm.value||"Untitled"; saveDB(); render(); });
       td1.appendChild(nm); tr.appendChild(td1);
-
       var td2=document.createElement("td");
       var col=document.createElement("input"); col.type="text"; col.value=ch.color; col.style.width="100%";
       col.addEventListener("change", function(){ ch.color=col.value||"#888"; saveDB(); render(); });
       td2.appendChild(col); tr.appendChild(td2);
-
-      var n=DB.sends.filter(function(s){return s.channelId===ch.id;}).length;
+      var n=DB.sends.filter(function(s){ return s.channelId===ch.id; }).length;
       var td3=document.createElement("td"); td3.textContent=n; tr.appendChild(td3);
-
       var td4=document.createElement("td");
       var del=document.createElement("button"); del.className="btn btn-sm"; del.textContent="Delete";
       del.addEventListener("click", function () {
         if (!window.confirm("Delete “"+ch.name+"” and its "+n+" send(s)? This cannot be undone.")) return;
-        DB.sends=DB.sends.filter(function(s){return s.channelId!==ch.id;});
-        DB.channels=DB.channels.filter(function(x){return x.id!==ch.id;});
+        DB.sends=DB.sends.filter(function(s){ return s.channelId!==ch.id; });
+        DB.journeys=DB.journeys.filter(function(j){ return j.channelId!==ch.id; });
+        DB.channels=DB.channels.filter(function(x){ return x.id!==ch.id; });
         saveDB(); render();
       });
       td4.appendChild(del); tr.appendChild(td4);
@@ -1060,25 +1196,22 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var nm=document.createElement("input"); nm.type="text"; nm.value=sg.name; nm.style.width="100%";
       nm.addEventListener("change", function(){ sg.name=nm.value||"Untitled"; saveDB(); render(); });
       td1.appendChild(nm); tr.appendChild(td1);
-
       var td2=document.createElement("td");
       var sel=document.createElement("select"); sel.style.width="100%";
       var o0=document.createElement("option"); o0.value=""; o0.textContent="— none (custom) —"; sel.appendChild(o0);
       Object.keys(PERSONA_FALLBACK).forEach(function (k) {
-        var o=document.createElement("option"); o.value=k; o.textContent=personaName(k);
-        if (sg.persona===k) o.selected=true; sel.appendChild(o);
+        var o=document.createElement("option"); o.value=k; o.textContent=personaName(k); sel.appendChild(o);
       });
       sel.value=sg.persona||"";
       sel.addEventListener("change", function(){ sg.persona=sel.value||null; saveDB(); render(); });
       td2.appendChild(sel); tr.appendChild(td2);
-
       var td3=document.createElement("td");
       var del=document.createElement("button"); del.className="btn btn-sm"; del.textContent="Delete";
       del.addEventListener("click", function () {
-        var used=DB.sends.filter(function(s){ return (s.segments||[]).some(function(x){return x.segId===sg.id;}); }).length;
+        var used=DB.sends.filter(function(s){ return (s.segments||[]).some(function(x){ return x.segId===sg.id; }); }).length;
         if (used && !window.confirm("“"+sg.name+"” is used in "+used+" send(s). Delete anyway? Those blocks will be removed.")) return;
-        DB.sends.forEach(function(s){ s.segments=(s.segments||[]).filter(function(x){return x.segId!==sg.id;}); });
-        DB.segments=DB.segments.filter(function(x){return x.id!==sg.id;});
+        DB.sends.forEach(function(s){ s.segments=(s.segments||[]).filter(function(x){ return x.segId!==sg.id; }); });
+        DB.segments=DB.segments.filter(function(x){ return x.id!==sg.id; });
         saveDB(); render();
       });
       td3.appendChild(del); tr.appendChild(td3);
@@ -1087,19 +1220,22 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   }
 
   /* ===================== SEND EDITOR ===================== */
+  function currentSend(){ return sendById(editingId); }
+
   function openEditor(sendId, presetChannel, presetDate) {
     var s;
     if (sendId) { s=sendById(sendId); if (!s) return; editingId=sendId; }
     else {
       s={ id:uid("snd"), channelId:presetChannel||(DB.channels[0]&&DB.channels[0].id)||"",
-          date:presetDate||iso(new Date()), title:"", status:"draft", segments:[], notes:"" };
+          date:presetDate||iso(new Date()), title:"", status:"draft",
+          journeyId:"", kind:"send", segments:[], notes:"" };
       DB.sends.push(s); editingId=s.id;
     }
-    document.getElementById("editorTitle").textContent = sendId ? "Edit send" : "New send";
-    document.getElementById("edTitle").value = s.title||"";
-    document.getElementById("edDate").value = s.date||"";
-    document.getElementById("edStatus").value = s.status||"draft";
-    document.getElementById("edNotes").value = s.notes||"";
+    document.getElementById("editorTitle").textContent=sendId?"Edit send":"New send";
+    document.getElementById("edTitle").value=s.title||"";
+    document.getElementById("edDate").value=s.date||"";
+    document.getElementById("edStatus").value=s.status||"draft";
+    document.getElementById("edNotes").value=s.notes||"";
 
     var cs=document.getElementById("edChannel"); cs.innerHTML="";
     DB.channels.forEach(function (ch) {
@@ -1107,11 +1243,36 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
     cs.value=s.channelId;
 
+    var js=document.getElementById("edJourney"); js.innerHTML="";
+    var o0=document.createElement("option"); o0.value=""; o0.textContent="— standalone —"; js.appendChild(o0);
+    DB.journeys.forEach(function (j) {
+      var o=document.createElement("option"); o.value=j.id; o.textContent=j.name||"Untitled"; js.appendChild(o);
+    });
+    js.value=s.journeyId||"";
+    document.getElementById("edKind").value=s.kind||"send";
+    updateKindUi();
+
     renderEditorSegments();
     document.getElementById("editorOverlay").classList.remove("hidden");
   }
 
-  function currentSend(){ return sendById(editingId); }
+  /* A feeder isn't sent on a date — it's what someone gets on entry. Relabel
+     the date field so it can't be mistaken for a send date. */
+  function updateKindUi() {
+    var kind=document.getElementById("edKind").value;
+    var jid=document.getElementById("edJourney").value;
+    var isFeeder=kind==="feeder";
+    document.getElementById("edDateLabel").textContent=isFeeder?"Cohort starts":"Send date";
+    var hint="";
+    if (isFeeder && !jid) hint="An entry email needs a journey — pick one, or switch back to a scheduled send.";
+    else if (isFeeder) {
+      var j=journeyById(jid), wins=j?feederWindows(j):[], me=null;
+      for (var i=0;i<wins.length;i++) if (wins[i].send.id===editingId) me=wins[i];
+      hint=me?("Everyone entering "+describeWindow(me)+" gets this.")
+             :"Everyone entering from this date until the next cutoff gets this.";
+    } else if (jid) hint="Runs inside the journey, with its own content for this week.";
+    document.getElementById("edKindHint").textContent=hint;
+  }
 
   function renderEditorSegments() {
     var s=currentSend(); if (!s) return;
@@ -1123,7 +1284,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     (s.segments||[]).forEach(function (sg, si) {
       var seg=segmentById(sg.segId);
       var box=document.createElement("div"); box.className="seg";
-
       var head=document.createElement("div"); head.className="seg-head";
       var lbl=document.createElement("span"); lbl.className="seg-label";
       lbl.textContent="S"+(si+1)+" · "+(seg?seg.name:"[deleted segment]");
@@ -1133,47 +1293,41 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       } else if (seg) {
         var t2=document.createElement("span"); t2.className="tag"; t2.textContent="custom — no content checking"; head.appendChild(t2);
       }
-      var sp=document.createElement("span"); sp.className="spacer"; sp.style.flex="1"; head.appendChild(sp);
+      var sp=document.createElement("span"); sp.style.flex="1"; head.appendChild(sp);
       var addSlot=document.createElement("button"); addSlot.className="btn btn-sm"; addSlot.textContent="+ Content";
       addSlot.addEventListener("click", function () {
-        sg.items=sg.items||[]; sg.items.push({type:"event", ref:"", text:""});
+        sg.items=sg.items||[]; sg.items.push({type:"event",ref:"",text:""});
         saveDB(); renderEditorSegments();
       });
       head.appendChild(addSlot);
       var rmSeg=document.createElement("button"); rmSeg.className="btn btn-sm"; rmSeg.textContent="Remove";
-      rmSeg.addEventListener("click", function () {
-        s.segments.splice(si,1); saveDB(); renderEditorSegments();
-      });
+      rmSeg.addEventListener("click", function(){ s.segments.splice(si,1); saveDB(); renderEditorSegments(); });
       head.appendChild(rmSeg);
       box.appendChild(head);
 
       (sg.items||[]).forEach(function (it, ii) {
         var rowEl=document.createElement("div"); rowEl.className="slot";
         var n=document.createElement("span"); n.className="slot-n"; n.textContent=(ii+1)+"."; rowEl.appendChild(n);
-
         var kind=document.createElement("select"); kind.style.flex="0 0 92px";
         [["event","Event"],["text","Free text"]].forEach(function (k) {
-          var o=document.createElement("option"); o.value=k[0]; o.textContent=k[1];
-          if (it.type===k[0]) o.selected=true; kind.appendChild(o);
+          var o=document.createElement("option"); o.value=k[0]; o.textContent=k[1]; kind.appendChild(o);
         });
+        kind.value=it.type||"event";
         kind.addEventListener("change", function(){ it.type=kind.value; saveDB(); renderEditorSegments(); });
         rowEl.appendChild(kind);
 
         if (it.type==="event") {
           var sel=document.createElement("select");
-          var o0=document.createElement("option"); o0.value=""; o0.textContent="— pick content —"; sel.appendChild(o0);
-
+          var op0=document.createElement("option"); op0.value=""; op0.textContent="— pick content —"; sel.appendChild(op0);
           var gWeek=document.createElement("optgroup"); gWeek.label="This week ("+weekEvents.length+")";
           weekEvents.forEach(function (r) { gWeek.appendChild(evOption(r, seg)); });
           if (weekEvents.length) sel.appendChild(gWeek);
-
           var gRest=document.createElement("optgroup"); gRest.label="Elsewhere in "+term.label;
           res.list.forEach(function (r) {
             if (weekEvents.indexOf(r)>=0) return;
             gRest.appendChild(evOption(r, seg));
           });
           sel.appendChild(gRest);
-
           sel.value=it.ref||"";
           sel.addEventListener("change", function(){ it.ref=sel.value; saveDB(); renderEditorSegments(); });
           rowEl.appendChild(sel);
@@ -1191,19 +1345,15 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
 
         if (it.type==="event" && it.ref) {
           var ev=eventById(it.ref);
-          if (!ev) {
-            box.appendChild(warnEl("That event is no longer in ilab-data.js — it may have been renamed or removed."));
-          } else if (slotMismatch(seg, ev)) {
-            box.appendChild(warnEl("“"+(ev.name||ev.id)+"” is not tagged for "+seg.persona+
-              ". Fine if the cross-promotion is deliberate — flagging it so it isn't an accident."));
-          }
+          if (!ev) box.appendChild(warnEl("That event is no longer in the loaded set — it may have been renamed or removed."));
+          else if (slotMismatch(seg,ev)) box.appendChild(warnEl("“"+(ev.name||ev.id)+"” is not tagged for "+seg.persona+
+            ". Fine if the cross-promotion is deliberate — flagging it so it isn't an accident."));
         }
       });
 
       if (!sg.items || !sg.items.length) {
         var h=document.createElement("div"); h.className="hint";
-        h.textContent="No content yet — use + Content to add slot 1.";
-        box.appendChild(h);
+        h.textContent="No content yet — use + Content to add slot 1."; box.appendChild(h);
       }
       host.appendChild(box);
     });
@@ -1216,39 +1366,152 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
 
     var sel2=document.getElementById("edAddSegSel"); sel2.innerHTML="";
     DB.segments.forEach(function (sg2) {
-      if ((s.segments||[]).some(function(x){return x.segId===sg2.id;})) return;
+      if ((s.segments||[]).some(function(x){ return x.segId===sg2.id; })) return;
       var o=document.createElement("option"); o.value=sg2.id; o.textContent=sg2.name; sel2.appendChild(o);
     });
     if (!sel2.options.length) {
       var o=document.createElement("option"); o.value=""; o.textContent="all segments added"; sel2.appendChild(o);
     }
-
-    document.getElementById("edMeta").textContent =
+    document.getElementById("edMeta").textContent=
       weekEvents.length+" event(s) available the week of "+(dateStr||"—");
   }
 
   function evOption(r, seg) {
     var o=document.createElement("option");
     o.value=r.ev.id;
-    var flag = slotMismatch(seg, r.ev) ? " ⚠" : "";
-    o.textContent=fmtShort(r.date)+" · "+(r.ev.name||r.ev.id)+flag;
+    o.textContent=fmtShort(r.date)+" · "+(r.ev.name||r.ev.id)+(slotMismatch(seg,r.ev)?" ⚠":"");
     return o;
   }
-  function warnEl(msg) {
-    var d=document.createElement("div"); d.className="warn"; d.textContent="⚠ "+msg; return d;
-  }
+  function warnEl(msg){ var d=document.createElement("div"); d.className="warn"; d.textContent="⚠ "+msg; return d; }
 
   function closeEditor(discardIfEmpty) {
     var s=currentSend();
     if (s && discardIfEmpty && !s.title && !(s.segments||[]).length) {
-      DB.sends=DB.sends.filter(function(x){return x.id!==s.id;});
+      DB.sends=DB.sends.filter(function(x){ return x.id!==s.id; });
     }
     editingId=null; saveDB();
     document.getElementById("editorOverlay").classList.add("hidden");
     render();
   }
 
+  /* ===================== JOURNEY EDITOR ===================== */
+  function currentJourney(){ return journeyById(editingJourney); }
+
+  function openJourney(id, presetChannel) {
+    var j;
+    if (id) { j=journeyById(id); if (!j) return; }
+    else {
+      j={ id:uid("jr"), channelId:presetChannel||(DB.channels[0]&&DB.channels[0].id)||"",
+          name:"New journey", start:TERMS[termIdx].start, end:TERMS[termIdx].end,
+          color:(DB.channels[0]&&DB.channels[0].color)||"#4A5A73", notes:"" };
+      DB.journeys.push(j);
+    }
+    editingJourney=j.id;
+    document.getElementById("jrName").value=j.name||"";
+    document.getElementById("jrStart").value=j.start||"";
+    document.getElementById("jrEnd").value=j.end||"";
+    document.getElementById("jrColor").value=j.color||"";
+    document.getElementById("jrNotes").value=j.notes||"";
+    var cs=document.getElementById("jrChannel"); cs.innerHTML="";
+    DB.channels.forEach(function (ch) {
+      var o=document.createElement("option"); o.value=ch.id; o.textContent=ch.name; cs.appendChild(o);
+    });
+    cs.value=j.channelId;
+    renderJourneyDetail();
+    document.getElementById("journeyOverlay").classList.remove("hidden");
+  }
+
+  function renderJourneyDetail() {
+    var j=currentJourney(); if (!j) return;
+    var host=document.getElementById("jrFeeders"); host.innerHTML="";
+    var wins=feederWindows(j);
+    if (!wins.length) {
+      var h=document.createElement("div"); h.className="hint";
+      h.textContent="No entry cutoffs yet. Add one for the first welcome, then another on the date the message changes.";
+      host.appendChild(h);
+    }
+    wins.forEach(function (fw) {
+      var box=document.createElement("div"); box.className="feeder";
+      var head=document.createElement("div"); head.className="feeder-head";
+
+      var nm=document.createElement("input"); nm.type="text"; nm.value=fw.send.title||"";
+      nm.placeholder="e.g. Welcome to Fall (pre-orientation)"; nm.style.flex="1 1 210px";
+      nm.addEventListener("change", function(){ fw.send.title=nm.value; saveDB(); renderJourneyDetail(); render(); });
+      head.appendChild(nm);
+
+      var dt=document.createElement("input"); dt.type="date"; dt.value=fw.send.date||"";
+      dt.style.flex="0 0 148px"; dt.title="Entrants from this date get this email";
+      dt.addEventListener("change", function(){ fw.send.date=dt.value; saveDB(); renderJourneyDetail(); render(); });
+      head.appendChild(dt);
+
+      var ed=document.createElement("button"); ed.className="btn btn-sm"; ed.textContent="Content…";
+      ed.addEventListener("click", function () {
+        document.getElementById("journeyOverlay").classList.add("hidden");
+        openEditor(fw.send.id);
+      });
+      head.appendChild(ed);
+
+      var rm=document.createElement("button"); rm.className="btn btn-sm"; rm.textContent="×";
+      rm.addEventListener("click", function () {
+        if (!window.confirm("Remove this entry cutoff and its content?")) return;
+        DB.sends=DB.sends.filter(function(x){ return x.id!==fw.send.id; });
+        saveDB(); renderJourneyDetail(); render();
+      });
+      head.appendChild(rm);
+      box.appendChild(head);
+
+      var slots=(fw.send.segments||[]).reduce(function(a,x){ return a+((x.items||[]).length); },0);
+      var win=document.createElement("div"); win.className="feeder-win";
+      win.textContent="Entrants "+describeWindow(fw)+" · "+(fw.send.segments||[]).length+
+        " segment(s), "+slots+" content item(s)";
+      box.appendChild(win);
+      host.appendChild(box);
+    });
+
+    var sh=document.getElementById("jrSends"); sh.innerHTML="";
+    var ss=sendsInJourney(j.id,"send");
+    if (!ss.length) {
+      var h2=document.createElement("div"); h2.className="hint";
+      h2.textContent="No sends attached yet. Add a send on the calendar and set “Part of journey” to this one — each keeps its own weekly content.";
+      sh.appendChild(h2);
+    }
+    ss.forEach(function (s) {
+      var d=document.createElement("div");
+      d.style.display="flex"; d.style.gap="8px"; d.style.alignItems="center";
+      d.style.padding="3px 0"; d.style.fontSize="12px";
+      var slots=(s.segments||[]).reduce(function(a,x){ return a+((x.items||[]).length); },0);
+      var sp=document.createElement("span"); sp.style.flex="1";
+      sp.innerHTML="<b>"+esc(s.date||"—")+"</b> · "+esc(s.title||"Untitled")+
+        ' <span class="tag">'+(s.segments||[]).length+" seg · "+slots+" items</span>";
+      d.appendChild(sp);
+      var b=document.createElement("button"); b.className="btn btn-sm"; b.textContent="Open";
+      b.addEventListener("click", function () {
+        document.getElementById("journeyOverlay").classList.add("hidden");
+        openEditor(s.id);
+      });
+      d.appendChild(b); sh.appendChild(d);
+    });
+
+    document.getElementById("jrMeta").textContent=wins.length+" cutoff(s) · "+ss.length+" scheduled send(s)";
+  }
+
+  function deleteJourney(id) {
+    var j=journeyById(id); if (!j) return;
+    var feeders=sendsInJourney(id,"feeder").length, sends=sendsInJourney(id,"send").length;
+    if (!window.confirm("Delete “"+(j.name||"journey")+"”?\n\n"+
+        feeders+" entry email(s) will be deleted with it.\n"+
+        sends+" scheduled send(s) will be kept and become standalone.")) return;
+    DB.sends=DB.sends.filter(function(s){ return !(s.journeyId===id && (s.kind||"send")==="feeder"); });
+    DB.sends.forEach(function(s){ if (s.journeyId===id) s.journeyId=""; });
+    DB.journeys=DB.journeys.filter(function(x){ return x.id!==id; });
+    editingJourney=null; saveDB();
+    document.getElementById("journeyOverlay").classList.add("hidden");
+    render();
+  }
+
   /* ===================== PROMO GENERATOR ===================== */
+  function intVal(id,d){ var v=parseInt(document.getElementById(id).value,10); return isNaN(v)?d:v; }
+
   function openPromo() {
     var term=TERMS[termIdx], res=resolvedEvents(term);
     var cs=document.getElementById("pgChannel"); cs.innerHTML="";
@@ -1256,9 +1519,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var o=document.createElement("option"); o.value=ch.id; o.textContent=ch.name; cs.appendChild(o);
     });
     var host=document.getElementById("pgEvents"); host.innerHTML="";
-    if (!res.list.length) {
-      host.innerHTML='<div class="muted">No dated events in '+esc(term.label)+".</div>";
-    }
+    if (!res.list.length) host.innerHTML='<div class="muted">No dated events in '+esc(term.label)+".</div>";
     res.list.forEach(function (r) {
       var lab=document.createElement("label");
       lab.style.display="flex"; lab.style.gap="7px"; lab.style.alignItems="center";
@@ -1268,8 +1529,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var sp=document.createElement("span");
       sp.innerHTML="<b>"+esc(fmtShort(r.date))+"</b> · "+esc(r.ev.name||r.ev.id)+
         ((Array.isArray(r.ev.tags)&&r.ev.tags.length)?' <span class="tag">'+esc(r.ev.tags.join(" "))+"</span>":' <span class="tag">untagged</span>');
-      lab.appendChild(sp);
-      host.appendChild(lab);
+      lab.appendChild(sp); host.appendChild(lab);
     });
     document.getElementById("pgCount").textContent="";
     document.getElementById("promoOverlay").classList.remove("hidden");
@@ -1294,20 +1554,19 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       for (var i=0;i<res.list.length;i++) if (res.list[i].ev.id===evId) { rec=res.list[i]; break; }
       if (!rec) return;
       var tags=Array.isArray(rec.ev.tags)?rec.ev.tags:[];
-      var segs=DB.segments.filter(function (sg) { return sg.persona && tags.indexOf(sg.persona)>=0; });
+      var segs=DB.segments.filter(function(sg){ return sg.persona && tags.indexOf(sg.persona)>=0; });
       // Untagged events get every persona-linked segment — better to over-include
-      // and let a human cut than to silently produce a send with no audience.
+      // and let a human cut than to produce a send with no audience at all.
       if (!segs.length) segs=DB.segments.filter(function(sg){ return !!sg.persona; });
 
       beats.forEach(function (b) {
-        var when=addDays(rec.date, b.off);
+        var when=addDays(rec.date,b.off);
         if (when<tS || when>tE) { skipped++; return; }
         DB.sends.push({
-          id: uid("snd"), channelId: chId, date: iso(when),
-          title: b.label+": "+(rec.ev.name||rec.ev.id),
-          status:"draft",
+          id:uid("snd"), channelId:chId, journeyId:"", kind:"send",
+          date:iso(when), title:b.label+": "+(rec.ev.name||rec.ev.id), status:"draft",
           segments: segs.map(function (sg) {
-            return { segId:sg.id, items:[{ type:"event", ref:rec.ev.id, text:"" }] };
+            return { segId:sg.id, items:[{type:"event",ref:rec.ev.id,text:""}] };
           }),
           notes:"Auto-generated promo beat for "+(rec.ev.name||rec.ev.id)+" on "+fmtShort(rec.date)+"."
         });
@@ -1315,11 +1574,10 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
     });
     saveDB();
-    document.getElementById("pgCount").textContent =
+    document.getElementById("pgCount").textContent=
       made+" draft(s) created"+(skipped?", "+skipped+" skipped (outside term)":"")+".";
     render();
   }
-  function intVal(id,d){ var v=parseInt(document.getElementById(id).value,10); return isNaN(v)?d:v; }
 
   /* ===================== CSV / JSON ===================== */
   function toCsv(rows) {
@@ -1339,42 +1597,44 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
 
   function commsCsv() {
     var term=TERMS[termIdx];
-    var rows=[["Send date","Weekday","Channel","Send title","Status","Segment","Persona","Slot","Content","Content date","Tag match","Notes"]];
+    var rows=[["Date","Weekday","Channel","Journey","Type","Entry window","Title","Status",
+               "Segment","Persona","Slot","Content","Content date","Tag match","Notes"]];
+    var winByFeeder={};
+    DB.journeys.forEach(function (j) {
+      feederWindows(j).forEach(function (fw) { winByFeeder[fw.send.id]=describeWindow(fw); });
+    });
+
     DB.sends.filter(function(s){ return inTerm(s,term); })
       .sort(function(a,b){ return parseISO(a.date)-parseISO(b.date); })
       .forEach(function (s) {
         var ch=channelById(s.channelId), d=parseISO(s.date);
-        if (!s.segments || !s.segments.length) {
-          rows.push([s.date, DOW[d.getDay()], ch?ch.name:"?", s.title||"", s.status||"", "", "", "", "", "", "", s.notes||""]);
-          return;
-        }
+        var jr=s.journeyId?journeyById(s.journeyId):null;
+        var isFeeder=(s.kind||"send")==="feeder";
+        var pre=[ s.date, DOW[d.getDay()], ch?ch.name:"?", jr?(jr.name||"Untitled"):"",
+                  isFeeder?"Entry email":"Scheduled send",
+                  isFeeder?(winByFeeder[s.id]||""):"", s.title||"", s.status||"" ];
+        if (!s.segments || !s.segments.length) { rows.push(pre.concat(["","","","","","",s.notes||""])); return; }
         s.segments.forEach(function (sg) {
           var seg=segmentById(sg.segId);
+          var segCols=[ seg?seg.name:"[deleted]", seg&&seg.persona?seg.persona:"" ];
           var items=sg.items||[];
-          if (!items.length) {
-            rows.push([s.date, DOW[d.getDay()], ch?ch.name:"?", s.title||"", s.status||"",
-                       seg?seg.name:"[deleted]", seg&&seg.persona?seg.persona:"", "", "", "", "", s.notes||""]);
-            return;
-          }
-          items.forEach(function (it, i) {
+          if (!items.length) { rows.push(pre.concat(segCols,["","","","",s.notes||""])); return; }
+          items.forEach(function (it,i) {
             var content="", cdate="", match="";
             if (it.type==="event") {
               var ev=eventById(it.ref);
               content=ev?(ev.name||ev.id):"[missing event]";
-              if (ev && ev.iso) cdate=ev.iso; else if (ev) cdate=ev.date||"";
-              match = ev ? (slotMismatch(seg,ev) ? "MISMATCH" : "ok") : "MISSING";
+              if (ev) cdate=ev.iso||ev.date||"";
+              match=ev?(slotMismatch(seg,ev)?"MISMATCH":"ok"):"MISSING";
             } else { content=it.text||""; match="n/a (free text)"; }
-            rows.push([s.date, DOW[d.getDay()], ch?ch.name:"?", s.title||"", s.status||"",
-                       seg?seg.name:"[deleted]", seg&&seg.persona?seg.persona:"", i+1, content, cdate, match, s.notes||""]);
+            rows.push(pre.concat(segCols,[i+1,content,cdate,match,s.notes||""]));
           });
         });
       });
     download("ilab-comms-plan-"+term.id+".csv", toCsv(rows));
   }
 
-  function exportJson() {
-    download("ilab-comms-plan.json", JSON.stringify(DB,null,2), "application/json");
-  }
+  function exportJson(){ download("ilab-comms-plan.json", JSON.stringify(DB,null,2), "application/json"); }
   function importJson() {
     var inp=document.createElement("input"); inp.type="file"; inp.accept=".json,application/json";
     inp.addEventListener("change", function () {
@@ -1386,8 +1646,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           if (!p || !Array.isArray(p.channels) || !Array.isArray(p.sends)) throw new Error("shape");
           if (!window.confirm("Replace the current plan with the imported one? "+
               p.sends.length+" send(s), "+p.channels.length+" channel(s).")) return;
-          DB=p; if (!DB.segments) DB.segments=[];
-          saveDB(); render();
+          DB=p; normalizeDB(); saveDB(); problems=[]; loadData(); render();
         } catch (e) { window.alert("That file isn't a communications plan export."); }
       };
       fr.readAsText(f);
@@ -1398,14 +1657,14 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   /* ===================== RENDER / INIT ===================== */
   function render() {
     var term=TERMS[termIdx], res=resolvedEvents(term), weeks=weeksFor(term);
-    renderHealth(res, term);
-    renderComms(res, term, weeks);
-    renderTimeline(res, term, weeks);
+    renderHealth(res,term);
+    renderComms(res,term,weeks);
+    renderTimeline(res,term,weeks);
     renderSetup();
   }
 
   function init() {
-    problems = [];
+    problems=[];
 
     var ts=document.getElementById("termSel");
     TERMS.forEach(function (t,i) {
@@ -1434,7 +1693,6 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       saveDB(); render();
     });
 
-    // editor
     document.getElementById("editorClose").addEventListener("click", function(){ closeEditor(true); });
     document.getElementById("edSave").addEventListener("click", function () {
       var s=currentSend(); if (!s) return;
@@ -1443,12 +1701,16 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       s.date=document.getElementById("edDate").value;
       s.status=document.getElementById("edStatus").value;
       s.notes=document.getElementById("edNotes").value;
+      s.journeyId=document.getElementById("edJourney").value;
+      s.kind=document.getElementById("edKind").value;
+      // A feeder with no journey has nowhere to live; demote rather than lose it.
+      if (s.kind==="feeder" && !s.journeyId) s.kind="send";
       closeEditor(false);
     });
     document.getElementById("edDelete").addEventListener("click", function () {
       var s=currentSend(); if (!s) return;
       if (!window.confirm("Delete this send?")) return;
-      DB.sends=DB.sends.filter(function(x){return x.id!==s.id;});
+      DB.sends=DB.sends.filter(function(x){ return x.id!==s.id; });
       editingId=null; saveDB();
       document.getElementById("editorOverlay").classList.add("hidden");
       render();
@@ -1456,17 +1718,53 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("edAddSegBtn").addEventListener("click", function () {
       var s=currentSend(); if (!s) return;
       var id=document.getElementById("edAddSegSel").value; if (!id) return;
-      s.segments=s.segments||[];
-      s.segments.push({ segId:id, items:[] });
+      s.segments=s.segments||[]; s.segments.push({ segId:id, items:[] });
       saveDB(); renderEditorSegments();
     });
-    // Changing the date changes which events are "this week", so re-offer them.
     document.getElementById("edDate").addEventListener("change", function () {
       var s=currentSend(); if (s) { s.date=document.getElementById("edDate").value; saveDB(); }
-      renderEditorSegments();
+      renderEditorSegments(); updateKindUi();
+    });
+    document.getElementById("edKind").addEventListener("change", updateKindUi);
+    document.getElementById("edJourney").addEventListener("change", updateKindUi);
+
+    document.getElementById("addJourneyBtn").addEventListener("click", function(){ openJourney(null); });
+    document.getElementById("quickJourneyBtn").addEventListener("click", function(){ openJourney(null); });
+    document.getElementById("jrClose").addEventListener("click", function () {
+      editingJourney=null; saveDB();
+      document.getElementById("journeyOverlay").classList.add("hidden"); render();
+    });
+    document.getElementById("jrSave").addEventListener("click", function () {
+      var j=currentJourney(); if (!j) return;
+      j.name=document.getElementById("jrName").value||"Untitled";
+      j.channelId=document.getElementById("jrChannel").value;
+      j.start=document.getElementById("jrStart").value;
+      j.end=document.getElementById("jrEnd").value;
+      j.color=document.getElementById("jrColor").value||"#4A5A73";
+      j.notes=document.getElementById("jrNotes").value;
+      // Keep the journey's own emails in its channel, so the bar and its
+      // feeders never end up in different lanes.
+      DB.sends.forEach(function (s) {
+        if (s.journeyId===j.id && (s.kind||"send")==="feeder") s.channelId=j.channelId;
+      });
+      editingJourney=null; saveDB();
+      document.getElementById("journeyOverlay").classList.add("hidden"); render();
+    });
+    document.getElementById("jrDelete").addEventListener("click", function () {
+      if (editingJourney) deleteJourney(editingJourney);
+    });
+    document.getElementById("jrAddFeeder").addEventListener("click", function () {
+      var j=currentJourney(); if (!j) return;
+      var existing=sendsInJourney(j.id,"feeder");
+      DB.sends.push({
+        id:uid("snd"), channelId:j.channelId, journeyId:j.id, kind:"feeder",
+        date: existing.length ? "" : (j.start||""),
+        title: existing.length ? "" : "Welcome",
+        status:"draft", segments:[], notes:""
+      });
+      saveDB(); renderJourneyDetail(); render();
     });
 
-    // promo
     document.getElementById("promoBtn").addEventListener("click", openPromo);
     document.getElementById("promoClose").addEventListener("click", function () {
       document.getElementById("promoOverlay").classList.add("hidden");
@@ -1478,8 +1776,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("importJsonBtn").addEventListener("click", importJson);
 
     document.getElementById("importEventsBtn").addEventListener("click", function () {
-      var inp=document.createElement("input");
-      inp.type="file"; inp.accept=".csv,text/csv";
+      var inp=document.createElement("input"); inp.type="file"; inp.accept=".csv,text/csv";
       inp.addEventListener("change", function () {
         var f=inp.files && inp.files[0]; if (!f) return;
         var fr=new FileReader();
@@ -1493,6 +1790,10 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.addEventListener("keydown", function (e) {
       if (e.key==="Escape") {
         if (!document.getElementById("editorOverlay").classList.contains("hidden")) closeEditor(true);
+        if (!document.getElementById("journeyOverlay").classList.contains("hidden")) {
+          editingJourney=null; saveDB();
+          document.getElementById("journeyOverlay").classList.add("hidden"); render();
+        }
         document.getElementById("promoOverlay").classList.add("hidden");
       }
     });
@@ -1500,12 +1801,9 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     // Data first, then paint — loadDB is async because it may hit the server.
     setSaveStatus("Loading…");
     loadDB(function () {
-      loadData();
-      render();
+      loadData(); render();
       setSaveStatus(serverOk
-        ? (lastMeta && lastMeta.updatedBy
-            ? "Last saved by " + lastMeta.updatedBy
-            : "Connected · changes are shared")
+        ? (lastMeta && lastMeta.updatedBy ? "Last saved by "+lastMeta.updatedBy : "Connected · changes are shared")
         : "Local only — not shared");
     });
   }

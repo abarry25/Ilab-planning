@@ -100,6 +100,20 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .sticky-cut { font-family:'IBM Plex Mono',monospace; font-size:8.5px; display:block;
   margin-top:1px; color:#2A4E70; }
 .sticky-cut.bad { color:var(--rust); font-weight:600; }
+.sticky-slack { font-family:'IBM Plex Mono',monospace; font-size:8.5px; display:block;
+  margin-top:1px; color:#4A2E7A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sticky-slack.none { color:var(--rust); font-weight:600; }
+.slack-box { border:1px solid var(--border); border-left:3px solid #6B3FA0;
+  border-radius:10px; padding:12px 13px; margin:0 0 12px; background:#FBFAFD; }
+.slack-box.hidden { display:none; }
+.slack-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(215px,1fr)); gap:2px 10px; }
+.slack-pick { display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace;
+  font-size:11px; padding:3px 4px; border-radius:5px; cursor:pointer; }
+.slack-pick:hover { background:#F1EDF8; }
+.slack-pick input { margin:0; flex:0 0 auto; }
+.slack-pick span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.slack-pick.on span { font-weight:600; color:#4A2E7A; }
+.slack-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:9px; }
 .sticky.status-draft { opacity:.72; border-style:dashed; }
 .sticky.status-sent { opacity:.5; }
 .sticky-warn { color:var(--rust); font-weight:700; }
@@ -313,13 +327,25 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     <div class="panel">
       <div class="panel-head">
         <span class="panel-title">Platforms / channels</span>
-        <span class="panel-note">Each becomes a lane. Rename in place, add as many as you need.</span>
+        <span class="panel-note">Each becomes a lane. Tick “Slack lane” to get per-send Slack channel selection.</span>
         <span class="spacer"></span>
         <button class="btn btn-accent" id="addChannelBtn">+ Add channel</button>
       </div>
       <table class="grid">
-        <thead><tr><th style="width:34px"></th><th>Name</th><th style="width:120px">Colour</th><th style="width:90px">Sends</th><th style="width:80px"></th></tr></thead>
+        <thead><tr><th style="width:34px"></th><th>Name</th><th style="width:120px">Colour</th><th style="width:90px">Slack lane</th><th style="width:90px">Sends</th><th style="width:80px"></th></tr></thead>
         <tbody id="channelBody"></tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Slack channels</span>
+        <span class="panel-note">The channels a Slack send can post to. Pick any number per send.</span>
+        <span class="spacer"></span>
+        <button class="btn btn-accent" id="addSlackChBtn">+ Add Slack channel</button>
+      </div>
+      <table class="grid">
+        <thead><tr><th>Channel</th><th style="width:110px">Used in</th><th style="width:80px"></th></tr></thead>
+        <tbody id="slackChBody"></tbody>
       </table>
     </div>
     <div class="panel">
@@ -369,6 +395,16 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           </select></label>
         <div class="fld" style="flex:1 1 200px"><span>&nbsp;</span>
           <div class="hint" id="edKindHint" style="margin-top:0"></div></div>
+      </div>
+      <div class="slack-box hidden" id="edSlackBox">
+        <div class="slack-bar">
+          <span class="trigger-box-title" style="margin:0">Post to</span>
+          <span class="panel-note" id="edSlackCount"></span>
+          <span class="spacer"></span>
+          <button class="btn btn-sm" id="edSlackAll">Select all</button>
+          <button class="btn btn-sm" id="edSlackNone">Clear</button>
+        </div>
+        <div class="slack-grid" id="edSlackGrid"></div>
       </div>
       <div class="fld-row" id="edCutoffRow">
         <label class="fld" style="flex:0 0 190px"><span>Must be in system by</span>
@@ -559,6 +595,14 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     { id:"ch_slack",  name:"Slack",         color:"#6B3FA0" },
     { id:"ch_ginbox", name:"General inbox", color:"#B24C3D" }
   ];
+  /* The i-lab Slack workspace. Editable in setup — this is only the seed, so a
+     new channel in Slack is one row here, not a code change. */
+  var DEFAULT_SLACK_CHANNELS = [
+    "#start-here", "#announcements", "#events-and-opportunities",
+    "#celebrate-milestones", "#share-your-business", "#customer-discovery-help",
+    "#funding-opportunities", "#i-lab-questions", "#request-for-intros",
+    "#join-my-team-or-looking-for-a-team", "#resource-recommendations"
+  ];
   /* Trigger vocabulary. Keeping these as ids with labels means the CSV export
      groups cleanly across the plan; `custom` carries free text for anything the
      list doesn't cover, so nothing is blocked by the preset list. */
@@ -634,6 +678,16 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         return { id:"seg_"+k, name:PERSONA_FALLBACK[k], persona:k };
       });
     }
+    if (!Array.isArray(DB.slackChannels) || !DB.slackChannels.length) {
+      DB.slackChannels=DEFAULT_SLACK_CHANNELS.map(function (n) {
+        return { id:"slk_"+n.replace(/[^a-z0-9]+/gi,"_").replace(/^_|_$/g,""), name:n };
+      });
+    }
+    // A lane called anything with "slack" in it gets channel selection by
+    // default; the flag is explicit afterwards so renaming the lane is safe.
+    DB.channels.forEach(function (c) {
+      if (typeof c.slack!=="boolean") c.slack=/slack/i.test(String(c.name||""));
+    });
     if (!Array.isArray(DB.sends))    DB.sends=[];
     if (!Array.isArray(DB.journeys)) DB.journeys=[];
     if (!Array.isArray(DB.events))   DB.events=[];
@@ -642,6 +696,12 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       if (!s.kind) s.kind="send";
       if (typeof s.cutoff!=="string") s.cutoff="";
       if (typeof s.sendOn!=="string") s.sendOn="";
+      if (!Array.isArray(s.slackChannels)) s.slackChannels=[];
+      // Drop references to Slack channels that no longer exist, so a deleted
+      // channel can't linger invisibly in a send.
+      s.slackChannels=s.slackChannels.filter(function (id) {
+        return DB.slackChannels.some(function(sc){ return sc.id===id; });
+      });
       if (s.kind==="triggered") {
         if (!s.trigger || typeof s.trigger!=="object") s.trigger={ preset:"", text:"" };
         if (typeof s.trigger.preset!=="string") s.trigger.preset="";
@@ -918,6 +978,16 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   function journeyById(id){ for (var i=0;i<DB.journeys.length;i++) if (DB.journeys[i].id===id) return DB.journeys[i]; return null; }
   function journeysForChannel(chId){ return DB.journeys.filter(function(j){ return j.channelId===chId; }); }
   function segmentUsage(segId){ return DB.sends.filter(function(s){ return (s.segments||[]).some(function(x){ return x.segId===segId; }); }).length; }
+  function slackChById(id){ for (var i=0;i<DB.slackChannels.length;i++) if (DB.slackChannels[i].id===id) return DB.slackChannels[i]; return null; }
+  function isSlackLane(chId){ var c=channelById(chId); return !!(c && c.slack); }
+  function slackNames(s) {
+    return (s.slackChannels||[]).map(function (id) {
+      var c=slackChById(id); return c?c.name:null;
+    }).filter(Boolean);
+  }
+  function slackChUsage(id) {
+    return DB.sends.filter(function(s){ return (s.slackChannels||[]).indexOf(id)>=0; }).length;
+  }
   function isAuto(s){ return (s&&(s.kind||"send"))==="triggered"; }
   function automations(){ return DB.sends.filter(isAuto); }
   function autosForChannel(chId){ return automations().filter(function(s){ return s.channelId===chId; }); }
@@ -1195,6 +1265,16 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var el=describeEligibility(s);
       if (el.bad) badCutoffs.push((s.title||"untitled")+" — "+el.text);
     });
+    // A Slack send with no channel picked has no destination — the one thing a
+    // Slack post can't be missing.
+    var noSlackCh=DB.sends.filter(function (s) {
+      return isSlackLane(s.channelId) && !(s.slackChannels||[]).length;
+    });
+    if (noSlackCh.length) items.push({ level:"warn",
+      msg:noSlackCh.length+" Slack send(s) have no channel picked yet, so there's nowhere for them to post: "+
+        noSlackCh.slice(0,3).map(function(s){ return s.title||"untitled"; }).join("; ")+
+        (noSlackCh.length>3?" and "+(noSlackCh.length-3)+" more":"")+
+        ". Open each one and tick its channels under “Post to”." });
     if (badCutoffs.length) items.push({ level:"warn",
       msg:"Message(s) whose enrolment cutoff excludes everyone: "+badCutoffs.slice(0,2).join(" | ")+
         (badCutoffs.length>2?" and "+(badCutoffs.length-2)+" more":"") });
@@ -1448,13 +1528,22 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           esc(o?fmtShort(o):"?")+"–"+esc(u?fmtShort(u):"open")+"</span>";
       }
     }
+    var slk="";
+    if (isSlackLane(s.channelId)) {
+      var names=slackNames(s);
+      if (!names.length) slk='<span class="sticky-slack none">⌗ no channel picked</span>';
+      else slk='<span class="sticky-slack" title="'+esc(names.join("\n"))+'">⌗ '+
+        esc(names[0])+(names.length>1?" +"+(names.length-1):"")+"</span>";
+      if (!names.length) bad=true;
+    }
     b.innerHTML='<span class="sticky-day">'+(isFeeder?(s.sendOn?"⤷ digest · ":"⤷ on entry · "):"")+
         esc(fmtDay(d))+((warn||bad)?' <span class="sticky-warn">!</span>':"")+"</span>"+
       '<span class="sticky-title">'+esc(s.title||(isFeeder?"Untitled entry email":"Untitled send"))+"</span>"+
-      cut+
+      slk+cut+
       '<span class="sticky-segs">'+(jr?esc(jr.name)+" · ":"")+segCount+" seg · "+slotCount+" item"+(slotCount===1?"":"s")+"</span>";
     b.title=(s.title||"Untitled")+
       (isFeeder&&!s.sendOn ? " — cohort opens "+fmtDay(d) : " — sends "+fmtDay(d))+
+      (isSlackLane(s.channelId) ? "\nPost to: "+(slackNames(s).join(", ")||"nothing selected yet") : "")+
       (el?"\n"+el.text:"")+"\n\n"+describeSend(s);
     b.addEventListener("click", function(){ openEditor(s.id); });
     return b;
@@ -1603,6 +1692,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var col=document.createElement("input"); col.type="text"; col.value=ch.color; col.style.width="100%";
       col.addEventListener("change", function(){ ch.color=col.value||"#888"; saveDB(); render(); });
       td2.appendChild(col); tr.appendChild(td2);
+      var tdS=document.createElement("td");
+      var sw=document.createElement("input"); sw.type="checkbox"; sw.checked=!!ch.slack;
+      sw.title="Sends in this lane get per-send Slack channel selection";
+      sw.addEventListener("change", function(){ ch.slack=sw.checked; saveDB(); render(); });
+      tdS.appendChild(sw); tr.appendChild(tdS);
       var n=DB.sends.filter(function(s){ return s.channelId===ch.id; }).length;
       var nAuto=autosForChannel(ch.id).length;
       var td3=document.createElement("td"); td3.textContent=n+(nAuto?" ("+nAuto+"⚡)":""); tr.appendChild(td3);
@@ -1634,6 +1728,36 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
       td4.appendChild(del); tr.appendChild(td4);
       cb.appendChild(tr);
+    });
+    var scb=document.getElementById("slackChBody"); scb.innerHTML="";
+    DB.slackChannels.forEach(function (sc) {
+      var tr=document.createElement("tr");
+      var t1=document.createElement("td");
+      var nm=document.createElement("input"); nm.type="text"; nm.value=sc.name; nm.style.width="100%";
+      nm.style.fontFamily="'IBM Plex Mono',monospace";
+      nm.addEventListener("change", function () {
+        var v=nm.value.trim();
+        // Slack channel names carry the # — add it back so the plan reads the
+        // way the workspace does even if someone types it without.
+        sc.name=v?(v.charAt(0)==="#"?v:"#"+v):"#untitled";
+        saveDB(); render();
+      });
+      t1.appendChild(nm); tr.appendChild(t1);
+      var used=slackChUsage(sc.id);
+      var t2=document.createElement("td"); t2.textContent=used+" send"+(used===1?"":"s"); tr.appendChild(t2);
+      var t3=document.createElement("td");
+      var del=document.createElement("button"); del.className="btn btn-sm"; del.textContent="Delete";
+      del.addEventListener("click", function () {
+        if (used && !window.confirm("“"+sc.name+"” is selected on "+used+
+            " send(s). Delete it? Those sends keep everything else and just lose this channel.")) return;
+        DB.slackChannels=DB.slackChannels.filter(function(x){ return x.id!==sc.id; });
+        DB.sends.forEach(function (s) {
+          s.slackChannels=(s.slackChannels||[]).filter(function(id){ return id!==sc.id; });
+        });
+        saveDB(); render();
+      });
+      t3.appendChild(del); tr.appendChild(t3);
+      scb.appendChild(tr);
     });
     var sb=document.getElementById("segmentBody"); sb.innerHTML="";
     DB.segments.forEach(function (sg) {
@@ -1710,8 +1834,38 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("edActiveFrom").value=s.activeFrom||"";
     document.getElementById("edActiveUntil").value=s.activeUntil||"";
     updateKindUi();
+    renderSlackPicker();
     renderEditorSegments();
     document.getElementById("editorOverlay").classList.remove("hidden");
+  }
+  /* Checkboxes rather than a <select multiple>: eleven options that people pick
+     two or three of, where the ones already chosen need to be readable at a
+     glance without clicking into the control. */
+  function renderSlackPicker() {
+    var s=currentSend(); if (!s) return;
+    var lane=document.getElementById("edChannel").value;
+    var show=isSlackLane(lane);
+    document.getElementById("edSlackBox").classList.toggle("hidden", !show);
+    if (!show) return;
+    var host=document.getElementById("edSlackGrid"); host.innerHTML="";
+    DB.slackChannels.forEach(function (sc) {
+      var on=(s.slackChannels||[]).indexOf(sc.id)>=0;
+      var lab=document.createElement("label"); lab.className="slack-pick"+(on?" on":"");
+      var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=on;
+      cb.addEventListener("change", function () {
+        s.slackChannels=s.slackChannels||[];
+        var i=s.slackChannels.indexOf(sc.id);
+        if (cb.checked && i<0) s.slackChannels.push(sc.id);
+        else if (!cb.checked && i>=0) s.slackChannels.splice(i,1);
+        saveDB(); renderSlackPicker();
+      });
+      var nm=document.createElement("span"); nm.textContent=sc.name;
+      lab.appendChild(cb); lab.appendChild(nm); host.appendChild(lab);
+    });
+    var n=(s.slackChannels||[]).length;
+    var el=document.getElementById("edSlackCount");
+    el.textContent=n?(n+" channel"+(n===1?"":"s")+" selected"):"no channels selected yet";
+    el.style.color=n?"":"var(--rust)";
   }
   /* Three kinds share one form, so the fields that don't apply are hidden
      rather than left to be filled in wrongly: a feeder isn't sent on a date,
@@ -2183,7 +2337,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   function commsCsv() {
     var term=TERMS[termIdx], res=resolvedEvents(term);
     var rows=[["Date / active from","Weekday","Channel","Journey","Type","Trigger","Delay (days)",
-               "Window","Must be in system by","Who receives it","Title","Status",
+               "Window","Slack channels","Must be in system by","Who receives it","Title","Status",
                "Segment","Persona","Slot","Content","Content date",
                "Tag match","Window check","Notes"]];
     DB.sends.filter(function(s){ return inTerm(s,term); })
@@ -2206,6 +2360,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
                   typeLabel, auto?triggerText(s):"",
                   auto?(s.delay||0):"",
                   w?describeWindow(w):"",
+                  isSlackLane(s.channelId)?(slackNames(s).join(" ")||"NONE PICKED"):"",
                   cutoffApplies(s)?(s.cutoff||"no cutoff"):(isFeeder?("cohort opens "+(s.date||"?")):""),
                   elig?((elig.bad?"CHECK — ":"")+elig.text):"",
                   s.title||"", s.status||"" ];
@@ -2249,14 +2404,22 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
      — two plans can legitimately schedule the same day, and silently collapsing
      them would lose work. Existing events are never overwritten. */
   function mergePlan(p) {
-    var chMap={}, segMap={}, jrMap={};
+    var chMap={}, segMap={}, jrMap={}, slkMap={};
     var rep={ chReused:0, chAdded:0, segReused:0, segAdded:0, jrReused:0, jrAdded:0,
-              sends:0, events:"" };
+              slkAdded:0, sends:0, events:"" };
+    (p.slackChannels||[]).forEach(function (sc) {
+      var ex=findByName(DB.slackChannels,sc.name);
+      if (ex) { slkMap[sc.id]=ex.id; return; }
+      var nid=uid("slk");
+      DB.slackChannels.push({ id:nid, name:sc.name||"#untitled" });
+      slkMap[sc.id]=nid; rep.slkAdded++;
+    });
     (p.channels||[]).forEach(function (c) {
       var ex=findByName(DB.channels,c.name);
       if (ex) { chMap[c.id]=ex.id; rep.chReused++; return; }
       var nid=uid("ch");
-      DB.channels.push({ id:nid, name:c.name||"Untitled", color:c.color||"#4A5A73" });
+      DB.channels.push({ id:nid, name:c.name||"Untitled", color:c.color||"#4A5A73",
+                         slack: typeof c.slack==="boolean"?c.slack:/slack/i.test(String(c.name||"")) });
       chMap[c.id]=nid; rep.chAdded++;
     });
     (p.segments||[]).forEach(function (s) {
@@ -2284,6 +2447,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       copy.segments=(s.segments||[]).map(function (sg) {
         return { segId:segMap[sg.segId]||sg.segId, items:(sg.items||[]).slice() };
       });
+      copy.slackChannels=(s.slackChannels||[]).map(function(id){ return slkMap[id]||id; });
       DB.sends.push(copy); rep.sends++;
     });
     var incoming=(p.events||[]).length;
@@ -2319,6 +2483,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
             "· channels: "+rep.chAdded+" new, "+rep.chReused+" matched to yours by name\n"+
             "· segments: "+rep.segAdded+" new, "+rep.segReused+" matched\n"+
             "· journeys: "+rep.jrAdded+" new, "+rep.jrReused+" matched\n"+
+            (rep.slkAdded?"· "+rep.slkAdded+" new Slack channel(s)\n":"")+
             (rep.events?"· "+rep.events+"\n":"")+
             "\nNothing was deleted. Check the health panel for anything that needs a date or a trigger.");
           return;
@@ -2362,6 +2527,16 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("addChannelBtn").addEventListener("click", function () {
       var palette=["#4A5A73","#2A7F7F","#6B3FA0","#C98A2B","#B24C3D","#3B6E91","#1E7A5F","#A63E85"];
       DB.channels.push({ id:uid("ch"), name:"New channel", color:palette[DB.channels.length%palette.length] });
+      saveDB(); render();
+    });
+    document.getElementById("addSlackChBtn").addEventListener("click", function () {
+      var n=(window.prompt("Slack channel name (the # is added for you)","")||"").trim();
+      if (!n) return;
+      var name=n.charAt(0)==="#"?n:"#"+n;
+      if (DB.slackChannels.some(function(c){ return nameKey(c.name)===nameKey(name); })) {
+        window.alert("“"+name+"” is already in the list."); return;
+      }
+      DB.slackChannels.push({ id:uid("slk"), name:name });
       saveDB(); render();
     });
     document.getElementById("addSegmentBtn").addEventListener("click", function () {
@@ -2441,6 +2616,20 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
     document.getElementById("edKind").addEventListener("change", function () {
       updateKindUi(); renderEditorSegments();
+    });
+    document.getElementById("edChannel").addEventListener("change", function () {
+      var s=currentSend();
+      if (s) { s.channelId=document.getElementById("edChannel").value; saveDB(); }
+      renderSlackPicker();
+    });
+    document.getElementById("edSlackAll").addEventListener("click", function () {
+      var s=currentSend(); if (!s) return;
+      s.slackChannels=DB.slackChannels.map(function(c){ return c.id; });
+      saveDB(); renderSlackPicker();
+    });
+    document.getElementById("edSlackNone").addEventListener("click", function () {
+      var s=currentSend(); if (!s) return;
+      s.slackChannels=[]; saveDB(); renderSlackPicker();
     });
     document.getElementById("edJourney").addEventListener("change", function () {
       updateKindUi(); renderEditorSegments();

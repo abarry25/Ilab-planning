@@ -2236,19 +2236,98 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     download("ilab-comms-plan-"+term.id+".csv", toCsv(rows));
   }
   function exportJson(){ download("ilab-comms-plan.json", JSON.stringify(DB,null,2), "application/json"); }
+  function nameKey(s){ return String(s==null?"":s).trim().toLowerCase(); }
+  function findByName(list, name) {
+    var n=nameKey(name);
+    if (!n) return null;
+    for (var i=0;i<list.length;i++) if (nameKey(list[i].name)===n) return list[i];
+    return null;
+  }
+  /* Merge rather than replace. Channels, segments and journeys are matched by
+     name so an incoming plan lands in the lanes that already exist instead of
+     creating a second "Slack"; ids are remapped as we go. Sends are always added
+     — two plans can legitimately schedule the same day, and silently collapsing
+     them would lose work. Existing events are never overwritten. */
+  function mergePlan(p) {
+    var chMap={}, segMap={}, jrMap={};
+    var rep={ chReused:0, chAdded:0, segReused:0, segAdded:0, jrReused:0, jrAdded:0,
+              sends:0, events:"" };
+    (p.channels||[]).forEach(function (c) {
+      var ex=findByName(DB.channels,c.name);
+      if (ex) { chMap[c.id]=ex.id; rep.chReused++; return; }
+      var nid=uid("ch");
+      DB.channels.push({ id:nid, name:c.name||"Untitled", color:c.color||"#4A5A73" });
+      chMap[c.id]=nid; rep.chAdded++;
+    });
+    (p.segments||[]).forEach(function (s) {
+      var ex=findByName(DB.segments,s.name);
+      if (ex) { segMap[s.id]=ex.id; rep.segReused++; return; }
+      var nid=uid("seg");
+      DB.segments.push({ id:nid, name:s.name||"Untitled", persona:s.persona||null });
+      segMap[s.id]=nid; rep.segAdded++;
+    });
+    (p.journeys||[]).forEach(function (j) {
+      var ex=findByName(DB.journeys,j.name);
+      if (ex) { jrMap[j.id]=ex.id; rep.jrReused++; return; }
+      var nid=uid("jr");
+      DB.journeys.push({ id:nid, name:j.name||"Untitled",
+        channelId:chMap[j.channelId]||(DB.channels[0]&&DB.channels[0].id)||"",
+        start:j.start||"", end:j.end||"", color:j.color||"#4A5A73", notes:j.notes||"" });
+      jrMap[j.id]=nid; rep.jrAdded++;
+    });
+    var fallbackCh=(DB.channels[0]&&DB.channels[0].id)||"";
+    (p.sends||[]).forEach(function (s) {
+      var copy=JSON.parse(JSON.stringify(s));
+      copy.id=uid("snd");
+      copy.channelId=chMap[s.channelId]||fallbackCh;
+      copy.journeyId=s.journeyId?(jrMap[s.journeyId]||""):"";
+      copy.segments=(s.segments||[]).map(function (sg) {
+        return { segId:segMap[sg.segId]||sg.segId, items:(sg.items||[]).slice() };
+      });
+      DB.sends.push(copy); rep.sends++;
+    });
+    var incoming=(p.events||[]).length;
+    if (incoming && !(DB.events||[]).length) {
+      DB.events=p.events.slice(); DB.eventsMeta=p.eventsMeta||{};
+      rep.events="Adopted "+incoming+" event(s) from the file.";
+    } else if (incoming) {
+      rep.events="Kept your "+DB.events.length+" event(s); ignored the "+incoming+" in the file.";
+    }
+    return rep;
+  }
   function importJson() {
     var inp=document.createElement("input"); inp.type="file"; inp.accept=".json,application/json";
     inp.addEventListener("change", function () {
       var f=inp.files && inp.files[0]; if (!f) return;
       var fr=new FileReader();
       fr.onload=function () {
+        var p;
         try {
-          var p=JSON.parse(fr.result);
+          p=JSON.parse(fr.result);
           if (!p || !Array.isArray(p.channels) || !Array.isArray(p.sends)) throw new Error("shape");
-          if (!window.confirm("Replace the current plan with the imported one? "+
-              p.sends.length+" send(s), "+p.channels.length+" channel(s).")) return;
-          DB=p; normalizeDB(); saveDB(); problems=[]; loadData(); render();
-        } catch(e){ window.alert("That file isn't a communications plan export."); }
+        } catch(e){ window.alert("That file isn't a communications plan export."); return; }
+        var summary=p.sends.length+" send(s), "+(p.journeys||[]).length+" journey(s), "+
+          p.channels.length+" channel(s)";
+        // Merge is offered first and is the safe answer, so the destructive path
+        // needs two deliberate decisions rather than one stray click.
+        if (window.confirm("Merge this plan into your current one?\n\nBringing in: "+summary+
+            "\n\nOK = merge, nothing of yours is deleted.\nCancel = choose to replace instead.")) {
+          var rep=mergePlan(p);
+          normalizeDB(); saveDB(); problems=[]; loadData(); render();
+          window.alert("Merged.\n\n"+
+            "· "+rep.sends+" send(s) added\n"+
+            "· channels: "+rep.chAdded+" new, "+rep.chReused+" matched to yours by name\n"+
+            "· segments: "+rep.segAdded+" new, "+rep.segReused+" matched\n"+
+            "· journeys: "+rep.jrAdded+" new, "+rep.jrReused+" matched\n"+
+            (rep.events?"· "+rep.events+"\n":"")+
+            "\nNothing was deleted. Check the health panel for anything that needs a date or a trigger.");
+          return;
+        }
+        if (!window.confirm("Replace your entire plan instead?\n\nThis deletes "+
+            DB.sends.length+" send(s), "+DB.journeys.length+" journey(s) and "+
+            DB.channels.length+" channel(s) of your own, and cannot be undone.\n\n"+
+            "OK = replace.  Cancel = do nothing.")) return;
+        DB=p; normalizeDB(); saveDB(); problems=[]; loadData(); render();
       };
       fr.readAsText(f);
     });

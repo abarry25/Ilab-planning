@@ -29,6 +29,28 @@ body { margin:0; font-family:'Inter',-apple-system,sans-serif; color:var(--ink);
   flex-wrap:wrap; box-shadow:0 8px 24px rgba(22,35,63,.18); }
 .banner-title { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:23px; margin:0 0 5px; }
 .banner-sub { color:#B7C2D6; font-size:13px; max-width:660px; }
+.banner-help { border:1px solid rgba(255,255,255,.32); background:rgba(255,255,255,.08);
+  color:#EDF1F7; font-family:'IBM Plex Mono',monospace; font-size:11.5px;
+  padding:6px 12px; border-radius:8px; cursor:pointer; white-space:nowrap; }
+.banner-help:hover { background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.55); }
+.help-sec { margin:0 0 20px; }
+.help-sec:last-child { margin-bottom:4px; }
+.help-h { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px;
+  margin:0 0 7px; }
+.help-p { font-size:13px; color:var(--ink-soft); line-height:1.6; margin:0 0 8px; }
+.help-p b { color:var(--ink); }
+.help-tbl { border-collapse:collapse; width:100%; font-size:12.5px; }
+.help-tbl td { padding:5px 8px 5px 0; vertical-align:top; border-bottom:1px solid #F0F2F4; }
+.help-tbl td:first-child { width:180px; font-weight:600; color:var(--ink); white-space:nowrap; }
+.help-tbl td:last-child { color:var(--ink-soft); line-height:1.5; }
+.help-mark { display:inline-block; width:26px; text-align:center;
+  font-family:'IBM Plex Mono',monospace; font-size:11px; }
+.help-swatch { display:inline-block; width:22px; height:9px; border-radius:4px;
+  background:#4A5A73; vertical-align:1px; }
+.help-swatch.hatch { background-image:repeating-linear-gradient(135deg,
+  rgba(255,255,255,.45) 0 4px, rgba(255,255,255,0) 4px 8px); }
+.help-swatch.note { width:12px; height:12px; border-radius:3px; border-left:3px solid #4A5A73;
+  background:#EDF0F3; vertical-align:-2px; }
 .controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:16px 0 10px; }
 .btn { border:1px solid var(--border); background:var(--panel); color:var(--ink);
   font-family:'IBM Plex Mono',monospace; font-size:11.5px; padding:7px 12px;
@@ -247,7 +269,10 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       </div>
     </div>
     <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end">
-      <select id="termSel"></select>
+      <div style="display:flex; gap:8px; align-items:center">
+        <button class="banner-help" id="helpBtn">? How to use</button>
+        <select id="termSel"></select>
+      </div>
       <span id="saveStatus" style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#B7C2D6"></span>
     </div>
   </div>
@@ -367,6 +392,98 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         <thead><tr><th>Name</th><th style="width:200px">Linked persona</th><th style="width:90px">Used in</th><th style="width:80px"></th></tr></thead>
         <tbody id="segmentBody"></tbody>
       </table>
+    </div>
+  </div>
+</div>
+<div class="overlay hidden" id="helpOverlay">
+  <div class="modal" style="width:min(720px,100%)">
+    <div class="modal-head">
+      <span class="modal-title">How to use this comms tool</span>
+      <span class="spacer"></span>
+      <button class="btn" id="helpClose">Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="help-sec">
+        <div class="help-h">The idea</div>
+        <p class="help-p">
+          One row per platform, one column per week. Every message sits on the day it
+          actually goes out. The top row shows what's <b>running</b> that week — the
+          events your messages can point at.
+        </p>
+      </div>
+      <div class="help-sec">
+        <div class="help-h">Four kinds of message</div>
+        <table class="help-tbl">
+          <tr><td>Dated send</td><td>Goes out on one day, to whoever you pick. The everyday case.</td></tr>
+          <tr><td>Journey</td><td>A sequence running over weeks, where people join at different points — a weekly digest, an onboarding series.</td></tr>
+          <tr><td>Entry email</td><td>The welcome for people who joined during one window. Belongs to a journey.</td></tr>
+          <tr><td>Automation</td><td>Fires when someone <i>does</i> something rather than on a date, and only while it's switched on.</td></tr>
+        </table>
+      </div>
+      <div class="help-sec">
+        <div class="help-h">Reading the board</div>
+        <table class="help-tbl">
+          <tr><td><span class="help-swatch note"></span> sticky note</td><td>A message on its send date. Click to open it.</td></tr>
+          <tr><td><span class="help-swatch"></span> solid bar</td><td>A journey running across those weeks. Click to open it.</td></tr>
+          <tr><td><span class="help-swatch hatch"></span> hatched bar</td><td>An automation — live, waiting on a trigger.</td></tr>
+          <tr><td><span class="help-mark">│</span> tick on a bar</td><td>Where one entry cohort ends and the next begins.</td></tr>
+          <tr><td><span class="help-mark">⌗</span> on a note</td><td>Which Slack channels it posts to.</td></tr>
+          <tr><td><span class="help-mark">⊣</span> on a note</td><td>Who's eligible — the enrolment cutoff or cohort window.</td></tr>
+          <tr><td><span class="help-mark" style="color:#B24C3D;font-weight:700">!</span> on a note</td><td>Something needs a look. The bar at the top of the page says what.</td></tr>
+        </table>
+      </div>
+      <div class="help-sec">
+        <div class="help-h">The four dates, and which is which</div>
+        <table class="help-tbl">
+          <tr><td>Sends on</td><td>The day it goes out. Every dated message has one.</td></tr>
+          <tr><td>Cohort opens</td><td>An entry email's start. People joining from this date get that welcome, until the next one opens.</td></tr>
+          <tr><td>Must be in system by</td><td>A journey message's enrolment cutoff. Join after it and you don't get this one. Leave it empty to send to everyone.</td></tr>
+          <tr><td>Active from / until</td><td>The window an automation is switched on. Outside it, nothing fires.</td></tr>
+        </table>
+      </div>
+      <div class="help-sec">
+        <div class="help-h">Doing things</div>
+        <p class="help-p">
+          Hover any week and click <b>+</b> to add a message there. <b>+ Journey</b> and
+          <b>+ Automation</b> are in the calendar header. The
+          <b>Journeys, automations &amp; channels</b> tab is where you manage lanes,
+          Slack channels and audience segments. <b>Expand all events</b> opens up every
+          busy week at once, or click <b>+N more</b> on a single one.
+        </p>
+      </div>
+      <div class="help-sec">
+        <div class="help-h">Getting things in and out</div>
+        <table class="help-tbl">
+          <tr><td>Import events CSV</td><td>Your Central Intake export from ClickUp. Once loaded, content slots pick from real events instead of free text.</td></tr>
+          <tr><td>Import plan</td><td>Choose <b>merge</b> to add someone else's plan to yours — nothing is deleted, and matching channels are reused. Replace wipes everything and asks twice.</td></tr>
+          <tr><td>Download plan CSV</td><td>One row per content item, with every date and audience spelled out. Good for sharing or for whoever builds the sends.</td></tr>
+          <tr><td>Export / import plan</td><td>A full backup of the plan as a file.</td></tr>
+        </table>
+      </div>
+      <div class="help-sec">
+        <div class="help-h">The bar at the top</div>
+        <p class="help-p">
+          It counts what's in the plan and lists anything that looks wrong — a Slack post
+          with no channel, an automation with no trigger, a cutoff that excludes everyone,
+          a message promoting an event that will already be over. It's advice, not a
+          gate: nothing stops you saving, because sometimes the odd-looking thing is
+          what you meant.
+        </p>
+      </div>
+      <div class="help-sec">
+        <div class="help-h">Saving</div>
+        <p class="help-p">
+          Changes save themselves and are shared with everyone on the plan — the note
+          under the term selector tells you the current state. If it says
+          <b>local only</b>, the page isn't talking to the server and your edits are
+          staying in this browser.
+        </p>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-accent" id="helpDone">Got it</button>
+      <span class="spacer"></span>
+      <span class="muted">Reopen any time with “? How to use”.</span>
     </div>
   </div>
 </div>
@@ -2735,6 +2852,16 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
       saveDB(); renderJourneyDetail(); render();
     });
+    function openHelp(){ document.getElementById("helpOverlay").classList.remove("hidden"); }
+    function closeHelp(){ document.getElementById("helpOverlay").classList.add("hidden"); }
+    document.getElementById("helpBtn").addEventListener("click", openHelp);
+    document.getElementById("helpClose").addEventListener("click", closeHelp);
+    document.getElementById("helpDone").addEventListener("click", closeHelp);
+    // Clicking the dimmed area behind the panel closes it, which is what people
+    // try first on a read-only overlay.
+    document.getElementById("helpOverlay").addEventListener("click", function (e) {
+      if (e.target===this) closeHelp();
+    });
     document.getElementById("promoBtn").addEventListener("click", openPromo);
     document.getElementById("promoClose").addEventListener("click", function () {
       document.getElementById("promoOverlay").classList.add("hidden");
@@ -2756,6 +2883,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
     document.addEventListener("keydown", function (e) {
       if (e.key==="Escape") {
+        document.getElementById("helpOverlay").classList.add("hidden");
         if (!document.getElementById("editorOverlay").classList.contains("hidden")) closeEditor(true);
         if (!document.getElementById("journeyOverlay").classList.contains("hidden")) {
           editingJourney=null; saveDB();

@@ -83,7 +83,14 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .ctx-row { background:#FBFCFD; border-bottom:1px solid var(--border); }
 .ctx-ev { font-size:9.5px; line-height:1.3; padding:2px 4px; border-radius:4px;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* Expanded cells let the name wrap instead of truncating — the whole point of
+   expanding is to read what's actually there. */
+.ctx-ev.full { white-space:normal; overflow:visible; text-overflow:clip; }
 .ctx-more { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--ink-soft); }
+.ctx-more-btn { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--ink-soft);
+  background:none; border:1px solid transparent; border-radius:4px; padding:1px 4px;
+  cursor:pointer; text-align:left; width:100%; }
+.ctx-more-btn:hover { border-color:var(--border); background:#fff; color:var(--ink); }
 .pin { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--ink-soft);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .pin.deadline { color:var(--rust); font-weight:600; }
@@ -262,6 +269,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         <span class="panel-title">Communications calendar</span>
         <span class="panel-note" id="commsNote"></span>
         <span class="spacer"></span>
+        <button class="btn" id="ctxAllBtn">Expand all events</button>
         <button class="btn" id="quickAutoBtn">+ Automation</button>
         <button class="btn" id="quickJourneyBtn">+ Journey</button>
         <label class="ctl">Show <select id="densitySel">
@@ -656,6 +664,10 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   var BOARD_KEY="ilab-comms-v1", MIRROR_KEY="ilab-comms-mirror", NAME_KEY="ilab-editor-name";
   var DB = { channels:[], segments:[], sends:[], journeys:[], events:[], eventsMeta:{} };
   var termIdx=0, editingId=null, editingJourney=null;
+  /* How many events a week shows before it truncates. Kept as view state rather
+     than saved, so one person expanding a busy week doesn't reshape the board
+     for everyone else looking at the shared plan. */
+  var CTX_LIMIT=4, ctxExpanded={}, ctxShowAll=false;
   var problems=[], serverOk=false, lastMeta=null;
   var saveTimer=null, saving=false, saveState="saved";
   function uid(p){ return p+"_"+Math.random().toString(36).slice(2,9); }
@@ -1316,6 +1328,13 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       DB.sends.length+"</b> sends";
     el.innerHTML=head+(items.length?"<ul>"+items.map(function(i){ return "<li>"+esc(i.msg)+"</li>"; }).join("")+"</ul>":"");
   }
+  function syncCtxAllBtn() {
+    var b=document.getElementById("ctxAllBtn");
+    if (!b) return;
+    var anyOpen=ctxShowAll||Object.keys(ctxExpanded).some(function(k){ return ctxExpanded[k]; });
+    b.textContent=anyOpen?"Collapse events":"Expand all events";
+    b.classList.toggle("active", !!anyOpen);
+  }
   function laneEl(name, meta, color) {
     var d=document.createElement("div"); d.className="lane";
     d.innerHTML='<div class="lane-name">'+(color?'<span class="lane-swatch" style="background:'+esc(color)+'"></span>':"")+
@@ -1425,18 +1444,37 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         }
       });
       var inWk=res.list.filter(function(r){ return r.date>=w.start && r.date<we; });
-      inWk.slice(0,3).forEach(function (r) {
+      var open=ctxShowAll||!!ctxExpanded[w.key];
+      (open?inWk:inWk.slice(0,CTX_LIMIT)).forEach(function (r) {
         var cat=CATS.filter(function(x){ return x.name===(r.ev.con||"Uncategorised"); })[0]||{bg:"#EEF1F4",fg:"#4B5A72"};
-        var d=document.createElement("div"); d.className="ctx-ev";
+        var d=document.createElement("div"); d.className="ctx-ev"+(open?" full":"");
         d.style.background=cat.bg; d.style.color=cat.fg;
         d.textContent=r.ev.name||r.ev.id;
         d.title=(r.ev.name||r.ev.id)+" · "+fmtShort(r.date)+
           (Array.isArray(r.ev.tags)&&r.ev.tags.length?"\nTags: "+r.ev.tags.join(", "):"");
         c.appendChild(d);
       });
-      if (inWk.length>3) {
-        var m2=document.createElement("div"); m2.className="ctx-more";
-        m2.textContent="+"+(inWk.length-3)+" more"; c.appendChild(m2);
+      if (inWk.length>CTX_LIMIT) {
+        var m2=document.createElement("button");
+        m2.type="button"; m2.className="ctx-more-btn";
+        m2.textContent=open?"− show less":"+"+(inWk.length-CTX_LIMIT)+" more";
+        m2.title=open ? "Collapse this week"
+          : inWk.slice(CTX_LIMIT).map(function (r) {
+              return fmtShort(r.date)+" · "+(r.ev.name||r.ev.id);
+            }).join("\n");
+        m2.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          // A per-week toggle has to be able to override the global one, so
+          // switching a cell off also drops out of "expand all".
+          if (ctxShowAll) {
+            ctxShowAll=false;
+            weeks.forEach(function(x){ ctxExpanded[x.key]=true; });
+            syncCtxAllBtn();
+          }
+          ctxExpanded[w.key]=!open;
+          render();
+        });
+        c.appendChild(m2);
       }
       if (!inWk.length) { var e0=document.createElement("div"); e0.className="ctx-more"; e0.textContent="—"; c.appendChild(e0); }
       ct.appendChild(c);
@@ -2504,6 +2542,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     renderComms(res,term,weeks);
     renderTimeline(res,term,weeks);
     renderSetup(res);
+    syncCtxAllBtn();
   }
   function newAutomation() {
     openEditor(null, (DB.channels[0]&&DB.channels[0].id)||"", "", "triggered");
@@ -2524,6 +2563,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
     });
     document.getElementById("densitySel").addEventListener("change", render);
+    document.getElementById("ctxAllBtn").addEventListener("click", function () {
+      var anyOpen=ctxShowAll||Object.keys(ctxExpanded).some(function(k){ return ctxExpanded[k]; });
+      ctxShowAll=!anyOpen; ctxExpanded={};
+      syncCtxAllBtn(); render();
+    });
     document.getElementById("addChannelBtn").addEventListener("click", function () {
       var palette=["#4A5A73","#2A7F7F","#6B3FA0","#C98A2B","#B24C3D","#3B6E91","#1E7A5F","#A63E85"];
       DB.channels.push({ id:uid("ch"), name:"New channel", color:palette[DB.channels.length%palette.length] });

@@ -399,7 +399,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         <button class="btn" id="addSegmentBtn">+ Add plain segment</button>
       </div>
       <table class="grid">
-        <thead><tr><th>Name</th><th style="width:190px">Built from</th><th style="width:200px">Mailchimp tags</th><th style="width:150px">Persona</th><th style="width:80px">Used in</th><th style="width:80px"></th></tr></thead>
+        <thead><tr><th>Name</th><th style="width:170px">Built from</th><th style="width:250px">Mailchimp segment condition</th><th style="width:130px">Persona</th><th style="width:70px">Used in</th><th style="width:70px"></th></tr></thead>
         <tbody id="segmentBody"></tbody>
       </table>
     </div>
@@ -454,12 +454,19 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       <div class="help-sec">
         <div class="help-h">Audiences and Mailchimp tags</div>
         <p class="help-p">
-          A <b>facet</b> is a dimension you slice by — membership status, founder
-          status — and each of its values carries a Mailchimp tag. Stacking one value
-          from each facet gives you combinations like <b>Returning Members + Founder</b>,
-          whose tag condition is derived for you: <b>returning-member AND founder</b>.
-          <b>+ Stack segments…</b> builds every combination you tick in one go. Each
-          segment holds its own content in a send, stacked or not.
+          A <b>facet</b> is a dimension you slice by, and it reads one Mailchimp field —
+          Founder status reads <b>Member Type</b>. Each value says what that field has
+          to equal. Stacking one value per facet gives combinations like
+          <b>Returning Members + Founder</b>, and the tool writes the condition
+          Mailchimp needs: <b>Membership Cohort is not Fall 2026 AND Member Type is
+          Founder</b>. Conditions are used rather than tags because a Mailchimp segment
+          re-evaluates itself as people change; a tag has to be reapplied.
+          <b>+ Stack segments…</b> builds every combination you tick in one go.
+        </p>
+        <p class="help-p">
+          Each segment holds its own content in a send. <b>How this gets built</b> on a
+          send with two or more segments says whether that ships as one email with
+          show/hide blocks, or a separate send per segment.
         </p>
       </div>
       <div class="help-sec">
@@ -591,6 +598,15 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       </div>
       <div class="fld">
         <span>Segments &amp; content</span>
+        <div class="fld-row" id="edBuildRow" style="margin-bottom:4px">
+          <label class="fld" style="flex:0 0 260px"><span>How this gets built</span>
+            <select id="edBuild">
+              <option value="conditional">One email, show/hide blocks</option>
+              <option value="separate">A separate send per segment</option>
+            </select></label>
+          <div class="fld" style="flex:1 1 240px"><span>&nbsp;</span>
+            <div class="hint" id="edBuildHint" style="margin-top:0"></div></div>
+        </div>
         <div id="edSegments"></div>
         <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
           <select id="edAddSegSel"></select>
@@ -772,14 +788,47 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
      facets — "Returning Members + Founder". Tags live on the value rather than
      on the combination, so a stacked segment's Mailchimp condition is derived
      (tag AND tag) instead of retyped for every permutation. */
+  /* The Mailchimp audience fields that sync from Salesforce. The first group is
+     what's worth segmenting on; the rest are here so nothing is unreachable.
+     Fields with no Salesforce source are listed but flagged, because segmenting
+     on a field that's always empty selects nobody. */
+  var MAILCHIMP_FIELDS = [
+    "Member Type", "Member Stage", "Membership Cohort", "Affiliation to Harvard",
+    "Harvard School", "Graduation Year", "Primary Expert Type",
+    "Organization", "Venture Name", "Title", "First Name", "Last Name",
+    "Secondary Email", "SMA Registration Email", "Expert URL", "Judge Link",
+    "Feedback - Improvement", "Feedback - Strengths", "Ingenuity Award Idea",
+    "Sign up", "lastname"
+  ];
+  var MAILCHIMP_UNMAPPED = { "Feedback - Improvement":1, "Feedback - Strengths":1,
+    "Ingenuity Award Idea":1, "Sign up":1, "lastname":1 };
+  var COND_OPS = [
+    { id:"is",       label:"is",             needsValue:true },
+    { id:"isnot",    label:"is not",         needsValue:true },
+    { id:"contains", label:"contains",       needsValue:true },
+    { id:"notcontains", label:"doesn't contain", needsValue:true },
+    { id:"notblank", label:"is not blank",   needsValue:false },
+    { id:"blank",    label:"is blank",       needsValue:false }
+  ];
+  function opLabel(id) {
+    for (var i=0;i<COND_OPS.length;i++) if (COND_OPS[i].id===id) return COND_OPS[i].label;
+    return "is";
+  }
+  function opNeedsValue(id) {
+    for (var i=0;i<COND_OPS.length;i++) if (COND_OPS[i].id===id) return COND_OPS[i].needsValue;
+    return true;
+  }
+  /* The Mailchimp field lives on the facet, not the value — every value of
+     "Founder status" is read off the same field. Values are left blank on
+     purpose: the picklist values belong to Salesforce, not to a guess here. */
   var DEFAULT_FACETS = [
-    { id:"fct_membership", name:"Membership", values:[
-      { id:"fv_new",       name:"New Members",       tag:"new-member" },
-      { id:"fv_returning", name:"Returning Members", tag:"returning-member" }
+    { id:"fct_membership", name:"Membership", field:"Membership Cohort", values:[
+      { id:"fv_new",       name:"New Members",       op:"is",    value:"", tag:"new-member" },
+      { id:"fv_returning", name:"Returning Members", op:"isnot", value:"", tag:"returning-member" }
     ] },
-    { id:"fct_founder", name:"Founder status", values:[
-      { id:"fv_founder",    name:"Founder",     tag:"founder" },
-      { id:"fv_nonfounder", name:"Non Founder", tag:"non-founder" }
+    { id:"fct_founder", name:"Founder status", field:"Member Type", values:[
+      { id:"fv_founder",    name:"Founder",     op:"is",    value:"", tag:"founder" },
+      { id:"fv_nonfounder", name:"Non Founder", op:"isnot", value:"", tag:"non-founder" }
     ] }
   ];
   function slugTag(s) {
@@ -878,7 +927,14 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     }
     DB.facets.forEach(function (f) {
       if (!Array.isArray(f.values)) f.values=[];
-      f.values.forEach(function(v){ if (typeof v.tag!=="string") v.tag=slugTag(v.name); });
+      // Migration: facets built before conditions existed carry tags only, so
+      // they keep their tags and simply have no field set yet.
+      if (typeof f.field!=="string") f.field="";
+      f.values.forEach(function (v) {
+        if (typeof v.tag!=="string")   v.tag=slugTag(v.name);
+        if (typeof v.op!=="string")    v.op="is";
+        if (typeof v.value!=="string") v.value="";
+      });
     });
     DB.segments.forEach(function (s) {
       if (!Array.isArray(s.parts)) s.parts=[];
@@ -905,6 +961,9 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       if (!s.kind) s.kind="send";
       if (typeof s.cutoff!=="string") s.cutoff="";
       if (typeof s.sendOn!=="string") s.sendOn="";
+      // How the send gets built. Only meaningful with two or more segments, but
+      // stored always so the answer survives adding a second segment later.
+      if (s.build!=="separate" && s.build!=="conditional") s.build="conditional";
       if (!Array.isArray(s.slackChannels)) s.slackChannels=[];
       // Drop references to Slack channels that no longer exist, so a deleted
       // channel can't linger invisibly in a send.
@@ -1209,6 +1268,31 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (!t.length) return "";
     return t.join(" AND ");
   }
+  /* One clause per stacked part, in the words Mailchimp uses, so what's on
+     screen can be typed straight into the segment builder. Incomplete parts are
+     named rather than silently skipped — a half-built condition selects the
+     wrong people, which is worse than an obvious gap. */
+  function segClauses(seg) {
+    return segParts(seg).map(function (p) {
+      var f=p.facet.field, op=p.value.op||"is", v=p.value.value||"";
+      if (!f) return { text:p.facet.name+" — no Mailchimp field set", ok:false };
+      if (opNeedsValue(op) && !v) return { text:f+" "+opLabel(op)+" …", ok:false };
+      return { text:f+" "+opLabel(op)+(opNeedsValue(op)?" "+v:""), ok:true };
+    });
+  }
+  function segCondition(seg) {
+    var cl=segClauses(seg);
+    if (!cl.length) return { text:"", ok:false, partial:false };
+    return { text:cl.map(function(c){ return c.text; }).join(" AND "),
+             ok:cl.every(function(c){ return c.ok; }),
+             partial:cl.some(function(c){ return !c.ok; }) };
+  }
+  function facetUsesDeadField(f){ return !!(f.field && MAILCHIMP_UNMAPPED[f.field]); }
+  function buildLabel(s) {
+    var n=(s.segments||[]).length;
+    if (n<2) return "";
+    return s.build==="separate" ? n+" separate sends" : "1 email, show/hide blocks";
+  }
   function stackedName(valueIds) {
     return valueIds.map(function (id) {
       var p=facetValueById(id); return p?p.value.name:null;
@@ -1505,13 +1589,26 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     // Slack post can't be missing.
     // A segment with no tag can't be selected in Mailchimp, and two segments
     // built from the same values will quietly double-send to the same people.
-    var noTag=DB.segments.filter(function (s) {
-      return segmentUsage(s.id)>0 && !segTagExpr(s);
-    }).map(function(s){ return s.name; });
-    if (noTag.length) items.push({ level:"warn",
-      msg:"Segment(s) in use with no Mailchimp tag, so there's nothing to select on in Mailchimp: "+
-        noTag.slice(0,4).join("; ")+(noTag.length>4?" and "+(noTag.length-4)+" more":"")+
-        ". Set the tag on the facet value, or type one on the segment." });
+    var unbuildable=[], noAudience=[];
+    DB.segments.forEach(function (s) {
+      if (!segmentUsage(s.id)) return;
+      if (isStacked(s)) {
+        var c=segCondition(s);
+        if (!c.ok) unbuildable.push(s.name+" — "+c.text);
+      } else if (!segTagExpr(s)) noAudience.push(s.name);
+    });
+    if (unbuildable.length) items.push({ level:"warn",
+      msg:"Segment(s) in use whose Mailchimp condition is incomplete, so they can't be built yet: "+
+        unbuildable.slice(0,3).join(" | ")+(unbuildable.length>3?" and "+(unbuildable.length-3)+" more":"")+
+        ". Fill in the field values under Audience facets." });
+    if (noAudience.length) items.push({ level:"warn",
+      msg:"Plain segment(s) in use with no condition or tag, so there's nothing to select on in Mailchimp: "+
+        noAudience.slice(0,4).join("; ")+(noAudience.length>4?" and "+(noAudience.length-4)+" more":"")+
+        ". Give them a tag, or rebuild them from facets so the segment auto-updates." });
+    var deadFacets=(DB.facets||[]).filter(facetUsesDeadField).map(function(f){ return f.name+" → "+f.field; });
+    if (deadFacets.length) items.push({ level:"warn",
+      msg:"Facet(s) reading a Mailchimp field with no Salesforce source, so the value is empty for everyone: "+
+        deadFacets.join("; ")+". Ask for that field to be synced, or point the facet at a different one." });
     var dupes=[];
     DB.segments.forEach(function (a,i) {
       if (!isStacked(a)) return;
@@ -1821,7 +1918,8 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         esc(fmtDay(d))+((warn||bad)?' <span class="sticky-warn">!</span>':"")+"</span>"+
       '<span class="sticky-title">'+esc(s.title||(isFeeder?"Untitled entry email":"Untitled send"))+"</span>"+
       slk+cut+
-      '<span class="sticky-segs">'+(jr?esc(jr.name)+" · ":"")+segCount+" seg · "+slotCount+" item"+(slotCount===1?"":"s")+"</span>";
+      '<span class="sticky-segs">'+(jr?esc(jr.name)+" · ":"")+segCount+" seg · "+slotCount+" item"+(slotCount===1?"":"s")+
+        (buildLabel(s)?" · "+(s.build==="separate"?"×"+segCount+" sends":"1 email"):"")+"</span>";
     b.title=(s.title||"Untitled")+
       (isFeeder&&!s.sendOn ? " — cohort opens "+fmtDay(d) : " — sends "+fmtDay(d))+
       (isSlackLane(s.channelId) ? "\nPost to: "+(slackNames(s).join(", ")||"nothing selected yet") : "")+
@@ -2049,12 +2147,24 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     (DB.facets||[]).forEach(function (f) {
       var box=document.createElement("div"); box.className="feeder";
       var head=document.createElement("div"); head.className="feeder-head";
-      head.appendChild(miniField("Facet", "text", f.name, "1 1 200px", "e.g. Membership",
+      head.appendChild(miniField("Facet", "text", f.name, "1 1 150px", "e.g. Membership",
         function (v) { f.name=v||"Untitled"; saveDB(); render(); }));
-      var sp0=document.createElement("span"); sp0.style.flex="1"; head.appendChild(sp0);
+      var fw=document.createElement("label"); fw.className="fld-mini"; fw.style.flex="1 1 190px";
+      var fl=document.createElement("span"); fl.textContent="Mailchimp field";
+      var fs=document.createElement("select"); fs.style.width="100%";
+      var fo=document.createElement("option"); fo.value=""; fo.textContent="— pick a field —"; fs.appendChild(fo);
+      MAILCHIMP_FIELDS.forEach(function (n) {
+        var o=document.createElement("option"); o.value=n;
+        o.textContent=n+(MAILCHIMP_UNMAPPED[n]?"  (not synced)":"");
+        fs.appendChild(o);
+      });
+      fs.value=f.field||"";
+      fs.addEventListener("change", function(){ f.field=fs.value; saveDB(); render(); });
+      fw.appendChild(fl); fw.appendChild(fs); head.appendChild(fw);
+      var sp0=document.createElement("span"); sp0.style.flex="0 1 10px"; head.appendChild(sp0);
       var addV=document.createElement("button"); addV.className="btn btn-sm"; addV.textContent="+ Value";
       addV.addEventListener("click", function () {
-        f.values.push({ id:uid("fv"), name:"New value", tag:"new-value" });
+        f.values.push({ id:uid("fv"), name:"New value", op:"is", value:"", tag:"new-value" });
         saveDB(); render();
       });
       head.appendChild(addV);
@@ -2093,11 +2203,27 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           saveDB(); render();
         });
         row.appendChild(nmI);
+        var opS=document.createElement("select"); opS.style.flex="0 0 120px";
+        COND_OPS.forEach(function (o) {
+          var op=document.createElement("option"); op.value=o.id; op.textContent=o.label; opS.appendChild(op);
+        });
+        opS.value=v.op||"is";
+        opS.title=f.field?("Condition on "+f.field):"Pick a Mailchimp field for this facet first";
+        opS.addEventListener("change", function(){ v.op=opS.value; saveDB(); render(); });
+        row.appendChild(opS);
+        var valI=document.createElement("input"); valI.type="text"; valI.value=v.value||"";
+        valI.placeholder=f.field?("value in "+f.field):"field value";
+        valI.style.flex="1 1 130px"; valI.style.fontFamily="'IBM Plex Mono',monospace";
+        valI.style.fontSize="11.5px";
+        valI.title="The exact value as it appears in Salesforce / Mailchimp";
+        if (!opNeedsValue(v.op)) { valI.disabled=true; valI.value=""; valI.placeholder="not needed"; }
+        valI.addEventListener("change", function(){ v.value=valI.value.trim(); saveDB(); render(); });
+        row.appendChild(valI);
         var tagI=document.createElement("input"); tagI.type="text"; tagI.value=v.tag;
-        tagI.placeholder="mailchimp-tag"; tagI.style.flex="1 1 150px";
+        tagI.placeholder="tag (optional)"; tagI.style.flex="0 1 120px";
         tagI.style.fontFamily="'IBM Plex Mono',monospace"; tagI.style.fontSize="11.5px";
-        tagI.title="The Mailchimp tag that identifies this value";
-        tagI.addEventListener("change", function(){ v.tag=slugTag(tagI.value); saveDB(); render(); });
+        tagI.title="Optional Mailchimp tag. Segments auto-update and are preferred, so this is only for anything genuinely tag-driven.";
+        tagI.addEventListener("change", function(){ v.tag=tagI.value.trim()?slugTag(tagI.value):""; saveDB(); render(); });
         row.appendChild(tagI);
         var rmV=document.createElement("button"); rmV.className="btn btn-sm"; rmV.textContent="×";
         rmV.addEventListener("click", function () {
@@ -2114,6 +2240,15 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         var vh=document.createElement("div"); vh.className="hint";
         vh.textContent="No values yet — add at least two for this facet to be worth stacking.";
         box.appendChild(vh);
+      }
+      if (!f.field) {
+        box.appendChild(warnEl("No Mailchimp field picked, so segments using this facet can't be built."));
+      } else if (facetUsesDeadField(f)) {
+        box.appendChild(warnEl("“"+f.field+"” has no Salesforce source in your connector, so it's empty for everyone — a segment on it selects nobody."));
+      } else {
+        var blanks=f.values.filter(function(v){ return opNeedsValue(v.op) && !v.value; });
+        if (blanks.length) box.appendChild(warnEl(blanks.length+" value(s) still need the exact "+
+          f.field+" value from Salesforce: "+blanks.map(function(v){ return v.name; }).join(", ")+"."));
       }
       var combos=1;
       (DB.facets||[]).forEach(function(x){ if (x.values.length) combos*=x.values.length; });
@@ -2141,25 +2276,40 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       }).join("");
       tr.appendChild(tdP);
       var tdT=document.createElement("td");
-      var tagIn=document.createElement("input"); tagIn.type="text";
-      tagIn.style.width="100%"; tagIn.style.fontFamily="'IBM Plex Mono',monospace";
-      tagIn.style.fontSize="11.5px";
-      tagIn.value=(sg.tags||[]).join(", ");
-      tagIn.placeholder=segTags(sg).join(", ")||"mailchimp tag(s)";
-      tagIn.title=parts.length
-        ? "Derived from the facet values. Type here only to override."
-        : "Mailchimp tag(s) for this audience, comma separated.";
-      tagIn.addEventListener("change", function () {
-        sg.tags=tagIn.value.split(",").map(function(t){ return slugTag(t); }).filter(function(t){ return t!=="untagged"||tagIn.value.trim(); });
-        sg.tags=tagIn.value.trim()?sg.tags:[];
-        saveDB(); render();
-      });
-      tdT.appendChild(tagIn);
-      var expr=segTagExpr(sg);
-      var ex=document.createElement("div"); ex.className="lane-meta"; ex.style.marginTop="3px";
-      ex.textContent=expr?(parts.length>1?expr:expr):"no tag set";
-      ex.style.color=expr?"":"var(--rust)";
-      tdT.appendChild(ex);
+      var cond=segCondition(sg);
+      if (parts.length) {
+        var cd=document.createElement("div"); cd.className="lane-meta";
+        cd.style.fontSize="10.5px"; cd.style.lineHeight="1.45";
+        cd.textContent=cond.text;
+        if (!cond.ok) cd.style.color="var(--rust)";
+        cd.title="Paste this into Mailchimp's segment builder";
+        tdT.appendChild(cd);
+      } else {
+        var tagIn=document.createElement("input"); tagIn.type="text";
+        tagIn.style.width="100%"; tagIn.style.fontFamily="'IBM Plex Mono',monospace";
+        tagIn.style.fontSize="11.5px";
+        tagIn.value=(sg.tags||[]).join(", ");
+        tagIn.placeholder="tag(s), comma separated";
+        tagIn.title="A plain segment has no facet condition, so name its Mailchimp tag(s) here.";
+        tagIn.addEventListener("change", function () {
+          sg.tags=tagIn.value.trim()
+            ? tagIn.value.split(",").map(function(t){ return slugTag(t); })
+            : [];
+          saveDB(); render();
+        });
+        tdT.appendChild(tagIn);
+      }
+      var tagsNow=segTags(sg);
+      if (parts.length && tagsNow.length) {
+        var tg2=document.createElement("div"); tg2.className="lane-meta"; tg2.style.marginTop="3px";
+        tg2.textContent="tag: "+tagsNow.join(" AND ");
+        tdT.appendChild(tg2);
+      }
+      if (!parts.length && !tagsNow.length) {
+        var nt=document.createElement("div"); nt.className="lane-meta"; nt.style.marginTop="3px";
+        nt.style.color="var(--rust)"; nt.textContent="no condition or tag";
+        tdT.appendChild(nt);
+      }
       tr.appendChild(tdT);
       var td2=document.createElement("td");
       var sel=document.createElement("select"); sel.style.width="100%";
@@ -2253,12 +2403,13 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     } else {
       prev.innerHTML=combos.map(function (ids) {
         var name=stackedName(ids);
-        var tags=ids.map(function(id){ var p=facetValueById(id); return p?p.value.tag:null; }).filter(Boolean);
+        var cond=segCondition({ parts:ids, tags:[] });
         var dupe=DB.segments.some(function(s){ return samePartSet(s.parts||[],ids); });
-        return '<div style="padding:3px 0">'+
+        return '<div style="padding:4px 0">'+
           (dupe?'<span class="tag" style="background:#FDF4F2;color:#7A2318">exists</span> ':"")+
-          "<b>"+esc(name)+"</b><br><span class=\"lane-meta\">Mailchimp: "+
-          esc(tags.join(" AND ")||"no tags on these values")+"</span></div>";
+          "<b>"+esc(name)+"</b><br><span class=\"lane-meta\""+
+          (cond.ok?"":' style="color:var(--rust)"')+">"+
+          esc(cond.text||"no condition — pick fields on the facets")+"</span></div>";
       }).join("");
     }
     var newN=combos.filter(function (ids) {
@@ -2457,10 +2608,17 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           head.appendChild(t0);
         });
       }
-      if (seg && segTagExpr(seg)) {
+      if (seg && isStacked(seg)) {
+        var cnd=segCondition(seg);
         var tt=document.createElement("span"); tt.className="tag trig";
-        tt.textContent=segTagExpr(seg); tt.title="Mailchimp tag condition for this segment";
+        if (!cnd.ok) { tt.style.background="#FDF4F2"; tt.style.color="#7A2318"; }
+        tt.textContent=cnd.text;
+        tt.title="Mailchimp segment condition"+(cnd.ok?"":" — incomplete, see Audience facets");
         head.appendChild(tt);
+      } else if (seg && segTagExpr(seg)) {
+        var tt2=document.createElement("span"); tt2.className="tag trig";
+        tt2.textContent="tag: "+segTagExpr(seg); tt2.title="Mailchimp tag for this segment";
+        head.appendChild(tt2);
       }
       if (seg && seg.persona) {
         var t=document.createElement("span"); t.className="tag persona"; t.textContent=seg.persona; head.appendChild(t);
@@ -2537,6 +2695,15 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var h2=document.createElement("div"); h2.className="hint";
       h2.textContent="No segments yet. Add one below to start breaking this send down.";
       host.appendChild(h2);
+    }
+    // Only two or more segments make the build method a real choice.
+    var nSeg=(s.segments||[]).length;
+    document.getElementById("edBuildRow").style.display=nSeg>1?"":"none";
+    if (nSeg>1) {
+      document.getElementById("edBuild").value=s.build||"conditional";
+      document.getElementById("edBuildHint").textContent = s.build==="separate"
+        ? nSeg+" sends to build, each to its own segment. Use when the whole message differs, not just a block."
+        : "One send, with each segment's content in a show/hide block. Fewer builds, and it stays one touch against the weekly cap.";
     }
     var sel2=document.getElementById("edAddSegSel"); sel2.innerHTML="";
     DB.segments.forEach(function (sg2) {
@@ -2843,7 +3010,8 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var term=TERMS[termIdx], res=resolvedEvents(term);
     var rows=[["Date / active from","Weekday","Channel","Journey","Type","Trigger","Delay (days)",
                "Window","Slack channels","Must be in system by","Who receives it","Title","Status",
-               "Segment","Built from","Mailchimp tags","Persona","Slot","Content","Content date",
+               "Build method","Segment","Built from","Mailchimp segment condition","Mailchimp tag",
+               "Persona","Slot","Content","Content date",
                "Tag match","Window check","Notes"]];
     DB.sends.filter(function(s){ return inTerm(s,term); })
       .sort(function (a,b) {
@@ -2868,13 +3036,15 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
                   isSlackLane(s.channelId)?(slackNames(s).join(" ")||"NONE PICKED"):"",
                   cutoffApplies(s)?(s.cutoff||"no cutoff"):(isFeeder?("cohort opens "+(s.date||"?")):""),
                   elig?((elig.bad?"CHECK — ":"")+elig.text):"",
-                  s.title||"", s.status||"" ];
-        if (!s.segments || !s.segments.length) { rows.push(pre.concat(["","","","","","","","",s.notes||""])); return; }
+                  s.title||"", s.status||"", buildLabel(s) ];
+        if (!s.segments || !s.segments.length) { rows.push(pre.concat(["","","","","","","","","",s.notes||""])); return; }
         s.segments.forEach(function (sg) {
           var seg=segmentById(sg.segId);
+          var cnd=seg?segCondition(seg):null;
           var segCols=[ seg?seg.name:"[deleted]",
                         seg?segParts(seg).map(function(p){ return p.facet.name+": "+p.value.name; }).join(" + "):"",
-                        seg?(segTagExpr(seg)||"NO TAG"):"",
+                        seg?(isStacked(seg)?((cnd.ok?"":"INCOMPLETE — ")+cnd.text):""):"",
+                        seg?(segTagExpr(seg)||""):"",
                         seg&&seg.persona?seg.persona:"" ];
           var items=sg.items||[];
           if (!items.length) { rows.push(pre.concat(segCols,["","","","",s.notes||""])); return; }
@@ -3171,6 +3341,11 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var s=currentSend(); if (!s) return;
       s.slackChannels=DB.slackChannels.map(function(c){ return c.id; });
       saveDB(); renderSlackPicker();
+    });
+    document.getElementById("edBuild").addEventListener("change", function () {
+      var s=currentSend();
+      if (s) { s.build=document.getElementById("edBuild").value; saveDB(); }
+      renderEditorSegments();
     });
     document.getElementById("edSlackNone").addEventListener("click", function () {
       var s=currentSend(); if (!s) return;

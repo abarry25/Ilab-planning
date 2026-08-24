@@ -383,13 +383,23 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     </div>
     <div class="panel">
       <div class="panel-head">
-        <span class="panel-title">Segments</span>
-        <span class="panel-note">Six Wayfinder personas preloaded. Link a segment to a persona to get content checking; leave it unlinked for audiences outside the founder model.</span>
+        <span class="panel-title">Audience facets</span>
+        <span class="panel-note">The dimensions you slice audiences by. Each value carries its Mailchimp tag.</span>
         <span class="spacer"></span>
-        <button class="btn btn-accent" id="addSegmentBtn">+ Add segment</button>
+        <button class="btn btn-accent" id="addFacetBtn">+ Add facet</button>
+      </div>
+      <div id="facetBody" style="padding:13px 15px"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Segments</span>
+        <span class="panel-note">Stack facet values to build combinations. Every segment can carry its own content in a send.</span>
+        <span class="spacer"></span>
+        <button class="btn btn-accent" id="stackSegBtn">+ Stack segments…</button>
+        <button class="btn" id="addSegmentBtn">+ Add plain segment</button>
       </div>
       <table class="grid">
-        <thead><tr><th>Name</th><th style="width:200px">Linked persona</th><th style="width:90px">Used in</th><th style="width:80px"></th></tr></thead>
+        <thead><tr><th>Name</th><th style="width:190px">Built from</th><th style="width:200px">Mailchimp tags</th><th style="width:150px">Persona</th><th style="width:80px">Used in</th><th style="width:80px"></th></tr></thead>
         <tbody id="segmentBody"></tbody>
       </table>
     </div>
@@ -440,6 +450,17 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           <tr><td>Must be in system by</td><td>A journey message's enrolment cutoff. Join after it and you don't get this one. Leave it empty to send to everyone.</td></tr>
           <tr><td>Active from / until</td><td>The window an automation is switched on. Outside it, nothing fires.</td></tr>
         </table>
+      </div>
+      <div class="help-sec">
+        <div class="help-h">Audiences and Mailchimp tags</div>
+        <p class="help-p">
+          A <b>facet</b> is a dimension you slice by — membership status, founder
+          status — and each of its values carries a Mailchimp tag. Stacking one value
+          from each facet gives you combinations like <b>Returning Members + Founder</b>,
+          whose tag condition is derived for you: <b>returning-member AND founder</b>.
+          <b>+ Stack segments…</b> builds every combination you tick in one go. Each
+          segment holds its own content in a send, stacked or not.
+        </p>
       </div>
       <div class="help-sec">
         <div class="help-h">Doing things</div>
@@ -645,6 +666,31 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     </div>
   </div>
 </div>
+<div class="overlay hidden" id="stackOverlay">
+  <div class="modal" style="width:min(720px,100%)">
+    <div class="modal-head">
+      <span class="modal-title">Stack segments</span>
+      <span class="spacer"></span>
+      <button class="btn" id="stackClose">Close</button>
+    </div>
+    <div class="modal-body">
+      <p class="hint" style="margin-top:0">
+        Pick one value per facet to build a single combination, or tick several and
+        create every combination at once. Skip a facet to leave it out of the stack.
+      </p>
+      <div id="stackFacets"></div>
+      <div class="seg" style="background:#FBFCFD">
+        <div class="seg-label" style="margin-bottom:6px">Preview</div>
+        <div id="stackPreview" class="hint" style="margin:0"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-accent" id="stackCreate">Create combinations</button>
+      <span class="spacer"></span>
+      <span class="muted" id="stackMeta"></span>
+    </div>
+  </div>
+</div>
 <div class="overlay hidden" id="promoOverlay">
   <div class="modal" style="width:min(680px,100%)">
     <div class="modal-head">
@@ -722,6 +768,24 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   ];
   /* The i-lab Slack workspace. Editable in setup — this is only the seed, so a
      new channel in Slack is one row here, not a code change. */
+  /* Audience facets. A segment can be one value, or several stacked across
+     facets — "Returning Members + Founder". Tags live on the value rather than
+     on the combination, so a stacked segment's Mailchimp condition is derived
+     (tag AND tag) instead of retyped for every permutation. */
+  var DEFAULT_FACETS = [
+    { id:"fct_membership", name:"Membership", values:[
+      { id:"fv_new",       name:"New Members",       tag:"new-member" },
+      { id:"fv_returning", name:"Returning Members", tag:"returning-member" }
+    ] },
+    { id:"fct_founder", name:"Founder status", values:[
+      { id:"fv_founder",    name:"Founder",     tag:"founder" },
+      { id:"fv_nonfounder", name:"Non Founder", tag:"non-founder" }
+    ] }
+  ];
+  function slugTag(s) {
+    return String(s||"").trim().toLowerCase()
+      .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"") || "untagged";
+  }
   var DEFAULT_SLACK_CHANNELS = [
     "#start-here", "#announcements", "#events-and-opportunities",
     "#celebrate-milestones", "#share-your-business", "#customer-discovery-help",
@@ -807,6 +871,22 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         return { id:"seg_"+k, name:PERSONA_FALLBACK[k], persona:k };
       });
     }
+    // Facets are seeded as reference data only — no segments are invented, so
+    // opening the tool never silently adds audiences to a shared plan.
+    if (!Array.isArray(DB.facets) || !DB.facets.length) {
+      DB.facets=JSON.parse(JSON.stringify(DEFAULT_FACETS));
+    }
+    DB.facets.forEach(function (f) {
+      if (!Array.isArray(f.values)) f.values=[];
+      f.values.forEach(function(v){ if (typeof v.tag!=="string") v.tag=slugTag(v.name); });
+    });
+    DB.segments.forEach(function (s) {
+      if (!Array.isArray(s.parts)) s.parts=[];
+      if (!Array.isArray(s.tags))  s.tags=[];
+      // A value deleted from a facet shouldn't leave a segment claiming to be
+      // built from something that no longer exists.
+      s.parts=s.parts.filter(function(id){ return !!facetValueById(id); });
+    });
     if (!Array.isArray(DB.slackChannels) || !DB.slackChannels.length) {
       DB.slackChannels=DEFAULT_SLACK_CHANNELS.map(function (n) {
         return { id:"slk_"+n.replace(/[^a-z0-9]+/gi,"_").replace(/^_|_$/g,""), name:n };
@@ -1107,6 +1187,33 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   function journeyById(id){ for (var i=0;i<DB.journeys.length;i++) if (DB.journeys[i].id===id) return DB.journeys[i]; return null; }
   function journeysForChannel(chId){ return DB.journeys.filter(function(j){ return j.channelId===chId; }); }
   function segmentUsage(segId){ return DB.sends.filter(function(s){ return (s.segments||[]).some(function(x){ return x.segId===segId; }); }).length; }
+  function facetValueById(id) {
+    for (var i=0;i<(DB.facets||[]).length;i++) {
+      var f=DB.facets[i];
+      for (var j=0;j<(f.values||[]).length;j++) if (f.values[j].id===id) return { facet:f, value:f.values[j] };
+    }
+    return null;
+  }
+  function segParts(seg) {
+    return (seg.parts||[]).map(facetValueById).filter(Boolean);
+  }
+  function isStacked(seg){ return (seg.parts||[]).length>0; }
+  /* Explicit tags win, so an audience that doesn't decompose cleanly can still
+     name its own Mailchimp tags. Otherwise they come from the stacked values. */
+  function segTags(seg) {
+    if ((seg.tags||[]).length) return seg.tags.slice();
+    return segParts(seg).map(function(p){ return p.value.tag; }).filter(Boolean);
+  }
+  function segTagExpr(seg) {
+    var t=segTags(seg);
+    if (!t.length) return "";
+    return t.join(" AND ");
+  }
+  function stackedName(valueIds) {
+    return valueIds.map(function (id) {
+      var p=facetValueById(id); return p?p.value.name:null;
+    }).filter(Boolean).join(" + ");
+  }
   function slackChById(id){ for (var i=0;i<DB.slackChannels.length;i++) if (DB.slackChannels[i].id===id) return DB.slackChannels[i]; return null; }
   function isSlackLane(chId){ var c=channelById(chId); return !!(c && c.slack); }
   function slackNames(s) {
@@ -1396,6 +1503,25 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
     // A Slack send with no channel picked has no destination — the one thing a
     // Slack post can't be missing.
+    // A segment with no tag can't be selected in Mailchimp, and two segments
+    // built from the same values will quietly double-send to the same people.
+    var noTag=DB.segments.filter(function (s) {
+      return segmentUsage(s.id)>0 && !segTagExpr(s);
+    }).map(function(s){ return s.name; });
+    if (noTag.length) items.push({ level:"warn",
+      msg:"Segment(s) in use with no Mailchimp tag, so there's nothing to select on in Mailchimp: "+
+        noTag.slice(0,4).join("; ")+(noTag.length>4?" and "+(noTag.length-4)+" more":"")+
+        ". Set the tag on the facet value, or type one on the segment." });
+    var dupes=[];
+    DB.segments.forEach(function (a,i) {
+      if (!isStacked(a)) return;
+      DB.segments.slice(i+1).forEach(function (b) {
+        if (isStacked(b) && samePartSet(a.parts,b.parts)) dupes.push(a.name+" / "+b.name);
+      });
+    });
+    if (dupes.length) items.push({ level:"warn",
+      msg:"Segment(s) built from identical facet values, so anyone matching gets the send twice: "+
+        dupes.slice(0,3).join("; ")+(dupes.length>3?" and "+(dupes.length-3)+" more":"")+"." });
     var noSlackCh=DB.sends.filter(function (s) {
       return isSlackLane(s.channelId) && !(s.slackChannels||[]).length;
     });
@@ -1914,6 +2040,92 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       t3.appendChild(del); tr.appendChild(t3);
       scb.appendChild(tr);
     });
+    var fb=document.getElementById("facetBody"); fb.innerHTML="";
+    if (!(DB.facets||[]).length) {
+      var fh=document.createElement("div"); fh.className="muted";
+      fh.textContent="No facets yet. A facet is a dimension you slice by — membership status, founder status, program.";
+      fb.appendChild(fh);
+    }
+    (DB.facets||[]).forEach(function (f) {
+      var box=document.createElement("div"); box.className="feeder";
+      var head=document.createElement("div"); head.className="feeder-head";
+      head.appendChild(miniField("Facet", "text", f.name, "1 1 200px", "e.g. Membership",
+        function (v) { f.name=v||"Untitled"; saveDB(); render(); }));
+      var sp0=document.createElement("span"); sp0.style.flex="1"; head.appendChild(sp0);
+      var addV=document.createElement("button"); addV.className="btn btn-sm"; addV.textContent="+ Value";
+      addV.addEventListener("click", function () {
+        f.values.push({ id:uid("fv"), name:"New value", tag:"new-value" });
+        saveDB(); render();
+      });
+      head.appendChild(addV);
+      var delF=document.createElement("button"); delF.className="btn btn-sm"; delF.textContent="×";
+      delF.addEventListener("click", function () {
+        var ids=f.values.map(function(v){ return v.id; });
+        var hit=DB.segments.filter(function (s) {
+          return (s.parts||[]).some(function(id){ return ids.indexOf(id)>=0; });
+        });
+        var msg="Delete the “"+f.name+"” facet and its "+f.values.length+" value(s)?";
+        if (hit.length) msg+="\n\n"+hit.length+" segment(s) are built from it and will lose that part:\n    "+
+          hit.map(function(s){ return s.name; }).join("\n    ");
+        if (!window.confirm(msg)) return;
+        DB.facets=DB.facets.filter(function(x){ return x.id!==f.id; });
+        saveDB(); normalizeDB(); render();
+      });
+      head.appendChild(delF);
+      box.appendChild(head);
+      f.values.forEach(function (v, vi) {
+        var row=document.createElement("div"); row.className="slot"; row.style.marginTop="5px";
+        var n=document.createElement("span"); n.className="slot-n"; n.textContent=(vi+1)+"."; row.appendChild(n);
+        var nmI=document.createElement("input"); nmI.type="text"; nmI.value=v.name;
+        nmI.placeholder="Value name"; nmI.style.flex="1 1 150px";
+        nmI.addEventListener("change", function () {
+          var had=slugTag(v.name);
+          // Capture the names the stacked segments would have had *before* the
+          // rename, so we can tell an auto-generated name from a hand-edited one.
+          var wasAuto=DB.segments.filter(function (s) {
+            return (s.parts||[]).indexOf(v.id)>=0 && s.name===stackedName(s.parts);
+          });
+          v.name=nmI.value||"Untitled";
+          // Only re-slug the tag if it was still the auto-generated one, so a
+          // hand-set Mailchimp tag survives a rename.
+          if (v.tag===had) v.tag=slugTag(v.name);
+          wasAuto.forEach(function(s){ s.name=stackedName(s.parts); });
+          saveDB(); render();
+        });
+        row.appendChild(nmI);
+        var tagI=document.createElement("input"); tagI.type="text"; tagI.value=v.tag;
+        tagI.placeholder="mailchimp-tag"; tagI.style.flex="1 1 150px";
+        tagI.style.fontFamily="'IBM Plex Mono',monospace"; tagI.style.fontSize="11.5px";
+        tagI.title="The Mailchimp tag that identifies this value";
+        tagI.addEventListener("change", function(){ v.tag=slugTag(tagI.value); saveDB(); render(); });
+        row.appendChild(tagI);
+        var rmV=document.createElement("button"); rmV.className="btn btn-sm"; rmV.textContent="×";
+        rmV.addEventListener("click", function () {
+          var hit=DB.segments.filter(function(s){ return (s.parts||[]).indexOf(v.id)>=0; });
+          if (hit.length && !window.confirm("“"+v.name+"” is part of "+hit.length+
+              " segment(s). Remove it? Those segments keep their other parts.")) return;
+          f.values=f.values.filter(function(x){ return x.id!==v.id; });
+          saveDB(); normalizeDB(); render();
+        });
+        row.appendChild(rmV);
+        box.appendChild(row);
+      });
+      if (!f.values.length) {
+        var vh=document.createElement("div"); vh.className="hint";
+        vh.textContent="No values yet — add at least two for this facet to be worth stacking.";
+        box.appendChild(vh);
+      }
+      var combos=1;
+      (DB.facets||[]).forEach(function(x){ if (x.values.length) combos*=x.values.length; });
+      fb.appendChild(box);
+    });
+    if ((DB.facets||[]).length) {
+      var tot=1, any=false;
+      DB.facets.forEach(function(x){ if (x.values.length) { tot*=x.values.length; any=true; } });
+      var note=document.createElement("div"); note.className="hint";
+      note.textContent=any ? ("These facets describe "+tot+" possible combination(s). Use “+ Stack segments…” to create the ones you actually send to.") : "";
+      fb.appendChild(note);
+    }
     var sb=document.getElementById("segmentBody"); sb.innerHTML="";
     DB.segments.forEach(function (sg) {
       var tr=document.createElement("tr");
@@ -1921,9 +2133,37 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var nm=document.createElement("input"); nm.type="text"; nm.value=sg.name; nm.style.width="100%";
       nm.addEventListener("change", function(){ sg.name=nm.value||"Untitled"; saveDB(); render(); });
       td1.appendChild(nm); tr.appendChild(td1);
+      var tdP=document.createElement("td");
+      var parts=segParts(sg);
+      if (!parts.length) tdP.innerHTML='<span class="muted">plain segment</span>';
+      else tdP.innerHTML=parts.map(function (p) {
+        return '<span class="tag" title="'+esc(p.facet.name)+'">'+esc(p.value.name)+"</span>";
+      }).join("");
+      tr.appendChild(tdP);
+      var tdT=document.createElement("td");
+      var tagIn=document.createElement("input"); tagIn.type="text";
+      tagIn.style.width="100%"; tagIn.style.fontFamily="'IBM Plex Mono',monospace";
+      tagIn.style.fontSize="11.5px";
+      tagIn.value=(sg.tags||[]).join(", ");
+      tagIn.placeholder=segTags(sg).join(", ")||"mailchimp tag(s)";
+      tagIn.title=parts.length
+        ? "Derived from the facet values. Type here only to override."
+        : "Mailchimp tag(s) for this audience, comma separated.";
+      tagIn.addEventListener("change", function () {
+        sg.tags=tagIn.value.split(",").map(function(t){ return slugTag(t); }).filter(function(t){ return t!=="untagged"||tagIn.value.trim(); });
+        sg.tags=tagIn.value.trim()?sg.tags:[];
+        saveDB(); render();
+      });
+      tdT.appendChild(tagIn);
+      var expr=segTagExpr(sg);
+      var ex=document.createElement("div"); ex.className="lane-meta"; ex.style.marginTop="3px";
+      ex.textContent=expr?(parts.length>1?expr:expr):"no tag set";
+      ex.style.color=expr?"":"var(--rust)";
+      tdT.appendChild(ex);
+      tr.appendChild(tdT);
       var td2=document.createElement("td");
       var sel=document.createElement("select"); sel.style.width="100%";
-      var o0=document.createElement("option"); o0.value=""; o0.textContent="— none (custom) —"; sel.appendChild(o0);
+      var o0=document.createElement("option"); o0.value=""; o0.textContent="— none —"; sel.appendChild(o0);
       Object.keys(PERSONA_FALLBACK).forEach(function (k) {
         var o=document.createElement("option"); o.value=k; o.textContent=personaName(k); sel.appendChild(o);
       });
@@ -1943,6 +2183,104 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       td4.appendChild(del); tr.appendChild(td4);
       sb.appendChild(tr);
     });
+  }
+  var stackPick={};
+  function openStack() {
+    stackPick={};
+    renderStack();
+    document.getElementById("stackOverlay").classList.remove("hidden");
+  }
+  /* Cartesian product of the ticked values, one axis per facet. Facets with
+     nothing ticked drop out rather than multiplying by zero. */
+  function stackCombos() {
+    var axes=(DB.facets||[]).map(function (f) {
+      return (f.values||[]).filter(function(v){ return stackPick[v.id]; }).map(function(v){ return v.id; });
+    }).filter(function(a){ return a.length; });
+    if (!axes.length) return [];
+    var out=[[]];
+    axes.forEach(function (axis) {
+      var next=[];
+      out.forEach(function (row) { axis.forEach(function (id) { next.push(row.concat([id])); }); });
+      out=next;
+    });
+    return out;
+  }
+  function samePartSet(a,b) {
+    if (a.length!==b.length) return false;
+    var s=a.slice().sort().join("|"), t=b.slice().sort().join("|");
+    return s===t;
+  }
+  function renderStack() {
+    var host=document.getElementById("stackFacets"); host.innerHTML="";
+    (DB.facets||[]).forEach(function (f) {
+      if (!(f.values||[]).length) return;
+      var box=document.createElement("div"); box.className="seg";
+      var head=document.createElement("div"); head.className="seg-head";
+      var lbl=document.createElement("span"); lbl.className="seg-label"; lbl.textContent=f.name;
+      head.appendChild(lbl);
+      var sp=document.createElement("span"); sp.style.flex="1"; head.appendChild(sp);
+      var all=document.createElement("button"); all.className="btn btn-sm"; all.textContent="All";
+      all.addEventListener("click", function () {
+        f.values.forEach(function(v){ stackPick[v.id]=true; }); renderStack();
+      });
+      head.appendChild(all);
+      var none=document.createElement("button"); none.className="btn btn-sm"; none.textContent="None";
+      none.addEventListener("click", function () {
+        f.values.forEach(function(v){ delete stackPick[v.id]; }); renderStack();
+      });
+      head.appendChild(none);
+      box.appendChild(head);
+      var grid=document.createElement("div"); grid.className="slack-grid";
+      f.values.forEach(function (v) {
+        var on=!!stackPick[v.id];
+        var lab=document.createElement("label"); lab.className="slack-pick"+(on?" on":"");
+        var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=on;
+        cb.addEventListener("change", function () {
+          if (cb.checked) stackPick[v.id]=true; else delete stackPick[v.id];
+          renderStack();
+        });
+        var nm=document.createElement("span");
+        nm.textContent=v.name+"  ("+(v.tag||"no tag")+")";
+        lab.appendChild(cb); lab.appendChild(nm); grid.appendChild(lab);
+      });
+      box.appendChild(grid);
+      host.appendChild(box);
+    });
+    var combos=stackCombos();
+    var prev=document.getElementById("stackPreview");
+    if (!combos.length) {
+      prev.innerHTML='<span class="muted">Tick at least one value to see what gets created.</span>';
+    } else {
+      prev.innerHTML=combos.map(function (ids) {
+        var name=stackedName(ids);
+        var tags=ids.map(function(id){ var p=facetValueById(id); return p?p.value.tag:null; }).filter(Boolean);
+        var dupe=DB.segments.some(function(s){ return samePartSet(s.parts||[],ids); });
+        return '<div style="padding:3px 0">'+
+          (dupe?'<span class="tag" style="background:#FDF4F2;color:#7A2318">exists</span> ':"")+
+          "<b>"+esc(name)+"</b><br><span class=\"lane-meta\">Mailchimp: "+
+          esc(tags.join(" AND ")||"no tags on these values")+"</span></div>";
+      }).join("");
+    }
+    var newN=combos.filter(function (ids) {
+      return !DB.segments.some(function(s){ return samePartSet(s.parts||[],ids); });
+    }).length;
+    document.getElementById("stackMeta").textContent=
+      combos.length ? (newN+" new, "+(combos.length-newN)+" already exist") : "";
+    document.getElementById("stackCreate").textContent=
+      newN ? ("Create "+newN+" segment"+(newN===1?"":"s")) : "Create combinations";
+  }
+  function createStacked() {
+    var combos=stackCombos();
+    if (!combos.length) { window.alert("Tick at least one value first."); return; }
+    var made=0;
+    combos.forEach(function (ids) {
+      if (DB.segments.some(function(s){ return samePartSet(s.parts||[],ids); })) return;
+      DB.segments.push({ id:uid("seg"), name:stackedName(ids), persona:null,
+                         parts:ids.slice(), tags:[] });
+      made++;
+    });
+    saveDB(); render(); renderStack();
+    if (!made) window.alert("Those combinations all exist already — nothing to add.");
   }
   function currentSend(){ return sendById(editingId); }
   function openEditor(sendId, presetChannel, presetDate, presetKind) {
@@ -2112,9 +2450,21 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var lbl=document.createElement("span"); lbl.className="seg-label";
       lbl.textContent="S"+(si+1)+" · "+(seg?seg.name:"[deleted segment]");
       head.appendChild(lbl);
+      if (seg && isStacked(seg)) {
+        segParts(seg).forEach(function (p) {
+          var t0=document.createElement("span"); t0.className="tag";
+          t0.textContent=p.value.name; t0.title=p.facet.name+" · tag: "+(p.value.tag||"none");
+          head.appendChild(t0);
+        });
+      }
+      if (seg && segTagExpr(seg)) {
+        var tt=document.createElement("span"); tt.className="tag trig";
+        tt.textContent=segTagExpr(seg); tt.title="Mailchimp tag condition for this segment";
+        head.appendChild(tt);
+      }
       if (seg && seg.persona) {
         var t=document.createElement("span"); t.className="tag persona"; t.textContent=seg.persona; head.appendChild(t);
-      } else if (seg) {
+      } else if (seg && !isStacked(seg)) {
         var t2=document.createElement("span"); t2.className="tag"; t2.textContent="custom — no content checking"; head.appendChild(t2);
       }
       var sp=document.createElement("span"); sp.style.flex="1"; head.appendChild(sp);
@@ -2493,7 +2843,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var term=TERMS[termIdx], res=resolvedEvents(term);
     var rows=[["Date / active from","Weekday","Channel","Journey","Type","Trigger","Delay (days)",
                "Window","Slack channels","Must be in system by","Who receives it","Title","Status",
-               "Segment","Persona","Slot","Content","Content date",
+               "Segment","Built from","Mailchimp tags","Persona","Slot","Content","Content date",
                "Tag match","Window check","Notes"]];
     DB.sends.filter(function(s){ return inTerm(s,term); })
       .sort(function (a,b) {
@@ -2519,10 +2869,13 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
                   cutoffApplies(s)?(s.cutoff||"no cutoff"):(isFeeder?("cohort opens "+(s.date||"?")):""),
                   elig?((elig.bad?"CHECK — ":"")+elig.text):"",
                   s.title||"", s.status||"" ];
-        if (!s.segments || !s.segments.length) { rows.push(pre.concat(["","","","","","",s.notes||""])); return; }
+        if (!s.segments || !s.segments.length) { rows.push(pre.concat(["","","","","","","","",s.notes||""])); return; }
         s.segments.forEach(function (sg) {
           var seg=segmentById(sg.segId);
-          var segCols=[ seg?seg.name:"[deleted]", seg&&seg.persona?seg.persona:"" ];
+          var segCols=[ seg?seg.name:"[deleted]",
+                        seg?segParts(seg).map(function(p){ return p.facet.name+": "+p.value.name; }).join(" + "):"",
+                        seg?(segTagExpr(seg)||"NO TAG"):"",
+                        seg&&seg.persona?seg.persona:"" ];
           var items=sg.items||[];
           if (!items.length) { rows.push(pre.concat(segCols,["","","","",s.notes||""])); return; }
           items.forEach(function (it,i) {
@@ -2577,11 +2930,30 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
                          slack: typeof c.slack==="boolean"?c.slack:/slack/i.test(String(c.name||"")) });
       chMap[c.id]=nid; rep.chAdded++;
     });
+    // Facets merge by name, and their values by name inside the facet, so an
+    // incoming plan's "Membership / New Members" lands on the one already here.
+    var fvMap={};
+    (p.facets||[]).forEach(function (f) {
+      var ex=findByName(DB.facets,f.name);
+      if (!ex) {
+        ex={ id:uid("fct"), name:f.name||"Untitled", values:[] };
+        DB.facets.push(ex);
+      }
+      (f.values||[]).forEach(function (v) {
+        var evx=findByName(ex.values,v.name);
+        if (evx) { fvMap[v.id]=evx.id; return; }
+        var nid=uid("fv");
+        ex.values.push({ id:nid, name:v.name||"Untitled", tag:v.tag||slugTag(v.name) });
+        fvMap[v.id]=nid;
+      });
+    });
     (p.segments||[]).forEach(function (s) {
       var ex=findByName(DB.segments,s.name);
       if (ex) { segMap[s.id]=ex.id; rep.segReused++; return; }
       var nid=uid("seg");
-      DB.segments.push({ id:nid, name:s.name||"Untitled", persona:s.persona||null });
+      DB.segments.push({ id:nid, name:s.name||"Untitled", persona:s.persona||null,
+        parts:(s.parts||[]).map(function(id){ return fvMap[id]||id; }),
+        tags:(s.tags||[]).slice() });
       segMap[s.id]=nid; rep.segAdded++;
     });
     (p.journeys||[]).forEach(function (j) {
@@ -2701,9 +3073,21 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       saveDB(); render();
     });
     document.getElementById("addSegmentBtn").addEventListener("click", function () {
-      DB.segments.push({ id:uid("seg"), name:"New segment", persona:null });
+      DB.segments.push({ id:uid("seg"), name:"New segment", persona:null, parts:[], tags:[] });
       saveDB(); render();
     });
+    document.getElementById("addFacetBtn").addEventListener("click", function () {
+      DB.facets=DB.facets||[];
+      DB.facets.push({ id:uid("fct"), name:"New facet",
+        values:[{ id:uid("fv"), name:"Value A", tag:"value-a" },
+                { id:uid("fv"), name:"Value B", tag:"value-b" }] });
+      saveDB(); render();
+    });
+    document.getElementById("stackSegBtn").addEventListener("click", openStack);
+    document.getElementById("stackClose").addEventListener("click", function () {
+      document.getElementById("stackOverlay").classList.add("hidden");
+    });
+    document.getElementById("stackCreate").addEventListener("click", createStacked);
     document.getElementById("editorClose").addEventListener("click", function(){ closeEditor(true); });
     document.getElementById("edSave").addEventListener("click", function () {
       var s=currentSend(); if (!s) return;
@@ -2890,6 +3274,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           document.getElementById("journeyOverlay").classList.add("hidden"); render();
         }
         document.getElementById("promoOverlay").classList.add("hidden");
+        document.getElementById("stackOverlay").classList.add("hidden");
       }
     });
     // Data first, then paint — loadDB is async because it may hit the server.

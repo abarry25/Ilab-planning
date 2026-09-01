@@ -143,6 +143,33 @@ label.ctl { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--i
 .slack-pick span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .slack-pick.on span { font-weight:600; color:#4A2E7A; }
 .slack-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:9px; }
+/* Wireframe: a stack of blocks that reads as a shape, not a form. Dashed edges
+   and a mono type label keep it obviously a skeleton rather than a preview. */
+.wf { border:1px solid var(--border); border-radius:10px; padding:9px; background:#FBFCFD; }
+.wf.slack { background:#FBFAFD; }
+.wf-blk { border:1px dashed #C3CBD6; border-radius:7px; padding:7px 9px; margin-bottom:6px;
+  background:var(--panel); }
+.wf-blk:last-child { margin-bottom:0; }
+.wf-blk.seg { border-style:solid; border-color:#B9A8DC; }
+.wf-blk.divider { padding:3px 9px; border-style:solid; border-color:#E4E8EE; background:#F4F6F8; }
+.wf-top { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.wf-type { font-family:'IBM Plex Mono',monospace; font-size:9px; text-transform:uppercase;
+  letter-spacing:.05em; color:var(--ink-soft); }
+.wf-label { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12px; }
+.wf-hint { font-size:10.5px; color:var(--ink-soft); font-style:italic; margin-top:2px; }
+.wf-copy { margin-top:5px; }
+.wf-copy textarea, .wf-copy input { width:100%; font-size:12px; }
+.wf-seglab { font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#4A2E7A;
+  margin:5px 0 2px; }
+.wf-empty { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--rust); }
+.wf-badge { font-family:'IBM Plex Mono',monospace; font-size:9px; padding:1px 5px;
+  border-radius:4px; background:#EDE7F6; color:#4A2E7A; }
+.tpl-card { border:1px solid var(--border); border-radius:10px; padding:11px 12px; margin-bottom:10px; }
+.tpl-head { display:flex; align-items:end; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+.link-row { display:flex; gap:8px; align-items:center; margin-bottom:5px; }
+.link-row input { flex:1 1 auto; min-width:0; font-family:'IBM Plex Mono',monospace; font-size:11px; }
+.sticky-link { font-family:'IBM Plex Mono',monospace; font-size:8.5px; display:block;
+  margin-top:1px; color:#1E7A5F; }
 .sticky.status-draft { opacity:.72; border-style:dashed; }
 .sticky.status-sent { opacity:.5; }
 .sticky-warn { color:var(--rust); font-weight:700; }
@@ -285,6 +312,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     <button class="btn" id="promoBtn">Generate promo sends…</button>
     <button class="btn" id="importEventsBtn">Import events CSV…</button>
     <button class="btn" id="commsCsvBtn">Download plan CSV</button>
+    <button class="btn" id="copyCsvBtn">Download copy sheet</button>
     <button class="btn" id="exportJsonBtn">Export plan</button>
     <button class="btn" id="importJsonBtn">Import plan</button>
   </div>
@@ -383,6 +411,16 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     </div>
     <div class="panel">
       <div class="panel-head">
+        <span class="panel-title">Template wireframes</span>
+        <span class="panel-note">The block skeleton for an email or Slack post. Sends pick one and fill in the copy.</span>
+        <span class="spacer"></span>
+        <button class="btn btn-accent" id="addTplEmailBtn">+ Email</button>
+        <button class="btn btn-accent" id="addTplSlackBtn">+ Slack</button>
+      </div>
+      <div id="tplBody" style="padding:13px 15px"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
         <span class="panel-title">Audience facets</span>
         <span class="panel-note">The dimensions you slice audiences by. Each value carries its Mailchimp tag.</span>
         <span class="spacer"></span>
@@ -467,6 +505,19 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           Each segment holds its own content in a send. <b>How this gets built</b> on a
           send with two or more segments says whether that ships as one email with
           show/hide blocks, or a separate send per segment.
+        </p>
+      </div>
+      <div class="help-sec">
+        <div class="help-h">Wireframes and copy</div>
+        <p class="help-p">
+          A <b>wireframe</b> is the block skeleton of an email or Slack post — subject,
+          headline, body, CTA — defined once and reused. Pick one on a send and you get
+          a copy box per block. A block marked <b>per segment</b> repeats once per
+          segment on that send, and those are the show/hide blocks in the built email.
+          The <b>sent link</b> field holds the campaign URL or Slack permalink once it's
+          out, so the plan points at the real thing afterwards.
+          <b>Download copy sheet</b> exports one row per block, in order, for whoever
+          assembles the send.
         </p>
       </div>
       <div class="help-sec">
@@ -612,6 +663,20 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
           <select id="edAddSegSel"></select>
           <button class="btn btn-sm" id="edAddSegBtn">+ Add segment</button>
         </div>
+      </div>
+      <div class="fld">
+        <span>Wireframe &amp; copy</span>
+        <div class="fld-row" style="margin-bottom:6px">
+          <label class="fld" style="flex:0 0 250px"><span>Template</span>
+            <select id="edTemplate"></select></label>
+          <div class="fld" style="flex:1 1 240px"><span>&nbsp;</span>
+            <div class="hint" id="edTplHint" style="margin-top:0"></div></div>
+        </div>
+        <div id="edWireframe"></div>
+      </div>
+      <div class="fld">
+        <span>Link to what actually went out</span>
+        <div id="edSentLinks"></div>
       </div>
       <label class="fld"><span>Notes</span>
         <textarea id="edNotes" rows="2" placeholder="Anything the person building this send needs to know"></textarea></label>
@@ -835,6 +900,93 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     return String(s||"").trim().toLowerCase()
       .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"") || "untagged";
   }
+  /* Wireframes. A template is an ordered list of blocks; a block marked
+     perSegment gets one copy box per segment on the send, which is the same set
+     of blocks that becomes show/hide content in Mailchimp. */
+  var BLOCK_TYPES = [
+    { id:"subject",   label:"Subject line",   kinds:"email", note:"No conditional logic here — see the SOP" },
+    { id:"preheader", label:"Preheader",       kinds:"email" },
+    { id:"header",    label:"Header",          kinds:"both" },
+    { id:"image",     label:"Image",           kinds:"email" },
+    { id:"headline",  label:"Headline",        kinds:"both" },
+    { id:"body",      label:"Body copy",       kinds:"both" },
+    { id:"list",      label:"List / lineup",   kinds:"both" },
+    { id:"cta",       label:"Button / CTA",    kinds:"both" },
+    { id:"context",   label:"Context line",    kinds:"slack" },
+    { id:"divider",   label:"Divider",         kinds:"both" },
+    { id:"footer",    label:"Footer",          kinds:"email" }
+  ];
+  function blockTypeLabel(id) {
+    for (var i=0;i<BLOCK_TYPES.length;i++) if (BLOCK_TYPES[i].id===id) return BLOCK_TYPES[i].label;
+    return id;
+  }
+  function typesForKind(kind) {
+    return BLOCK_TYPES.filter(function (t) {
+      return t.kinds==="both" || t.kinds===kind;
+    });
+  }
+  function blk(type,label,perSegment,hint){ return { id:uid("blk"), type:type, label:label, perSegment:!!perSegment, hint:hint||"" }; }
+  function DEFAULT_TEMPLATES() {
+    return [
+      { id:"tpl_news", name:"Monthly newsletter", kind:"email",
+        notes:"Forward-looking anchor. Previews next month and the next application deadline.",
+        blocks:[ blk("subject","Subject line",false,"Month + the one thing that matters"),
+                 blk("preheader","Preheader",false,"Reinforce, don't repeat the subject"),
+                 blk("header","Masthead",false,""),
+                 blk("headline","What's ahead",false,""),
+                 blk("list","Next month's lineup",true,"Events this segment is tagged for"),
+                 blk("body","Apply-by callout",false,"Next interview cycle date"),
+                 blk("cta","Primary CTA",true,"Where this segment should go next"),
+                 blk("footer","Footer",false,"") ] },
+      { id:"tpl_apply", name:"Application push (T-14)", kind:"email",
+        notes:"HiPo cycle push. Keyed to interview dates; social proof from a recent advancement.",
+        blocks:[ blk("subject","Subject line",false,"Deadline, not the programme name"),
+                 blk("preheader","Preheader",false,""),
+                 blk("headline","Deadline headline",false,""),
+                 blk("body","Why now",true,"Reason this segment should apply this cycle"),
+                 blk("body","Social proof",false,"Recent advancement or founder story"),
+                 blk("cta","Apply button",false,""),
+                 blk("body","What happens next",false,"Interview, timeline, what to prepare"),
+                 blk("footer","Footer",false,"") ] },
+      { id:"tpl_promo", name:"Event promo", kind:"email",
+        notes:"Single-event push. Reuse for announce, reminder and last call with different copy.",
+        blocks:[ blk("subject","Subject line",false,""),
+                 blk("preheader","Preheader",false,""),
+                 blk("image","Event image",false,""),
+                 blk("headline","Event name + date",false,""),
+                 blk("body","Why come",true,"What this segment gets out of it"),
+                 blk("list","Logistics",false,"Date, time, location, format"),
+                 blk("cta","Register",false,""),
+                 blk("footer","Footer",false,"") ] },
+      { id:"tpl_welcome", name:"Welcome / entry email", kind:"email",
+        notes:"Sent on entry or to a cohort. Orient, then give exactly one next step.",
+        blocks:[ blk("subject","Subject line",false,""),
+                 blk("headline","Welcome headline",false,""),
+                 blk("body","What the i-lab is for you",true,"Framed for this segment"),
+                 blk("list","Start here",true,"Two or three first moves"),
+                 blk("cta","One next step",true,"Resist adding a second"),
+                 blk("body","Where to ask questions",false,"Slack channels, office hours"),
+                 blk("footer","Footer",false,"") ] },
+      { id:"tpl_digest", name:"Monday digest", kind:"slack",
+        notes:"Standing weekly post. When a week overloads, fold items in here rather than adding a send.",
+        blocks:[ blk("header","This week at the i-lab",false,""),
+                 blk("body","Top line",false,"The one thing to notice this week"),
+                 blk("list","What's on",true,"Events this segment is tagged for"),
+                 blk("body","Deadline reminder",false,"Application or enrolment closing"),
+                 blk("context","Where to reply",false,"") ] },
+      { id:"tpl_dayof", name:"Day-of reminder", kind:"slack",
+        notes:"Same-day nudge for a big open event only. Keep it to two lines.",
+        blocks:[ blk("headline","Today: event name",false,""),
+                 blk("body","Time and place",false,""),
+                 blk("cta","Join / RSVP link",false,"") ] },
+      { id:"tpl_celebrate", name:"Celebration post", kind:"slack",
+        notes:"Advancement, milestone, win. Name people, keep it short, add a photo.",
+        blocks:[ blk("headline","What happened",false,""),
+                 blk("list","Who to celebrate",false,"Names and ventures"),
+                 blk("body","Why it matters",false,""),
+                 blk("context","Photo credit / link",false,"") ] }
+    ];
+  }
   var DEFAULT_SLACK_CHANNELS = [
     "#start-here", "#announcements", "#events-and-opportunities",
     "#celebrate-milestones", "#share-your-business", "#customer-discovery-help",
@@ -943,6 +1095,18 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       // built from something that no longer exists.
       s.parts=s.parts.filter(function(id){ return !!facetValueById(id); });
     });
+    if (!Array.isArray(DB.templates)) DB.templates=DEFAULT_TEMPLATES();
+    DB.templates.forEach(function (t) {
+      if (t.kind!=="slack") t.kind="email";
+      if (!Array.isArray(t.blocks)) t.blocks=[];
+      if (typeof t.notes!=="string") t.notes="";
+      t.blocks.forEach(function (b) {
+        if (!b.id) b.id=uid("blk");
+        if (typeof b.label!=="string" || !b.label) b.label=blockTypeLabel(b.type);
+        if (typeof b.hint!=="string") b.hint="";
+        b.perSegment=!!b.perSegment;
+      });
+    });
     if (!Array.isArray(DB.slackChannels) || !DB.slackChannels.length) {
       DB.slackChannels=DEFAULT_SLACK_CHANNELS.map(function (n) {
         return { id:"slk_"+n.replace(/[^a-z0-9]+/gi,"_").replace(/^_|_$/g,""), name:n };
@@ -964,6 +1128,12 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       // How the send gets built. Only meaningful with two or more segments, but
       // stored always so the answer survives adding a second segment later.
       if (s.build!=="separate" && s.build!=="conditional") s.build="conditional";
+      if (typeof s.templateId!=="string") s.templateId="";
+      // Copy is keyed by block id, and by "blockId__segId" on per-segment
+      // blocks, so reordering blocks or renaming a segment never orphans text.
+      if (!s.copy || typeof s.copy!=="object") s.copy={};
+      if (typeof s.sentUrl!=="string") s.sentUrl="";
+      if (!s.sentUrls || typeof s.sentUrls!=="object") s.sentUrls={};
       if (!Array.isArray(s.slackChannels)) s.slackChannels=[];
       // Drop references to Slack channels that no longer exist, so a deleted
       // channel can't linger invisibly in a send.
@@ -1293,6 +1463,16 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (n<2) return "";
     return s.build==="separate" ? n+" separate sends" : "1 email, show/hide blocks";
   }
+  /* One definition of "this ships as several campaigns", so the editor, the CSV
+     and the sticky can't disagree about how many links there should be. */
+  function isSplit(s){ return s.build==="separate" && (s.segments||[]).length>1; }
+  function sentLinksOf(s) {
+    if (!isSplit(s)) return s.sentUrl?[s.sentUrl]:[];
+    return (s.segments||[]).map(function(sg){ return (s.sentUrls||{})[sg.segId]; }).filter(Boolean);
+  }
+  function sentLinkFor(s, segId) {
+    return isSplit(s) && segId ? ((s.sentUrls||{})[segId]||"") : (s.sentUrl||"");
+  }
   function stackedName(valueIds) {
     return valueIds.map(function (id) {
       var p=facetValueById(id); return p?p.value.name:null;
@@ -1619,6 +1799,28 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     if (dupes.length) items.push({ level:"warn",
       msg:"Segment(s) built from identical facet values, so anyone matching gets the send twice: "+
         dupes.slice(0,3).join("; ")+(dupes.length>3?" and "+(dupes.length-3)+" more":"")+"." });
+    // Copy gaps only matter once a send is meant to be ready to go out.
+    var thinCopy=[], noWire=[], sentNoLink=[];
+    DB.sends.forEach(function (s) {
+      if (!inTerm(s,term)) return;
+      var t=templateById(s.templateId);
+      if ((s.status==="ready"||s.status==="sent") && !t) noWire.push(s.title||"untitled");
+      else if (t && (s.status==="ready"||s.status==="sent")) {
+        var f=copyFilled(s);
+        if (f.done<f.total) thinCopy.push((s.title||"untitled")+" ("+f.done+"/"+f.total+")");
+      }
+      if (s.status==="sent" && !sentLinksOf(s).length) sentNoLink.push(s.title||"untitled");
+    });
+    if (noWire.length) items.push({ level:"info",
+      msg:noWire.length+" send(s) marked ready or sent with no wireframe picked: "+
+        noWire.slice(0,3).join("; ")+(noWire.length>3?" and "+(noWire.length-3)+" more":"")+"." });
+    if (thinCopy.length) items.push({ level:"warn",
+      msg:"Send(s) marked ready with copy blocks still empty: "+thinCopy.slice(0,4).join("; ")+
+        (thinCopy.length>4?" and "+(thinCopy.length-4)+" more":"")+
+        ". Whoever builds it will have to invent the missing copy." });
+    if (sentNoLink.length) items.push({ level:"info",
+      msg:sentNoLink.length+" send(s) marked sent with no link recorded, so there's no archive to point back to: "+
+        sentNoLink.slice(0,3).join("; ")+(sentNoLink.length>3?" and "+(sentNoLink.length-3)+" more":"")+"." });
     var noSlackCh=DB.sends.filter(function (s) {
       return isSlackLane(s.channelId) && !(s.slackChannels||[]).length;
     });
@@ -1919,7 +2121,17 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       '<span class="sticky-title">'+esc(s.title||(isFeeder?"Untitled entry email":"Untitled send"))+"</span>"+
       slk+cut+
       '<span class="sticky-segs">'+(jr?esc(jr.name)+" · ":"")+segCount+" seg · "+slotCount+" item"+(slotCount===1?"":"s")+
-        (buildLabel(s)?" · "+(s.build==="separate"?"×"+segCount+" sends":"1 email"):"")+"</span>";
+        (buildLabel(s)?" · "+(s.build==="separate"?"×"+segCount+" sends":"1 email"):"")+"</span>"+
+      (function () {
+        var t=templateById(s.templateId);
+        if (!t) return "";
+        var f=copyFilled(s);
+        var done=f.total && f.done===f.total;
+        // "linked" describes what's recorded; status is the send's own business.
+        var nLinks=sentLinksOf(s).length;
+        return '<span class="sticky-link"'+(done?"":' style="color:#B24C3D"')+">"+
+          (nLinks?"↗ linked · ":"")+esc(t.name)+" "+f.done+"/"+f.total+"</span>";
+      })();
     b.title=(s.title||"Untitled")+
       (isFeeder&&!s.sendOn ? " — cohort opens "+fmtDay(d) : " — sends "+fmtDay(d))+
       (isSlackLane(s.channelId) ? "\nPost to: "+(slackNames(s).join(", ")||"nothing selected yet") : "")+
@@ -1967,6 +2179,151 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         tr.appendChild(c);
       });
       row.appendChild(tr); root.appendChild(row);
+    });
+  }
+  function templateById(id){ for (var i=0;i<(DB.templates||[]).length;i++) if (DB.templates[i].id===id) return DB.templates[i]; return null; }
+  function templatesForLane(chId) {
+    var kind=isSlackLane(chId)?"slack":"email";
+    return (DB.templates||[]).filter(function(t){ return t.kind===kind; });
+  }
+  function templateUsage(id){ return DB.sends.filter(function(s){ return s.templateId===id; }).length; }
+  function copyKey(b, segId){ return segId ? b.id+"__"+segId : b.id; }
+  /* Which copy boxes a send owes: shared blocks once, per-segment blocks once
+     per segment actually on the send. Divider blocks hold no copy. */
+  function copySlots(s) {
+    var t=templateById(s.templateId);
+    if (!t) return [];
+    var out=[];
+    t.blocks.forEach(function (b) {
+      if (b.type==="divider") return;
+      if (b.perSegment) {
+        (s.segments||[]).forEach(function (sg) {
+          out.push({ block:b, segId:sg.segId, key:copyKey(b,sg.segId) });
+        });
+      } else out.push({ block:b, segId:"", key:copyKey(b,"") });
+    });
+    return out;
+  }
+  function copyFilled(s) {
+    var slots=copySlots(s);
+    var done=slots.filter(function(x){ return String((s.copy||{})[x.key]||"").trim(); }).length;
+    return { total:slots.length, done:done };
+  }
+  function renderTemplates() {
+    var host=document.getElementById("tplBody"); host.innerHTML="";
+    if (!(DB.templates||[]).length) {
+      var h=document.createElement("div"); h.className="muted";
+      h.textContent="No wireframes yet. Add one for email or Slack.";
+      host.appendChild(h); return;
+    }
+    ["email","slack"].forEach(function (kind) {
+      var mine=DB.templates.filter(function(t){ return t.kind===kind; });
+      if (!mine.length) return;
+      var hd=document.createElement("div");
+      hd.className="lane-meta"; hd.style.margin="0 0 7px";
+      hd.style.textTransform="uppercase"; hd.style.letterSpacing=".05em";
+      hd.textContent=(kind==="email"?"Mailchimp":"Slack")+" — "+mine.length+" wireframe(s)";
+      host.appendChild(hd);
+      mine.forEach(function (t) {
+        var card=document.createElement("div"); card.className="tpl-card";
+        var head=document.createElement("div"); head.className="tpl-head";
+        head.appendChild(miniField("Wireframe name","text",t.name,"1 1 200px","e.g. Monday digest",
+          function (v) { t.name=v||"Untitled"; saveDB(); render(); }));
+        var used=templateUsage(t.id);
+        var badge=document.createElement("span"); badge.className="tag";
+        badge.textContent=used+" send"+(used===1?"":"s"); head.appendChild(badge);
+        var sp=document.createElement("span"); sp.style.flex="1"; head.appendChild(sp);
+        var addB=document.createElement("button"); addB.className="btn btn-sm"; addB.textContent="+ Block";
+        addB.addEventListener("click", function () {
+          var types=typesForKind(t.kind);
+          t.blocks.push(blk(types[Math.min(5,types.length-1)].id,"New block",false,""));
+          saveDB(); render();
+        });
+        head.appendChild(addB);
+        var dup=document.createElement("button"); dup.className="btn btn-sm"; dup.textContent="Duplicate";
+        dup.addEventListener("click", function () {
+          var c=JSON.parse(JSON.stringify(t));
+          c.id=uid("tpl"); c.name=t.name+" (copy)";
+          c.blocks.forEach(function(b){ b.id=uid("blk"); });
+          DB.templates.push(c); saveDB(); render();
+        });
+        head.appendChild(dup);
+        var del=document.createElement("button"); del.className="btn btn-sm"; del.textContent="×";
+        del.addEventListener("click", function () {
+          var msg="Delete the “"+t.name+"” wireframe?";
+          if (used) msg+="\n\n"+used+" send(s) use it. They keep their copy, but it will be "+
+            "unreachable until you point them at a wireframe again.";
+          if (!window.confirm(msg)) return;
+          DB.templates=DB.templates.filter(function(x){ return x.id!==t.id; });
+          saveDB(); render();
+        });
+        head.appendChild(del);
+        card.appendChild(head);
+        var nt=document.createElement("input"); nt.type="text"; nt.value=t.notes||"";
+        nt.placeholder="What this wireframe is for"; nt.style.width="100%";
+        nt.style.fontSize="12px"; nt.style.marginBottom="8px";
+        nt.addEventListener("change", function(){ t.notes=nt.value; saveDB(); });
+        card.appendChild(nt);
+        var wf=document.createElement("div"); wf.className="wf"+(t.kind==="slack"?" slack":"");
+        t.blocks.forEach(function (b, bi) {
+          var box=document.createElement("div");
+          box.className="wf-blk"+(b.perSegment?" seg":"")+(b.type==="divider"?" divider":"");
+          var top=document.createElement("div"); top.className="wf-top";
+          var ts=document.createElement("select"); ts.style.flex="0 0 130px";
+          typesForKind(t.kind).forEach(function (ty) {
+            var o=document.createElement("option"); o.value=ty.id; o.textContent=ty.label; ts.appendChild(o);
+          });
+          ts.value=b.type;
+          ts.addEventListener("change", function(){ b.type=ts.value; saveDB(); render(); });
+          top.appendChild(ts);
+          var lb=document.createElement("input"); lb.type="text"; lb.value=b.label;
+          lb.placeholder="Block label"; lb.style.flex="1 1 130px";
+          lb.addEventListener("change", function(){ b.label=lb.value||blockTypeLabel(b.type); saveDB(); render(); });
+          top.appendChild(lb);
+          if (b.type!=="divider") {
+            var psw=document.createElement("label");
+            psw.style.cssText="display:flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);white-space:nowrap";
+            var ps=document.createElement("input"); ps.type="checkbox"; ps.checked=!!b.perSegment;
+            ps.title="One copy box per segment — this becomes a show/hide block";
+            ps.addEventListener("change", function(){ b.perSegment=ps.checked; saveDB(); render(); });
+            var pl=document.createElement("span"); pl.textContent="per segment";
+            psw.appendChild(ps); psw.appendChild(pl); top.appendChild(psw);
+          }
+          var up=document.createElement("button"); up.className="btn btn-sm"; up.textContent="↑";
+          up.disabled=bi===0;
+          up.addEventListener("click", function () {
+            t.blocks.splice(bi-1,0,t.blocks.splice(bi,1)[0]); saveDB(); render();
+          });
+          top.appendChild(up);
+          var dn=document.createElement("button"); dn.className="btn btn-sm"; dn.textContent="↓";
+          dn.disabled=bi===t.blocks.length-1;
+          dn.addEventListener("click", function () {
+            t.blocks.splice(bi+1,0,t.blocks.splice(bi,1)[0]); saveDB(); render();
+          });
+          top.appendChild(dn);
+          var rm=document.createElement("button"); rm.className="btn btn-sm"; rm.textContent="×";
+          rm.addEventListener("click", function () {
+            t.blocks=t.blocks.filter(function(x){ return x.id!==b.id; }); saveDB(); render();
+          });
+          top.appendChild(rm);
+          box.appendChild(top);
+          if (b.type!=="divider") {
+            var hi=document.createElement("input"); hi.type="text"; hi.value=b.hint||"";
+            hi.placeholder="Guidance for whoever writes this block";
+            hi.style.width="100%"; hi.style.fontSize="11px"; hi.style.marginTop="4px";
+            hi.addEventListener("change", function(){ b.hint=hi.value; saveDB(); });
+            box.appendChild(hi);
+          }
+          wf.appendChild(box);
+        });
+        if (!t.blocks.length) {
+          var eb=document.createElement("div"); eb.className="hint";
+          eb.textContent="No blocks yet — add one to start the skeleton.";
+          wf.appendChild(eb);
+        }
+        card.appendChild(wf);
+        host.appendChild(card);
+      });
     });
   }
   function renderSetup(res) {
@@ -2138,6 +2495,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       t3.appendChild(del); tr.appendChild(t3);
       scb.appendChild(tr);
     });
+    renderTemplates();
     var fb=document.getElementById("facetBody"); fb.innerHTML="";
     if (!(DB.facets||[]).length) {
       var fh=document.createElement("div"); fh.className="muted";
@@ -2480,6 +2838,8 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     updateKindUi();
     renderSlackPicker();
     renderEditorSegments();
+    renderWireframe();
+    renderSentLinks();
     document.getElementById("editorOverlay").classList.remove("hidden");
   }
   /* Checkboxes rather than a <select multiple>: eleven options that people pick
@@ -2510,6 +2870,136 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var el=document.getElementById("edSlackCount");
     el.textContent=n?(n+" channel"+(n===1?"":"s")+" selected"):"no channels selected yet";
     el.style.color=n?"":"var(--rust)";
+  }
+  /* The wireframe on a send: same block stack as the template, with a copy box
+     where the template has a hint. Per-segment blocks repeat once per segment,
+     which is the show/hide set someone builds in Mailchimp. */
+  function renderWireframe() {
+    var s=currentSend(); if (!s) return;
+    var sel=document.getElementById("edTemplate"); sel.innerHTML="";
+    var o0=document.createElement("option"); o0.value=""; o0.textContent="— no wireframe —"; sel.appendChild(o0);
+    var avail=templatesForLane(document.getElementById("edChannel").value);
+    avail.forEach(function (t) {
+      var o=document.createElement("option"); o.value=t.id; o.textContent=t.name; sel.appendChild(o);
+    });
+    // A template from the other kind stays selectable so switching lanes
+    // doesn't silently drop the copy already written against it.
+    var cur=templateById(s.templateId);
+    if (cur && avail.indexOf(cur)<0) {
+      var o2=document.createElement("option"); o2.value=cur.id;
+      o2.textContent=cur.name+"  ("+(cur.kind==="slack"?"Slack":"email")+" wireframe)";
+      sel.appendChild(o2);
+    }
+    sel.value=s.templateId||"";
+    var host=document.getElementById("edWireframe"); host.innerHTML="";
+    var hint=document.getElementById("edTplHint");
+    if (!cur) {
+      hint.textContent=avail.length
+        ? "Pick one to get the block skeleton and copy boxes."
+        : "No wireframes for this lane yet — add one under Template wireframes.";
+      return;
+    }
+    var fill=copyFilled(s);
+    hint.textContent=fill.done+" of "+fill.total+" copy block(s) written"+
+      (cur.notes?" · "+cur.notes:"");
+    var wf=document.createElement("div"); wf.className="wf"+(cur.kind==="slack"?" slack":"");
+    cur.blocks.forEach(function (b) {
+      var box=document.createElement("div");
+      box.className="wf-blk"+(b.perSegment?" seg":"")+(b.type==="divider"?" divider":"");
+      var top=document.createElement("div"); top.className="wf-top";
+      var ty=document.createElement("span"); ty.className="wf-type"; ty.textContent=blockTypeLabel(b.type);
+      top.appendChild(ty);
+      var lb=document.createElement("span"); lb.className="wf-label"; lb.textContent=b.label;
+      top.appendChild(lb);
+      if (b.perSegment) {
+        var bd=document.createElement("span"); bd.className="wf-badge";
+        bd.textContent="show/hide"; bd.title="One block per segment in the built email";
+        top.appendChild(bd);
+      }
+      box.appendChild(top);
+      if (b.type==="divider") { wf.appendChild(box); return; }
+      if (b.hint) {
+        var hi=document.createElement("div"); hi.className="wf-hint"; hi.textContent=b.hint;
+        box.appendChild(hi);
+      }
+      function copyBox(key, labelText) {
+        var wrap=document.createElement("div"); wrap.className="wf-copy";
+        if (labelText) {
+          var sl=document.createElement("div"); sl.className="wf-seglab"; sl.textContent=labelText;
+          wrap.appendChild(sl);
+        }
+        var oneLine=(b.type==="subject"||b.type==="preheader"||b.type==="cta"||b.type==="headline");
+        var el=oneLine?document.createElement("input"):document.createElement("textarea");
+        if (oneLine) el.type="text"; else el.rows=b.type==="body"?3:2;
+        el.value=(s.copy||{})[key]||"";
+        el.placeholder=oneLine?"Copy for this block":"Copy for this block…";
+        el.addEventListener("change", function () {
+          s.copy=s.copy||{};
+          if (el.value.trim()) s.copy[key]=el.value; else delete s.copy[key];
+          saveDB(); renderWireframe();
+        });
+        wrap.appendChild(el);
+        box.appendChild(wrap);
+      }
+      if (b.perSegment) {
+        if (!(s.segments||[]).length) {
+          var w0=document.createElement("div"); w0.className="wf-empty";
+          w0.textContent="Add a segment to this send to get its copy boxes.";
+          box.appendChild(w0);
+        }
+        (s.segments||[]).forEach(function (sg) {
+          var seg=segmentById(sg.segId);
+          copyBox(copyKey(b,sg.segId), (seg?seg.name:"[deleted segment]"));
+        });
+      } else copyBox(copyKey(b,""), "");
+      wf.appendChild(box);
+    });
+    host.appendChild(wf);
+  }
+  /* One link when the send ships as a single email, one per segment when it's
+     split — matching whatever the build method says, so the record lines up
+     with how many campaigns actually exist. */
+  function renderSentLinks() {
+    var s=currentSend(); if (!s) return;
+    var host=document.getElementById("edSentLinks"); host.innerHTML="";
+    var split=isSplit(s);
+    function linkRow(labelText, get, set) {
+      var row=document.createElement("div"); row.className="link-row";
+      if (labelText) {
+        var l=document.createElement("span"); l.className="wf-seglab";
+        l.style.flex="0 0 190px"; l.style.margin="0"; l.textContent=labelText;
+        row.appendChild(l);
+      }
+      var inp=document.createElement("input"); inp.type="text"; inp.value=get()||"";
+      inp.placeholder="https://…  campaign or permalink";
+      inp.addEventListener("change", function(){ set(inp.value.trim()); saveDB(); renderSentLinks(); });
+      row.appendChild(inp);
+      var open=document.createElement("button"); open.className="btn btn-sm"; open.textContent="Open";
+      open.disabled=!/^https?:\/\//i.test(get()||"");
+      open.addEventListener("click", function () {
+        window.open(get(), "_blank", "noopener");
+      });
+      row.appendChild(open);
+      host.appendChild(row);
+    }
+    if (!split) {
+      linkRow("", function(){ return s.sentUrl; }, function(v){ s.sentUrl=v; });
+      var h=document.createElement("div"); h.className="hint";
+      h.textContent=(s.segments||[]).length>1
+        ? "One campaign, because this ships as a single email with show/hide blocks."
+        : "Paste the sent campaign or Slack permalink here once it's out.";
+      host.appendChild(h);
+    } else {
+      (s.segments||[]).forEach(function (sg) {
+        var seg=segmentById(sg.segId);
+        linkRow(seg?seg.name:"[deleted segment]",
+          function(){ return (s.sentUrls||{})[sg.segId]; },
+          function(v){ s.sentUrls=s.sentUrls||{}; if (v) s.sentUrls[sg.segId]=v; else delete s.sentUrls[sg.segId]; });
+      });
+      var h2=document.createElement("div"); h2.className="hint";
+      h2.textContent="One per segment, because this ships as separate sends.";
+      host.appendChild(h2);
+    }
   }
   /* Three kinds share one form, so the fields that don't apply are hidden
      rather than left to be filled in wrongly: a feeder isn't sent on a date,
@@ -2633,7 +3123,10 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       });
       head.appendChild(addSlot);
       var rmSeg=document.createElement("button"); rmSeg.className="btn btn-sm"; rmSeg.textContent="Remove";
-      rmSeg.addEventListener("click", function(){ s.segments.splice(si,1); saveDB(); renderEditorSegments(); });
+      rmSeg.addEventListener("click", function () {
+        s.segments.splice(si,1); saveDB();
+        renderEditorSegments(); renderWireframe(); renderSentLinks();
+      });
       head.appendChild(rmSeg);
       box.appendChild(head);
       (sg.items||[]).forEach(function (it, ii) {
@@ -3010,7 +3503,8 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     var term=TERMS[termIdx], res=resolvedEvents(term);
     var rows=[["Date / active from","Weekday","Channel","Journey","Type","Trigger","Delay (days)",
                "Window","Slack channels","Must be in system by","Who receives it","Title","Status",
-               "Build method","Segment","Built from","Mailchimp segment condition","Mailchimp tag",
+               "Build method","Wireframe","Copy written","Sent link",
+               "Segment","Built from","Mailchimp segment condition","Mailchimp tag",
                "Persona","Slot","Content","Content date",
                "Tag match","Window check","Notes"]];
     DB.sends.filter(function(s){ return inTerm(s,term); })
@@ -3028,15 +3522,17 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         var typeLabel=auto?"Automation (triggered)":
           (isFeeder?(s.sendOn?"Entry email (dated)":"Entry email (on entry)"):"Scheduled send");
         var elig=cutoffApplies(s)?describeEligibility(s):(isFeeder?describeFeeder(s):null);
+        var tpl=templateById(s.templateId), fill=copyFilled(s);
+        var links=sentLinksOf(s);
         var pre=[ eff||"", (effD && !auto)?DOW[effD.getDay()]:"—",
-                  ch?ch.name:"?", jr?(jr.name||"Untitled"):"",
-                  typeLabel, auto?triggerText(s):"",
-                  auto?(s.delay||0):"",
-                  w?describeWindow(w):"",
-                  isSlackLane(s.channelId)?(slackNames(s).join(" ")||"NONE PICKED"):"",
-                  cutoffApplies(s)?(s.cutoff||"no cutoff"):(isFeeder?("cohort opens "+(s.date||"?")):""),
-                  elig?((elig.bad?"CHECK — ":"")+elig.text):"",
-                  s.title||"", s.status||"", buildLabel(s) ];
+              ch?ch.name:"?", jr?(jr.name||"Untitled"):"",
+              typeLabel, auto?triggerText(s):"", auto?(s.delay||0):"",
+              w?describeWindow(w):"",
+              isSlackLane(s.channelId)?(slackNames(s).join(" ")||"NONE PICKED"):"",
+              cutoffApplies(s)?(s.cutoff||"no cutoff"):(isFeeder?("cohort opens "+(s.date||"?")):""),
+              elig?((elig.bad?"CHECK — ":"")+elig.text):"",
+              s.title||"", s.status||"", buildLabel(s),
+              tpl?tpl.name:"", tpl?(fill.done+"/"+fill.total):"", links.join(" ") ];
         if (!s.segments || !s.segments.length) { rows.push(pre.concat(["","","","","","","","","",s.notes||""])); return; }
         s.segments.forEach(function (sg) {
           var seg=segmentById(sg.segId);
@@ -3067,6 +3563,46 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
         });
       });
     download("ilab-comms-plan-"+term.id+".csv", toCsv(rows));
+  }
+  /* The build sheet: one row per copy block, in template order, so whoever
+     assembles the send works down the page instead of reverse-engineering it
+     from the plan. Kept separate from the plan CSV because the shapes differ —
+     one row per content item there, one row per block here. */
+  function copySheetCsv() {
+    var term=TERMS[termIdx];
+    var rows=[["Date","Channel","Slack channels","Send","Status","Build method","Wireframe",
+               "Block #","Block type","Block","Guidance","Segment","Mailchimp condition",
+               "Copy","Sent link"]];
+    DB.sends.filter(function(s){ return inTerm(s,term) && s.templateId; })
+      .sort(function (a,b) {
+        var da=okDate(effectiveDate(a)), db2=okDate(effectiveDate(b));
+        if (!da) return 1; if (!db2) return -1; return da-db2;
+      })
+      .forEach(function (s) {
+        var t=templateById(s.templateId); if (!t) return;
+        var ch=channelById(s.channelId);
+        var n=0;
+        t.blocks.forEach(function (b) {
+          if (b.type==="divider") return;
+          n++;
+          var targets=b.perSegment
+            ? (s.segments||[]).map(function(sg){ return sg.segId; })
+            : [""];
+          if (!targets.length) targets=[""];
+          targets.forEach(function (segId) {
+            var seg=segId?segmentById(segId):null;
+            var link=sentLinkFor(s,segId);
+            rows.push([ effectiveDate(s), ch?ch.name:"?",
+              isSlackLane(s.channelId)?slackNames(s).join(" "):"",
+              s.title||"Untitled", s.status||"", buildLabel(s), t.name,
+              n, blockTypeLabel(b.type), b.label, b.hint||"",
+              seg?seg.name:(b.perSegment?"[no segment yet]":"everyone"),
+              seg?(segCondition(seg).text||segTagExpr(seg)||""):"",
+              (s.copy||{})[copyKey(b,segId)]||"", link ]);
+          });
+        });
+      });
+    download("ilab-copy-sheet-"+term.id+".csv", toCsv(rows));
   }
   function exportJson(){ download("ilab-comms-plan.json", JSON.stringify(DB,null,2), "application/json"); }
   function nameKey(s){ return String(s==null?"":s).trim().toLowerCase(); }
@@ -3313,7 +3849,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
       var s=currentSend(); if (!s) return;
       var id=document.getElementById("edAddSegSel").value; if (!id) return;
       s.segments=s.segments||[]; s.segments.push({ segId:id, items:[] });
-      saveDB(); renderEditorSegments();
+      saveDB(); renderEditorSegments(); renderWireframe(); renderSentLinks();
     });
     document.getElementById("edDate").addEventListener("change", function () {
       var s=currentSend(); if (s) { s.date=document.getElementById("edDate").value; saveDB(); }
@@ -3345,7 +3881,24 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     document.getElementById("edBuild").addEventListener("change", function () {
       var s=currentSend();
       if (s) { s.build=document.getElementById("edBuild").value; saveDB(); }
-      renderEditorSegments();
+      renderEditorSegments(); renderSentLinks();
+    });
+    document.getElementById("edTemplate").addEventListener("change", function () {
+      var s=currentSend(); if (!s) return;
+      s.templateId=document.getElementById("edTemplate").value;
+      saveDB(); renderWireframe();
+    });
+    document.getElementById("addTplEmailBtn").addEventListener("click", function () {
+      DB.templates.push({ id:uid("tpl"), name:"New email wireframe", kind:"email", notes:"",
+        blocks:[ blk("subject","Subject line",false,""), blk("headline","Headline",false,""),
+                 blk("body","Body copy",true,""), blk("cta","Button / CTA",false,"") ] });
+      saveDB(); render();
+    });
+    document.getElementById("addTplSlackBtn").addEventListener("click", function () {
+      DB.templates.push({ id:uid("tpl"), name:"New Slack wireframe", kind:"slack", notes:"",
+        blocks:[ blk("headline","Headline",false,""), blk("body","Body copy",true,""),
+                 blk("context","Context line",false,"") ] });
+      saveDB(); render();
     });
     document.getElementById("edSlackNone").addEventListener("click", function () {
       var s=currentSend(); if (!s) return;
@@ -3427,6 +3980,7 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
     });
     document.getElementById("pgGenerate").addEventListener("click", generatePromos);
     document.getElementById("commsCsvBtn").addEventListener("click", commsCsv);
+    document.getElementById("copyCsvBtn").addEventListener("click", copySheetCsv);
     document.getElementById("exportJsonBtn").addEventListener("click", exportJson);
     document.getElementById("importJsonBtn").addEventListener("click", importJson);
     document.getElementById("importEventsBtn").addEventListener("click", function () {

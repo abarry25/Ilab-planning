@@ -860,13 +860,18 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   var MAILCHIMP_FIELDS = [
     "Member Type", "Member Stage", "Membership Cohort", "Affiliation to Harvard",
     "Harvard School", "Graduation Year", "Primary Expert Type",
+    "Lab Term(s)",
     "Organization", "Venture Name", "Title", "First Name", "Last Name",
     "Secondary Email", "SMA Registration Email", "Expert URL", "Judge Link",
     "Feedback - Improvement", "Feedback - Strengths", "Ingenuity Award Idea",
     "Sign up", "lastname"
   ];
+  /* Lab Term(s) is the field that carries New vs Renewing, and the Weekly Digest
+     framework lists it as a segmentation lever — but it has no Mailchimp column
+     in the connector, so it isn't synced yet. Flagged like the other dead fields
+     so a segment built on it fails loudly rather than selecting nobody. */
   var MAILCHIMP_UNMAPPED = { "Feedback - Improvement":1, "Feedback - Strengths":1,
-    "Ingenuity Award Idea":1, "Sign up":1, "lastname":1 };
+    "Ingenuity Award Idea":1, "Sign up":1, "lastname":1, "Lab Term(s)":1 };
   var COND_OPS = [
     { id:"is",       label:"is",             needsValue:true },
     { id:"isnot",    label:"is not",         needsValue:true },
@@ -886,14 +891,28 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
   /* The Mailchimp field lives on the facet, not the value — every value of
      "Founder status" is read off the same field. Values are left blank on
      purpose: the picklist values belong to Salesforce, not to a guess here. */
+  /* Values come from the Weekly Digest framework's "internal meaning" column,
+     so the vocabulary matches what the team already says out loud. */
   var DEFAULT_FACETS = [
-    { id:"fct_membership", name:"Membership", field:"Membership Cohort", values:[
-      { id:"fv_new",       name:"New Members",       op:"is",    value:"", tag:"new-member" },
-      { id:"fv_returning", name:"Returning Members", op:"isnot", value:"", tag:"returning-member" }
+    { id:"fct_labterm", name:"Lab term", field:"Lab Term(s)", values:[
+      { id:"fv_new",      name:"New",      op:"is", value:"", tag:"new-member" },
+      { id:"fv_renewing", name:"Renewing", op:"is", value:"", tag:"renewing-member" }
     ] },
-    { id:"fct_founder", name:"Founder status", field:"Member Type", values:[
-      { id:"fv_founder",    name:"Founder",     op:"is",    value:"", tag:"founder" },
-      { id:"fv_nonfounder", name:"Non Founder", op:"isnot", value:"", tag:"non-founder" }
+    { id:"fct_membertype", name:"Member type", field:"Member Type", values:[
+      { id:"fv_explorer",  name:"Explorer",    op:"is", value:"Explorer",    tag:"explorer" },
+      { id:"fv_teamlead",  name:"Team Lead",   op:"is", value:"Team Lead",   tag:"team-lead" },
+      { id:"fv_teammem",   name:"Team Member", op:"is", value:"Team Member", tag:"team-member" }
+    ] },
+    { id:"fct_stage", name:"Member stage", field:"Member Stage", values:[
+      { id:"fv_stexp",  name:"Explorer", op:"is", value:"Explorer", tag:"stage-explorer" },
+      { id:"fv_sttest", name:"Test",     op:"is", value:"Test",     tag:"stage-test" },
+      { id:"fv_stprop", name:"Propel",   op:"is", value:"Propel",   tag:"stage-propel" }
+    ] },
+    { id:"fct_cohort", name:"Venture cohort", field:"Membership Cohort", values:[
+      { id:"fv_hcls", name:"HCLS", op:"is", value:"HCLS", tag:"cohort-hcls" },
+      { id:"fv_b2b",  name:"B2B",  op:"is", value:"B2B",  tag:"cohort-b2b" },
+      { id:"fv_si",   name:"SI",   op:"is", value:"SI",   tag:"cohort-si" },
+      { id:"fv_b2c",  name:"B2C",  op:"is", value:"B2C",  tag:"cohort-b2c" }
     ] }
   ];
   function slugTag(s) {
@@ -967,6 +986,21 @@ table.grid td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-alig
                  blk("cta","One next step",true,"Resist adding a second"),
                  blk("body","Where to ask questions",false,"Slack channels, office hours"),
                  blk("footer","Footer",false,"") ] },
+      /* Straight from the Weekly Digest framework: bullets up top, depth below,
+         evergreens last. Per-segment on the two blocks the framework calls
+         dynamic to the member's profile. */
+      { id:"tpl_wd", name:"Weekly Digest", kind:"email",
+        notes:"Mondays 8am. Test: if this were the only thing a member engaged with, would they still know exactly what to do and when? Every item one click from an action — if it isn't actionable it belongs in the newsletter. Max 1–2 scrolls.",
+        blocks:[ blk("subject","Subject line",false,"Lead with the action, not the word 'digest'"),
+                 blk("preheader","Preheader",false,"Reinforce; don't repeat the subject"),
+                 blk("header","Header + date range",false,"State the week this covers, e.g. Sep 21–27"),
+                 blk("list","Top bullets (TC)",true,"1–2 lines each, one click from an action. The scannable layer."),
+                 blk("body","Important announcement",false,"Optional — deadline, PIC registration, holiday schedule. Skip most weeks."),
+                 blk("list","Blocks / highlights",true,"Depth on what warrants it. This week first, then on your radar."),
+                 blk("body","Network engagement",false,"One per digest: a success story, a how-to, or an expert highlight."),
+                 blk("cta","Network engagement CTA",false,"Where the story sends them — always present"),
+                 blk("list","Evergreens",false,"Always available, always actionable. Largely the same each week."),
+                 blk("footer","Footer",false,"Standing links and info") ] },
       { id:"tpl_digest", name:"Monday digest", kind:"slack",
         notes:"Standing weekly post. When a week overloads, fold items in here rather than adding a send.",
         blocks:[ blk("header","This week at the i-lab",false,""),

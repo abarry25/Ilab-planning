@@ -33,6 +33,19 @@
   font:italic 400 15px/1.5 'Spectral',Georgia,serif;color:var(--accent);text-align:center
 }
 @media print{.crumb{border-top-color:var(--border)}}
+.app-nav{
+  display:flex;flex-wrap:wrap;gap:22px;align-items:baseline;
+  padding:0 0 14px;margin:0 0 30px;border-bottom:1px solid var(--border)
+}
+.app-nav a{
+  font:500 11px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);text-decoration:none;
+  padding-bottom:3px;border-bottom:2px solid transparent
+}
+.app-nav a:hover{color:var(--ink)}
+.app-nav a[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
+.app-nav a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media print{.app-nav{display:none}}
 
 </style>
 </head>
@@ -313,6 +326,12 @@ footer p{margin:0 0 8px}
 </style>
 
 <div class="shell">
+
+<nav class="app-nav" aria-label="i-lab planning tools">
+  <a href="https://ilab-planning.onrender.com/index.html">Planning board</a>
+  <a href="https://ilab-planning.onrender.com/comms_planner.html">Communications plan</a>
+  <a href="#" aria-current="page">Handoff dossier</a>
+</nav>
 
 <header class="masthead">
   <p class="eyebrow">Role handoff dossier · Harvard Innovation Labs</p>

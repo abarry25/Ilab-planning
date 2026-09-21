@@ -26,6 +26,13 @@
 .p30b p{margin:0 0 10px}
 .p30b ul{margin:0 0 10px}
 .p30why{font-size:12.5px;color:var(--teal);border-top:1px dashed var(--border-strong);padding-top:9px;margin-top:12px!important}
+.p30b .sub-h{font:600 13.5px/1.4 'IBM Plex Sans',sans-serif;color:var(--ink);margin:16px 0 8px;letter-spacing:.01em}
+
+.crumb{
+  margin:26px 0 0!important;padding-top:18px;border-top:1px dashed var(--border-strong);
+  font:italic 400 15px/1.5 'Spectral',Georgia,serif;color:var(--accent);text-align:center
+}
+@media print{.crumb{border-top-color:var(--border)}}
 
 </style>
 </head>
@@ -316,7 +323,7 @@ footer p{margin:0 0 8px}
     <div><dt>Incumbent</dt><dd>Alexa Barry</dd></div>
     <div><dt>Tenure in scope</dt><dd>August 2024 – present</dd></div>
     <div><dt>Compiled</dt><dd class="mono">17 Sep 2026</dd></div>
-    <div><dt>Built from</dt><dd>29 uploaded sources</dd></div>
+    <div><dt>Built from</dt><dd>44 uploaded sources</dd></div>
   </dl>
 </header><div class="body-grid">
 
@@ -346,7 +353,7 @@ footer p{margin:0 0 8px}
     <li><a href="#s-calendar">3.4 Calendar governance</a></li>
     <li><a href="#s-cadence">3.5 Meeting cadences</a></li>
     <li><a href="#s-people">3.6 People</a></li>
-    <li><a href="#s-eligibility">3.7 Eligibility architecture</a></li>
+    <li><a href="#s-eligibility">3.7 Eligibility</a></li>
     <li><a href="#s-sops">3.8 The SOP library</a></li>
     <li class="toc-part">IV · Fall 2026</li>
     <li><a href="#s-fall">4.1 Coverage without a CM</a></li>
@@ -447,7 +454,7 @@ footer p{margin:0 0 8px}
   <div class="card">
     <p class="card-title">Navab Social Impact Fellowship Fund</p>
     <p class="card-sub">Funding · ~$200K per year</p>
-    <p>Three pitch days annually, $5K–$20K per team. Handed off to Lauren Koppelson, who owns it today. <strong>Her departure returns SIFF to this role.</strong> <span class="chip open">Returning</span></p>
+    <p>Three pitch days annually, $5K–$20K per team. Handed off to Lauren Koppelson, who owns it. <strong>Returns to this role for the spring while she is out, then back to her.</strong> <span class="chip hold">Interim cover</span></p>
   </div>
   <div class="card">
     <p class="card-title">Membership, onboarding &amp; orientation</p>
@@ -813,8 +820,8 @@ footer p{margin:0 0 8px}
 
 <div class="callout open">
   <p class="callout-head">Handed off, and coming back</p>
-  <p><strong>Lauren Koppelson owns the program today.</strong> The handoff to her was deliberate and it worked — she has been fully in control of it, and the playbook is being developed by her. <strong>Her departure returns SIFF to this role.</strong></p>
-  <p>That makes the playbook the single most important artifact in this section. A program handed to a person is not a program handed to the organisation until the procedure exists on paper — and SIFF is about to test that distinction. <strong>Finish it, or capture whatever exists of it, before she leaves.</strong></p>
+  <p><strong>Lauren Koppelson owns the program.</strong> The handoff to her was deliberate and it worked — she has been fully in control of it, and the playbook is being developed by her. She is <strong>out for the spring, with an expected return after the PIC event</strong>, and SIFF comes back to this role for that window before returning to her.</p>
+  <p>That makes the playbook the single most important artifact in this section. A program handed to a person is not a program handed to the organisation until the procedure exists on paper — and a temporary absence tests that twice, once on the way out and once on the way back. <strong>Finish it, or capture whatever exists of it, before she goes.</strong></p>
 </div>
 
 <h4>The management interface, and why it is worth preserving</h4>
@@ -1387,6 +1394,34 @@ footer p{margin:0 0 8px}
   <li><strong>Attendance is reconciled, not reported.</strong> Eventbrite registrations are checked against the event lead&rsquo;s actual headcount, and the corrected number is what goes into ClickUp. Program Operations owns this step. See <span class="mono">Updating Event Registration &amp; Attendance Numbers</span> &mdash; and note that its written procedure ends on a dangling bullet.</li>
 </ul>
 
+<h4>Promotional pushes &mdash; the request route</h4>
+<p>When registrations look low, there is a defined route for asking for a promotional push, and it runs entirely inside Slack. It exists so the ask is a ticket with a target rather than a favour asked in a thread.</p>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>Step</th><th>What happens</th></tr></thead>
+<tbody>
+<tr><td class="name mono">Trigger</td><td>Someone adds a <span class="mono">:rotating_light:</span> reaction to a message in the events channel. Nothing else starts it</td></tr>
+<tr><td class="name mono">Prompt</td><td>The workflow replies in-channel, tagging whoever reacted, with a <strong>Continue</strong> button</td></tr>
+<tr><td class="name mono">Form</td><td>Three fields &mdash; <strong>which event</strong> (required), <strong>target audience</strong> (required, multi-select), and <strong>goal registration number</strong> (optional)</td></tr>
+<tr><td class="name mono">Receipt</td><td>Answers are posted back into the channel so the request is visible, not buried in a DM</td></tr>
+<tr><td class="name mono">Assignment</td><td>A direct message goes to <strong>Micha</strong>, carrying a <strong>Push Complete</strong> button. Five named people can press it</td></tr>
+<tr><td class="name mono">Close</td><td>The requester is tagged in-channel: the push went out, to which segments, sent by whom &mdash; with a reminder to watch Eventbrite for the registration numbers</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout teal">
+  <p class="callout-head">Why this design is worth keeping</p>
+  <p>Three things it does that a Slack message does not. <strong>It forces a target audience</strong>, so &ldquo;can you promote this&rdquo; becomes &ldquo;promote this to these segments.&rdquo; <strong>It asks for a goal number</strong>, which turns a push into something you can evaluate afterwards rather than just send. And <strong>it closes the loop in public</strong> &mdash; the requester is told it went, to whom, and by whom, so nobody has to ask whether it happened.</p>
+</div>
+
+<div class="callout amber">
+  <p class="callout-head">The segment list does not match the stage model</p>
+  <p>The audience options in the live workflow are <strong>All Membership, Explorers, Validators, Sprint Builders, Growth Founders, Impact Founders, HCLS Founders, Community First, Joiners, Other</strong>. That is not the Explore / Test / Propel vocabulary in 1.4, and only partly overlaps the Explore / Test / Propel / Join / Pilot track model named in 1.2. <strong>Two segmentation vocabularies are in use at once</strong> &mdash; one in production in Slack, one in the documented stage model.</p>
+  <p>This matters more than a naming inconsistency. The communications planner in 2.5 builds Mailchimp <em>conditions</em> out of field values, and open decision 13 turns on confirming the exact picklist strings. <strong>Reconcile the two lists before that decision is made</strong>, or the segmentation model gets written against the wrong vocabulary.</p>
+</div>
+
 <h4>Recording, which has its own trap</h4>
 <p>Recording an in-person session requires a <strong>two-device Zoom setup</strong>: the host joins from a personal device while the classroom monitor joins as a participant. Getting this wrong produces a recording of an empty room or no recording at all. The procedure, including troubleshooting, is in <span class="mono">Recording an In-Person Session</span>; Panopto and lobby/classroom AV have their own SOPs.</p>
 
@@ -1698,7 +1733,7 @@ footer p{margin:0 0 8px}
 
 <p>A monthly process designed from the outset to be delegated after training: first-pass eligibility review, applicant communications, interview logistics, notes, Airtable maintenance, and backup staffing. Seasonal pauses in August, January and May.</p>
 <p>Fall 2026 interview dates: 8 Sep, 6 Oct, 3 Nov, 1 Dec. The promotion cadence is built backwards from these — email at T−14, weekly digest at T−7, Slack last call at T−2.</p>
-<p>The delegation to Lauren Koppelson is complete — see 2.2. She owns SIFF today, but her departure returns it to this role, so treat the delegation as temporary rather than settled.</p>
+<p>The delegation to Lauren Koppelson is complete — see 2.2. She owns SIFF, but is out for the spring, so this role covers it in the interim and hands it back on her return.</p>
 </section>
 
 <section id="s-mx">
@@ -2148,7 +2183,7 @@ footer p{margin:0 0 8px}
 <tr><td class="name">Rym Baouendi</td><td>Venture Acceleration</td><td>Sync on cross-portfolio journey touchpoints and accelerator-to-PIC handoff logistics</td></tr>
 <tr><td class="name">Caroline Arzoo</td><td>Network Engagement</td><td>Clarify the MX/NE boundary for office hours, expert promotion and judge recruitment; transfer shared Airtable and OnceHub admin</td></tr>
 <tr><td class="name">Ashley Olafsen</td><td>Community</td><td>Transfer Slack admin, recurring event ownership, and the community-manager backfill plan</td></tr>
-<tr><td class="name">Lauren Koppelson</td><td>SIFF Program Lead — <strong>departing</strong></td><td><strong>Highest-urgency handoff in the record.</strong> Secure the SIFF playbook in whatever state it exists, walk the full cycle before she goes, confirm HiPo first-pass delegation, transfer orientation Zoom host credentials</td></tr>
+<tr><td class="name">Lauren Koppelson</td><td>SIFF Program Lead — <strong>out for the spring</strong></td><td><strong>Highest-urgency handover in the record</strong>, and it happens twice — out and back. Secure the SIFF playbook in whatever state it exists, walk the full cycle before she goes, agree how the program is returned to her after PIC, confirm HiPo first-pass delegation, transfer orientation Zoom host credentials</td></tr>
 <tr><td class="name">Cassie Coravos</td><td>Operations</td><td>Share the event-logistics playbook, Zoom and facilities booking, and the calendar-review cadence</td></tr>
 <tr><td class="name">Shuntaro Shirota</td><td>Operations / Facilities</td><td>Hand over the security-list update process, the SIFF financial-forms workflow, pending access requests</td></tr>
 <tr><td class="name">Alexandra Stephens</td><td>Marketing &amp; Comms</td><td>Transfer the drafting/review split, Mailchimp audience ownership, website publication approval flow</td></tr>
@@ -2163,10 +2198,194 @@ footer p{margin:0 0 8px}
 </section>
 
 <section id="s-eligibility">
-<h3><span class="num">3.7</span><span>Eligibility architecture</span></h3>
+<h3><span class="num">3.7</span><span>Eligibility</span></h3>
 
-<p>Eligibility is treated elsewhere in this dossier as a constraint &mdash; MIDAS says what the language can promise, HES needs verified-candidate status, DCE has its own SOP. There is also a framework behind those rules, and it is the most structurally complete piece of policy thinking in the record. It moves in four stages, each answering a different question.</p>
+<p>Eligibility appears elsewhere in this dossier as a constraint &mdash; MIDAS limits what the language can promise, HES needs verified-candidate status, DCE has its own SOP. It deserves its own section because it is <strong>the longest-running open question in the portfolio</strong>, it touches every program and every system, and the tension inside it is structural rather than procedural. No amount of better documentation resolves it. Someone has to decide.</p>
 
+<h4>How we got here</h4>
+<p>The direction of travel has been one way for six years, always in the name of expanding access to entrepreneurship:</p>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Then</th><th>What changed</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td class="name mono">2020</td><td><strong>Full-time degree-seeking students only</strong></td><td>The original boundary. Simple to state and simple to verify</td></tr>
+<tr><td class="name mono">&darr;</td><td>Part-time students added</td><td>Began with an HGSE partnership covering their part-time students, then opened to all part-time. Time status stopped mattering in review</td></tr>
+<tr><td class="name mono">&darr;</td><td>Extension School (DCE/HES) added, conditionally</td><td>The population was too large to admit wholesale, so DCE tells us who qualifies &mdash; a partnership with a named contact since 2019</td></tr>
+<tr><td class="name mono">&darr;</td><td>Postdocs added</td><td>Driven by a push for health care and life sciences ventures, where the founders are postdocs rather than students</td></tr>
+<tr><td class="name mono">&darr;</td><td>Clinical fellows added</td><td>Including medical residents and specialty fellows</td></tr>
+<tr><td class="name mono">2026</td><td>ALI and Loeb Fellows added &mdash; membership only, not PIC</td><td>Small, highly selective programmes whose members often become i-lab experts. They choose: expert <em>or</em> member, never both</td></tr>
+</tbody>
+</table>
+</div>
+<p>Each step was defensible on its own. Together they produced a population the verification system was never designed to describe. One note in the record puts the position plainly: <strong>&ldquo;Since we have opened Pandora&rsquo;s box, putting things back in the box will be harder than opening it more.&rdquo;</strong></p>
+
+<h4>The core tension</h4>
+<p>It is not a disagreement about who we value. <strong>It is that the language we use to talk about eligibility does not match the systems we use to verify it.</strong></p>
+<ul>
+  <li><strong>MIDAS speaks registrar.</strong> The verification system returns enrollment classifications and institutional status, not the categories the policy is written in.</li>
+  <li><strong>Thirteen schools, thirteen vocabularies, no single source of truth.</strong> &ldquo;Research Associate&rdquo; means a senior postdoc at FAS and an ongoing staff appointment at HBS. Both readings are correct at their own school.</li>
+  <li><strong>Title is not a reliable signal.</strong> Confirmed directly by the FAS Director of Postdoctoral Affairs: postdocs are not students, staff or faculty; departments name them differently; income comes from Harvard, other institutions, governments and stipends.</li>
+  <li><strong>The best available signal is not available.</strong> Job codes would settle most cases &mdash; FAS has confirmed which classes are postdocs &mdash; but job codes are not in MIDAS. Access to them was still being pursued when this record closes.</li>
+  <li><strong>Postdocs and clinical fellows are often classified as employees</strong>, not enrolled students, which is exactly the population funding rules are most likely to care about.</li>
+</ul>
+<p>The consequence is stated precisely in the February 2026 discussion: <strong>our policy language is broader than what our verification infrastructure can consistently validate.</strong> That produces confusion during funding review, inconsistent decisions, staff burden, and risk exposure if a funding decision is ever challenged.</p>
+
+<figure class="fig">
+<div class="figscroll">
+<svg viewBox="0 0 1240 470" role="img" aria-label="The eligibility language names three clean categories, but the verification system returns eighteen registrar status classes whose meaning varies by school. Most cases resolve automatically; a substantial minority land in human interpretation." xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="elArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted)"/>
+  </marker>
+</defs>
+<g font-family="'IBM Plex Sans',sans-serif" style="fill:var(--ink)">
+
+  <text x="14" y="26" font-size="11" font-weight="600" letter-spacing="1.4" style="fill:var(--faint)">WHERE ELIGIBILITY ACTUALLY BREAKS</text>
+
+  <!-- LEFT: what we say -->
+  <rect x="14" y="52" width="290" height="230" rx="8" style="fill:var(--teal-soft);stroke:var(--teal)" stroke-opacity=".45"/>
+  <text x="32" y="78" font-size="12" font-weight="600" style="fill:var(--teal)">What the policy says</text>
+  <text x="32" y="98" font-size="10.5" style="fill:var(--muted)">Three categories, plainly worded</text>
+  <rect x="32" y="112" width="254" height="34" rx="5" style="fill:var(--surface);stroke:var(--border)"/>
+  <text x="159" y="133" font-size="12" text-anchor="middle">Degree-seeking students</text>
+  <rect x="32" y="152" width="254" height="34" rx="5" style="fill:var(--surface);stroke:var(--border)"/>
+  <text x="159" y="173" font-size="12" text-anchor="middle">Postdocs</text>
+  <rect x="32" y="192" width="254" height="34" rx="5" style="fill:var(--surface);stroke:var(--border)"/>
+  <text x="159" y="213" font-size="12" text-anchor="middle">Clinical fellows</text>
+  <text x="32" y="252" font-size="10.5" style="fill:var(--muted)">Written for humans, and it works</text>
+  <text x="32" y="268" font-size="10.5" style="fill:var(--muted)">&mdash; right up until it has to be checked.</text>
+
+  <!-- RIGHT: what the system knows -->
+  <rect x="640" y="52" width="290" height="230" rx="8" style="fill:var(--amber-soft);stroke:var(--amber)" stroke-opacity=".45"/>
+  <text x="658" y="78" font-size="12" font-weight="600" style="fill:var(--amber)">What MIDAS returns</text>
+  <text x="658" y="98" font-size="10.5" style="fill:var(--muted)">Registrar language, 13 schools, no single</text>
+  <text x="658" y="113" font-size="10.5" style="fill:var(--muted)">source of truth</text>
+  <text x="658" y="140" font-size="11.5">Enrollment status &middot; graduation date</text>
+  <text x="658" y="160" font-size="11.5">Job class &middot; appointment title</text>
+  <text x="658" y="180" font-size="11.5">Benefits eligibility</text>
+  <text x="658" y="208" font-size="11" style="fill:var(--accent)">Job codes &mdash; the best signal &mdash; are</text>
+  <text x="658" y="223" font-size="11" style="fill:var(--accent)">not in MIDAS at all</text>
+  <text x="658" y="250" font-size="10.5" style="fill:var(--muted)">&ldquo;Research Associate&rdquo; means postdoc at FAS</text>
+  <text x="658" y="266" font-size="10.5" style="fill:var(--muted)">and staff at HBS. Same word, both true.</text>
+
+  <!-- middle: the resolution -->
+  <line x1="308" y1="167" x2="352" y2="167" stroke-width="1.5" style="stroke:var(--muted)" marker-end="url(#elArrow)"/>
+  <line x1="636" y1="167" x2="592" y2="167" stroke-width="1.5" style="stroke:var(--muted)" marker-end="url(#elArrow)"/>
+  <rect x="356" y="104" width="232" height="126" rx="8" style="fill:var(--surface);stroke:var(--border-strong)" stroke-width="1.5"/>
+  <text x="472" y="130" font-size="12" font-weight="600" text-anchor="middle">18 status classes</text>
+  <text x="472" y="150" font-size="11" text-anchor="middle" style="fill:var(--muted)">in the live eligibility register</text>
+  <text x="472" y="176" font-size="11" text-anchor="middle" style="fill:var(--muted)">Each one has to be mapped,</text>
+  <text x="472" y="192" font-size="11" text-anchor="middle" style="fill:var(--muted)">by hand, to one of the three</text>
+  <text x="472" y="208" font-size="11" text-anchor="middle" style="fill:var(--muted)">categories on the left.</text>
+
+  <!-- outcomes -->
+  <line x1="472" y1="234" x2="472" y2="266" stroke-width="1.5" style="stroke:var(--muted)" marker-end="url(#elArrow)"/>
+  <text x="14" y="308" font-size="11" font-weight="600" letter-spacing="1.4" style="fill:var(--faint)">WHERE THE 59 REGISTERED CASES LAND</text>
+
+  <rect x="14" y="322" width="290" height="88" rx="8" style="fill:var(--teal-soft);stroke:var(--teal)" stroke-opacity=".45"/>
+  <text x="32" y="352" font-size="26" font-weight="600" font-family="'IBM Plex Mono',monospace" style="fill:var(--teal)">33</text>
+  <text x="32" y="374" font-size="11.5" style="fill:var(--ink-2)">Resolve to eligible</text>
+  <text x="32" y="394" font-size="11" style="fill:var(--muted)">No judgement needed</text>
+
+  <rect x="316" y="322" width="290" height="88" rx="8" style="fill:var(--surface-2);stroke:var(--border-strong)"/>
+  <text x="334" y="352" font-size="26" font-weight="600" font-family="'IBM Plex Mono',monospace" style="fill:var(--ink-2)">15</text>
+  <text x="334" y="374" font-size="11.5" style="fill:var(--ink-2)">Resolve to ineligible</text>
+  <text x="334" y="394" font-size="11" style="fill:var(--muted)">Faculty, staff, visiting, exec ed, LOA</text>
+
+  <rect x="618" y="322" width="290" height="88" rx="8" style="fill:var(--accent-soft);stroke:var(--accent)" stroke-width="1.5"/>
+  <text x="636" y="352" font-size="26" font-weight="600" font-family="'IBM Plex Mono',monospace" style="fill:var(--accent)">8</text>
+  <text x="636" y="374" font-size="11.5" font-weight="600" style="fill:var(--accent)">Need a human decision</text>
+  <text x="636" y="394" font-size="11" style="fill:var(--muted)">&ldquo;Discussion required&rdquo; or extra approval</text>
+
+  <rect x="920" y="322" width="304" height="88" rx="8" style="fill:var(--accent-soft);stroke:var(--accent)" stroke-width="2"/>
+  <text x="938" y="352" font-size="26" font-weight="600" font-family="'IBM Plex Mono',monospace" style="fill:var(--accent)">11</text>
+  <text x="938" y="374" font-size="11.5" font-weight="600" style="fill:var(--accent)">Unresolved for PIC specifically</text>
+  <text x="938" y="394" font-size="11" style="fill:var(--muted)">Where real money makes it matter</text>
+
+  <text x="14" y="444" font-size="12" style="fill:var(--ink-2)">The gap is not a documentation problem. <tspan font-weight="600">The policy language is broader than the verification infrastructure can validate</tspan> &mdash; so</text>
+  <text x="14" y="462" font-size="12" style="fill:var(--ink-2)">every case it cannot settle becomes a staff judgement, made under time pressure, about a real person&rsquo;s access.</text>
+</g>
+</svg>
+</div>
+<figcaption>Three categories in the language, eighteen in the system, and no reliable mapping between them. Counts from the live eligibility register (59 programme and status rows).</figcaption>
+</figure>
+
+<h4>What opening the door fully would cost</h4>
+<p>Many people at the i-lab believe membership should simply be open to everyone. It is a reasonable position and it removes an enormous amount of work. Two costs come with it, and they are worth stating in full because they are the arguments that do not get made in the room.</p>
+
+<div class="grid-2">
+<div class="card">
+  <p class="card-title">Psychological safety</p>
+  <p class="card-sub">The one that is hardest to recover</p>
+  <p>When membership was students only, we could promise every member that the space was made up of students pursuing entrepreneurship. That promise is what makes people willing to be early, unpolished and honest in public. Open it to later-career people under the same word &ldquo;member&rdquo; and two things follow: <strong>competitions skew toward the more advanced</strong>, and <strong>a vulnerable community becomes reachable by people with predatory intent</strong> &mdash; investors and angels among them.</p>
+  <p><strong>This argument carries less weight internally than it deserves.</strong> It is recorded here because it is the cost that does not show up in any operational metric until after it has been paid.</p>
+</div>
+<div class="card">
+  <p class="card-title">Member experience</p>
+  <p class="card-sub">The one that arrives immediately</p>
+  <p>If everyone is eligible for membership, the gates have to move somewhere &mdash; onto the resources. That means <strong>higher, more manual verification at every individual gate</strong> rather than one check at the door. And it means people are told they are members and then discover they cannot use the things membership appeared to include.</p>
+  <p>The record describes the result directly: members believing they are eligible for PIC or for perks and discounts, finding out they are not, and producing <strong>disappointment, anger, and a great deal of back-and-forth customer service</strong>. A permissive front door buys a hostile interior.</p>
+</div>
+</div>
+
+<div class="callout teal">
+  <p class="callout-head">Why this is a leadership decision and not an operations one</p>
+  <p>Three stakes are named in the record, and none of them can be settled by whoever is doing the checking. <strong>Harvard ecosystem relationships and reputation.</strong> <strong>Compliance with the i-lab charter and with Harvard IP and equity rules.</strong> And <strong>the credibility of the i-lab as an IP-free, equity-free, investment-free educational institution</strong> &mdash; which is the identity the psychological-safety argument is ultimately protecting.</p>
+</div>
+
+<h4>How it actually runs day to day</h4>
+<ul>
+  <li><strong>MIDAS checks are a scarce resource.</strong> Access is granted by HUIT and capped at roughly three to five people. In practice two or three team members plus the Assistant Director of Student Programs run the checks, and anything complex is marked <em>discussion required</em> and escalated to the AD.</li>
+  <li><strong>The register is an Airtable.</strong> Fifty-nine programme and status rows, each carrying a membership decision, a PIC decision, a funding decision and a space-access decision. It is the closest thing to a rulebook, and it is a working document rather than a policy.</li>
+  <li><strong>AY26 changed the model.</strong> Eligibility checks were piloted <strong>only for funding opportunities</strong> &mdash; PIC, SIFF, HiPo. Membership now relies on attestation after SSO login. This is the single largest operational decision in this section: it moved the cost of verification from the front door to the point where money is involved.</li>
+  <li><strong>Extension School is the exception that stayed.</strong> DCE confirms degree-candidate status. The contact became a reviewer inside the application system with weekly digests, and ineligible applicants receive specific language directing them to the HES Career and Academic Resource Center rather than a generic decline.</li>
+  <li><strong>Graduation has its own machinery.</strong> May graduates who were active members before 15 May keep access to 31 July through a <em>manual security list</em> &mdash; their badge stops working, so they must be added by name. Alumni cannot join or rejoin. There is a four-scenario decision tree for the front desk because this question arrives in person, at the door, from someone who is upset.</li>
+  <li><strong>Precedent does real work.</strong> Anyone eligible for membership in a given semester is eligible for SIFF. March graduates are not eligible for PIC funding but have been allowed to defer to the following Fall, and are eligible for the bonus semester and therefore for summer SIFF.</li>
+</ul>
+
+<h4>Decisions that have been made</h4>
+<p>These are settled unless someone reopens them. A successor should treat this as the standing answer set.</p>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Decision</th><th>Detail</th></tr></thead>
+<tbody>
+<tr><td class="name">Students, postdocs, clinical fellows</td><td>Eligible for membership <em>and</em> PIC. Full-time and part-time both count; time status is not a factor</td></tr>
+<tr><td class="name">The stated principle</td><td>&ldquo;Student Membership is for those undergoing <strong>educational training, typically before the start of their career</strong>&rdquo; &mdash; added so the <em>why</em> travels with the rule</td></tr>
+<tr><td class="name">Leave of absence</td><td>Not eligible for that term</td></tr>
+<tr><td class="name">Where checks happen</td><td>At funding, not at membership. SSO plus attestation at the door; MIDAS at the money</td></tr>
+<tr><td class="name">Extension School</td><td>Gated, with DCE confirming degree-candidate status</td></tr>
+<tr><td class="name">HMS HealthTech Fellows</td><td>Membership yes, PIC no. A long-standing exception predating current leadership</td></tr>
+<tr><td class="name">ALI and Loeb Fellows</td><td>Membership yes, PIC no. Must choose between expert and member &mdash; not both</td></tr>
+<tr><td class="name">Faculty</td><td>Encouraged toward advisors, and toward a grad student or postdoc as team lead. <strong>Not turned away</strong> if working directly on a venture</td></tr>
+<tr><td class="name">Visiting fellows, research associates, visiting students</td><td>Ineligible, decided previously with MIDAS evidence attached</td></tr>
+<tr><td class="name">Alumni</td><td>Cannot join or rejoin. May graduates get a bonus semester to 31 July via manual security list</td></tr>
+<tr><td class="name">Renewal</td><td>Annual, running to the end of summer</td></tr>
+<tr><td class="name">PIC Alumni &amp; Affiliate track</td><td>Being expanded to hold Harvard entrepreneurship fellowships, so senior fellows have somewhere to go that is not the student track</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>The two process proposals on the table</h4>
+<div class="grid-2">
+<div class="card">
+  <p class="card-title">&ldquo;Let them decide&rdquo;</p>
+  <p>Applications that do not clear MIDAS automatically go to Further Review and are sent to the applicant&rsquo;s own school with their MIDAS details and HUID. <strong>The school&rsquo;s representative determines whether that person is eligible for student benefits.</strong> Pushes the judgement to the institution that owns the vocabulary &mdash; which is the DCE model, generalised.</p>
+</div>
+<div class="card">
+  <p class="card-title">&ldquo;The honor code&rdquo;</p>
+  <p>We define eligibility across the i-lab ourselves. Applicants who do not clear MIDAS or SSO are asked to disclose more about their status, and a decision tree determines eligibility from their answers. <strong>Keeps the judgement in-house</strong> and accepts self-report as the input.</p>
+</div>
+</div>
+<p>They trade the same thing in opposite directions: who carries the interpretive burden, and therefore who carries the risk when an interpretation is wrong.</p>
+
+<h4>Two tiers, which is the structure underneath all of it</h4>
+<div class="callout">
+  <p class="callout-head">Tier 1 and Tier 2</p>
+  <p><strong>Tier 1</strong> is the first layer &mdash; does this person have access to student benefits at all? <strong>Tier 2</strong> is everything specific to an individual offering, including rules that have nothing to do with identity, such as not having won PIC funding within the past two years. Separating them is what makes the AY26 model work: Tier 1 can be attestation at the door, because Tier 2 is where the real check happens.</p>
+</div>
+
+<h4>The framework for deciding, when someone is ready to decide</h4>
+<p>A full policy architecture exists and is the most structurally complete piece of thinking in the record. It moves in four stages, each answering a different question:</p>
 <div class="tablewrap">
 <table>
 <thead><tr><th>Stage</th><th>Question it answers</th><th>What it defines</th></tr></thead>
@@ -2178,55 +2397,52 @@ footer p{margin:0 0 8px}
 </tbody>
 </table>
 </div>
+<p>Stage A&rsquo;s purpose is stated precisely, and it is the sentence worth carrying into any eligibility argument: it ensures the population allowed to participate <strong>matches the program&rsquo;s stated intent, rather than being driven by convenience, precedent, or interpretation</strong>.</p>
 
-<p>The purpose of stage A is stated precisely, and it is the sentence worth carrying into any eligibility argument: it ensures that the population allowed to participate or receive benefits <strong>matches the program&rsquo;s stated intent, rather than being driven by convenience, precedent, or interpretation</strong>.</p>
-
-<h4>Four risk categories</h4>
+<h4 class="tag">Four risk categories</h4>
 <div class="grid-2">
-<div class="card">
-  <p class="card-title">Reputational</p>
-  <p>Risk to program credibility, fairness perception, or institutional trust.</p>
-</div>
-<div class="card">
-  <p class="card-title">Compliance</p>
-  <p>Risk of violating institutional policy, donor intent, grant restrictions, tax rules, or audit standards.</p>
-</div>
-<div class="card">
-  <p class="card-title">Operational</p>
-  <p>Risk that the policy creates inefficiency, inconsistency, staff burden, or decision instability.</p>
-</div>
-<div class="card">
-  <p class="card-title">Mission</p>
-  <p>Risk that eligibility standards undermine the program&rsquo;s core purpose.</p>
-</div>
+<div class="card"><p class="card-title">Reputational</p><p>Risk to program credibility, fairness perception, or institutional trust.</p></div>
+<div class="card"><p class="card-title">Compliance</p><p>Risk of violating institutional policy, donor intent, grant restrictions, tax rules, or audit standards.</p></div>
+<div class="card"><p class="card-title">Operational</p><p>Risk that the policy creates inefficiency, inconsistency, staff burden, or decision instability.</p></div>
+<div class="card"><p class="card-title">Mission</p><p>Risk that eligibility standards undermine the program&rsquo;s core purpose.</p></div>
 </div>
 
 <h4>Three axes, and what each costs</h4>
+<p>The framework&rsquo;s central question is which <strong>variable anchors the word &ldquo;student&rdquo;</strong> in policy. Three answers, each with a different risk profile:</p>
 <div class="tablewrap">
 <table>
-<thead><tr><th>Axis</th><th>Compliance</th><th>Operational</th><th>Reputational</th><th>Mission</th><th>Verdict in the source</th></tr></thead>
+<thead><tr><th>Axis</th><th>Definition</th><th>Compliance</th><th>Operational</th><th>Reputational</th><th>Mission</th></tr></thead>
 <tbody>
-<tr><td class="name">Axis 1</td><td>Very low</td><td>Low</td><td>Moderate</td><td>Moderate (over-exclusion)</td><td>Trades mission flexibility for compliance safety</td></tr>
-<tr><td class="name">Axis 2</td><td>Very low</td><td>Moderate, controlled with additional work</td><td>Low</td><td>Low</td><td><strong>Distributes risk evenly without spiking any category</strong></td></tr>
-<tr><td class="name">Axis 3</td><td>High</td><td>High</td><td>High if challenged</td><td>Low initially, high long-term through drift</td><td>Feels mission-aligned at first, but creates governance exposure</td></tr>
+<tr><td class="name">1 &middot; Enrollment</td><td>Active degree-seeking enrollment. Clear, binary, system-compatible &mdash; and excludes postdocs</td><td>Very low</td><td>Low</td><td>Moderate</td><td>Moderate (over-exclusion)</td></tr>
+<tr><td class="name">2 &middot; Career stage</td><td>Early-career academic trainee. More inclusive, harder to define, needs internal rather than institutional verification</td><td>Very low</td><td>Moderate, controlled with extra work</td><td>Low</td><td>Low</td></tr>
+<tr><td class="name">3 &middot; Affiliation</td><td>Any Harvard academic affiliate. Broadest; requires an audit of charter and funding contracts</td><td>High</td><td>High</td><td>High if challenged</td><td>Low now, high long-term through drift</td></tr>
 </tbody>
 </table>
 </div>
+<p><strong>Axis 2 distributes risk evenly without spiking any category</strong>, and is the framework&rsquo;s own recommendation &mdash; but it is also the axis that requires the i-lab to define &ldquo;academic trainee&rdquo; itself: appointment type, time-bound status, supervision structure, non-faculty classification. Axis 1 trades mission flexibility for compliance safety. Axis 3 feels mission-aligned and creates governance exposure.</p>
+<p>Implementation cost rises steeply across them. Axis 1 needs a fixed job-class list, registrar-verified enrollment, automated verification and a culture comfortable saying no to edge cases. Axis 2 adds a trainee class list, clear exclusion categories, a documented exception pathway and annual review governance. Axis 3 needs a written rubric, multi-person review for grey cases, an appeal mechanism, documentation of every interpretive decision, an annual audit, a conflict-of-interest protocol and override logging.</p>
 
-<p>Each axis carries an implementation cost the framework makes explicit. <strong>Axis 1</strong> needs a fixed HR job-class list, registrar-verified active enrolment, automated verification logic, a minimal exception process, little manual review, an annual HR confirmation, and a culture comfortable saying no to edge cases. <strong>Axis 2</strong> adds a defined HR trainee class list, a registrar-backed enrolment definition, clear exclusion categories, a documented exception pathway, and annual review governance &mdash; mostly automated, with a small percentage flagged, and Provost or Faculty Affairs confirmation alongside HR partnership. <strong>Axis 3</strong> is the expensive one: a formal written rubric, multi-person review for grey cases, an appeal mechanism, documentation of every interpretive decision, an annual audit, expanded staff review time, a conflict-of-interest protocol, policy-tool override logging, an oversight body, trained reviewers, and a high organisational tolerance for ambiguity.</p>
-
-<h4>Tiering, which is the actual recommendation</h4>
 <div class="callout teal">
-  <p class="callout-head">Eligibility should not be one size fits all</p>
-  <p>The framework&rsquo;s conclusion is that different programs can sit at different points on the same axis. The worked example runs Axis 2 across three tiers: <strong>Membership</strong> for Harvard affiliates plus their team members; <strong>PIC</strong> for Harvard members; and <strong>HiPo</strong> for Harvard members plus a verified stage definition. Benefit level rises, and the rule tightens with it.</p>
+  <p class="callout-head">Tiering is the part that resolves the argument</p>
+  <p>Eligibility does not have to be one size fits all. The worked example runs Axis 2 across three tiers: <strong>Membership</strong> for Harvard affiliates plus their team members; <strong>PIC</strong> for Harvard members; <strong>HiPo</strong> for Harvard members plus a verified stage definition. Benefit level rises and the rule tightens with it &mdash; which is exactly what the AY26 attestation model already does in practice. <em>The tier-to-rule mapping should be confirmed against the source slide; the three tiers and three rules are certain, which attaches to which is inferred from a layout that does not survive extraction.</em></p>
 </div>
+
+<h4>Still open</h4>
+<ul>
+  <li><strong>The axis itself has never been chosen.</strong> Every prompt in the framework&rsquo;s mission-alignment stage is unanswered, and its operational stage is a title page with nothing under it. One qualifications checklist in the record contains a literal row of question marks where the definition should be.</li>
+  <li><strong>Faculty and OTD.</strong> Are we permitted to engage Harvard-based faculty ventures, and are they eligible for funding? A question to raise with the Office of Technology Development that was never closed. The practical answer today is to route through a grad student or postdoc.</li>
+  <li><strong>Job code access.</strong> The best verification signal, still not available in MIDAS.</li>
+  <li><strong>Does &ldquo;Research Associate&rdquo; mean postdoc outside FAS?</strong> Confirmed for FAS, explicitly not true for HBS, unresolved for HMS, HSPH and GSD. Hospital-paid postdocs at HMS are also unresolved.</li>
+  <li><strong>Alumni and affiliate membership.</strong> Whether to create a tier for people in existing Harvard entrepreneurship programmes.</li>
+  <li><strong>The tool has never been pressure-tested.</strong> The stated next step was to run real cases through the eligibility tool and find where human interpretation creeps in. It has not been done.</li>
+</ul>
 
 <div class="callout amber">
-  <p class="callout-head">Two things to verify before using this</p>
-  <p><strong>The tier-to-rule mapping above should be checked against the source slide.</strong> The three tiers and three rules are certain; which rule attaches to which tier is inferred from a layout that does not survive text extraction cleanly.</p>
-  <p><strong>The framework is a worksheet, and the answers are blank.</strong> Stage A is built entirely as prompts &mdash; who is membership explicitly designed to serve, who is intentionally outside that population, what is the purpose of membership, what is the risk of drawing it too narrow, too broad, and a one-sentence definition &mdash; repeated for funding-program access, including whether funding eligibility should be identical to membership. None of those prompts is answered in the record. Stage D, &ldquo;Operationalizing&rdquo;, is a title page with nothing under it. <strong>The hard thinking about the shape of the decision has been done; the decision itself has not been made.</strong></p>
+  <p class="callout-head">One thing to protect whichever way it goes</p>
+  <p>Whatever is decided, <strong>membership, funding and physical access should move together.</strong> The record makes this point once and it is easy to miss: the moment those three diverge, every divergence becomes a conversation with a person who believed they had access to something. That conversation is the customer-service cost in 3.3, arriving one member at a time.</p>
 </div>
 </section>
+
 
 <section id="s-sops">
 <h3><span class="num">3.8</span><span>The SOP library</span></h3>
@@ -2357,7 +2573,8 @@ footer p{margin:0 0 8px}
 
 <div class="callout open">
   <p class="callout-head">The fact that sets the clock</p>
-  <p><strong>Lauren Koppelson is departing.</strong> She currently holds SIFF outright and is absorbing customer-service load. Her replacement must be productive across <strong>SIFF, customer service, PIC and membership by 1 January</strong> &mdash; which is the same week PIC semifinalist support begins and spring membership renewal lands. Everything below is shaped by that date.</p>
+  <p><strong>Lauren Koppelson is out for the spring &mdash; an interim departure, with an expected return after the PIC event.</strong> She holds SIFF outright and absorbs a share of customer-service load, so the gap is real even though it is temporary. Interim coverage must be productive across <strong>SIFF, customer service, PIC and membership by 1 January</strong> &mdash; the same week PIC semifinalist support begins and spring membership renewal lands.</p>
+  <p><strong>Temporary changes what is needed, not how much.</strong> The person covering has to reach working competence on the same date a permanent hire would, but they also have to hand everything back in good order in the spring &mdash; which makes written procedure more important here, not less. A gap that is handed over cold and returned cold twice costs more than a permanent transfer.</p>
 </div>
 
 <div class="ledger30">
@@ -2373,6 +2590,13 @@ footer p{margin:0 0 8px}
         <li><strong>Revive the contact form and widen what it can do.</strong> The fastest of the three. A structured form converts free-text email into routable, taggable intake &mdash; which is also what makes the demand curve measurable rather than remembered.</li>
         <li><strong>Additional long-term CS support or staffing.</strong> The April 2025 proposal already argued for seasonal frontline coverage; this is that argument arriving again with a date on it.</li>
       </ul>
+      <h5 class="sub-h">The Tech&ndash;Programs relationship is part of the fix</h5>
+      <p>No tooling closes this on its own, because a large share of the inbox is technical and arrives at a team that is not the technical team. The working relationship has two halves, and both are obligations rather than favours:</p>
+      <ul>
+        <li><strong>Tech supports Programs in identifying and resolving technical questions.</strong> Not by taking them all, but by teaching the difference &mdash; what Programs can resolve directly, what needs escalation, and how to tell which is which at a glance. The Tech 1&ndash;2&ndash;3 tiers already name this split; what is missing is the teaching that makes the tiers usable by whoever is holding the inbox.</li>
+        <li><strong>Programs learns to resolve technical issues proactively, and to read the trend.</strong> Individual fixes matter less than the pattern. Programs should be pulling general trends across issues, so that when a run of apparent user error turns out to be a genuine technical fault or system failure, <strong>it gets communicated as a broad issue rather than answered one member at a time.</strong></li>
+      </ul>
+      <p>That second half is the one that changes outcomes. The same fault answered individually forty times costs forty replies and stays live; recognised as a pattern, it costs one escalation and one notice. <strong>It is the human version of the tagging argument in 3.3</strong> &mdash; a busy week and a broken system look identical until someone is looking for the shape.</p>
       <p class="p30why">Why now &mdash; September is one of the four high-demand windows, and the October&ndash;November PIC application peak follows immediately.</p>
     </div>
   </div>
@@ -2383,6 +2607,7 @@ footer p{margin:0 0 8px}
       <h4>Program workflow ownership</h4>
       <p>Ensure that <strong>events have oversight when changes are made</strong>. The workflow exists &mdash; five statuses, a four-team approval chain, a ClickUp&nbsp;&rarr;&nbsp;Eventbrite sync (2.6). What it lacks is a named person watching the seams.</p>
       <p>The failure mode is specific and quiet: a date, room, format or copy change made at one stage that nobody upstream or downstream learns about. A status change is not a notification. Nothing breaks visibly &mdash; the event simply goes out wrong, and the first people to find out are members.</p>
+      <p><strong>Route promotional pushes through the Slack ticket to Micha</strong> rather than asking in a thread (2.6). It is already built: a <span class="mono">:rotating_light:</span> reaction opens a form that forces a named event, a target audience and a goal registration number, then closes the loop publicly when the push goes out. Using it consistently is the difference between a promotion you can evaluate and a favour you cannot.</p>
       <p class="p30why">Why now &mdash; fall programming is live, and admin support for events is explicitly limited this term (4.1).</p>
     </div>
   </div>
@@ -2400,11 +2625,11 @@ footer p{margin:0 0 8px}
   <div class="p30">
     <div class="p30n">04</div>
     <div class="p30b">
-      <h4>Secure staffing for Lauren&rsquo;s departure &mdash; and plot the onboarding backwards</h4>
-      <p>Secure support <strong>as soon as possible</strong>, and begin plotting an onboarding cadence that has the person ready to support <strong>SIFF, customer service, PIC and membership by 1 January</strong>.</p>
+      <h4>Secure spring cover for Lauren&rsquo;s interim departure &mdash; and plot the onboarding backwards</h4>
+      <p>Secure support <strong>as soon as possible</strong>, and begin plotting an onboarding cadence that has the person ready to support <strong>SIFF, customer service, PIC and membership by 1 January</strong>. This is spring cover, not a replacement &mdash; Lauren is expected back after the PIC event.</p>
       <p>That is four domains, not one job to learn. Working backwards from 1 January rather than forwards from today is the only way the date holds &mdash; and it is worth naming that <strong>the record contains no onboarding timeline for this kind of role</strong>. The HR onboarding SOP is an in-progress braindump, so there is no existing ramp to copy.</p>
-      <p>Two consequences to plan around. SIFF ownership returns to this role on Lauren&rsquo;s departure (2.2), so the playbook she is writing becomes the deliverable that has to survive the transition &mdash; <strong>get it finished, or get what exists of it, before she leaves.</strong> And 1 January is not a quiet week: it is when PIC semifinalist support begins and spring membership renewal lands.</p>
-      <p class="p30why">Why now &mdash; a hire made in November cannot be productive across four domains on 1 January. The lead time is the constraint, not the decision.</p>
+      <p>Two consequences to plan around. SIFF ownership returns to this role for the duration (2.2), so the playbook she is writing becomes the artifact that carries the program through the gap and back again &mdash; <strong>get it finished, or capture whatever exists of it, before she goes.</strong> And 1 January is not a quiet week: it is when PIC semifinalist support begins and spring membership renewal lands.</p>
+      <p class="p30why">Why now &mdash; cover secured in November cannot be productive across four domains on 1 January. The lead time is the constraint, not the decision.</p>
     </div>
   </div>
 
@@ -2427,8 +2652,8 @@ footer p{margin:0 0 8px}
 <h3><span class="num">5.1</span><span>Open decisions for handoff</span></h3>
 
 <ul class="deck">
-  <li><span class="q"><span>1. Staffing for Lauren&rsquo;s departure</span><span class="chip open">Time-boxed</span></span><span class="a">Secure support now and plot an onboarding cadence backwards from 1 January, when the person must be productive across SIFF, customer service, PIC and membership. There is no existing onboarding ramp for this kind of role to copy.</span></li>
-  <li><span class="q"><span>2. SIFF, on Lauren&rsquo;s departure</span><span class="chip open">Artifact at risk</span></span><span class="a">Ownership returns to this role. The playbook she is writing is the deliverable that has to survive the transition — decide now who secures it, and in what state it will be accepted.</span></li>
+  <li><span class="q"><span>1. Spring cover for Lauren&rsquo;s interim departure</span><span class="chip open">Time-boxed</span></span><span class="a">She is out for the spring, expected back after PIC. Secure cover now and plot onboarding backwards from 1 January, when that person must be productive across SIFF, customer service, PIC and membership. There is no existing onboarding ramp for this kind of role to copy.</span></li>
+  <li><span class="q"><span>2. SIFF during and after the gap</span><span class="chip open">Artifact at risk</span></span><span class="a">Ownership returns to this role for the spring, then back to Lauren. The playbook is what carries the program across both handovers — decide now who secures it, in what state it will be accepted, and how it is handed back.</span></li>
   <li><span class="q">3. PIC / Ingenuity communications</span><span class="a">The largest unowned block left by the community-manager gap. Name the interim liaison, and finish the Marketing comms plan it is meant to comply with.</span></li>
   <li><span class="q">4. Membership data authority</span><span class="a">Who approves field changes, term logic, and data definitions? The continuity recommendation is Tech owns architecture, MX owns communications.</span></li>
   <li><span class="q">5. Orientation recurring staffing</span><span class="a">Confirm the roster and the post-event owner. Also confirm whether the two-event split actually happened for September 2026.</span></li>
@@ -2447,7 +2672,7 @@ footer p{margin:0 0 8px}
 <section id="s-gaps">
 <h3><span class="num">5.2</span><span>Gaps in this record</span></h3>
 
-<p>This dossier is built from twenty-nine uploaded sources. It is a strong foundation — the comms engine, the learning products, the Wayfinder, the eligibility framework and the Fall 2026 coverage plan are all documented to a standard most organisations never reach. What follows is what is <em>not</em> here yet, ordered by what would hurt most to lose.</p>
+<p>This dossier is built from forty-four uploaded sources. It is a strong foundation — the comms engine, the learning products, the Wayfinder, the eligibility framework and the Fall 2026 coverage plan are all documented to a standard most organisations never reach. What follows is what is <em>not</em> here yet, ordered by what would hurt most to lose.</p>
 
 <div class="callout teal">
   <p class="callout-head">What the September 2026 upload round closed &mdash; and what it did not</p>
@@ -2476,7 +2701,7 @@ footer p{margin:0 0 8px}
 <div class="card">
   <p class="card-title">Eligibility SOPs</p>
   <p class="card-sub">Framework attached · rules still not</p>
-  <p>Largely closed. The policy architecture is documented in full (3.7) and the working procedures are in the SOP library (3.8) — DCE eligibility review in SMA, verifying student membership in Salesforce, the badge-access decision tree, the NTA HUID policy. <strong>What is still missing is the decision, not the procedure:</strong> the eligibility framework&rsquo;s own prompts are unanswered, and <span class="mono">Foundational Eligibility Discussions</span> carries a literal row of question marks where a definition of &ldquo;student&rdquo; should be.</p>
+  <p>Closed as a documentation gap. Section 3.7 now carries the history, the core tension, the operating reality, the decision log, the two process proposals and the framework; the working procedures are in the SOP library (3.8). <strong>What remains is the decision, not the record:</strong> the defining axis has never been chosen, the framework&rsquo;s mission-alignment prompts are unanswered, and one qualifications checklist still carries a literal row of question marks where the definition of &ldquo;student&rdquo; should be.</p>
 </div>
 </div>
 
@@ -2581,6 +2806,18 @@ footer p{margin:0 0 8px}
 <tr><td class="name">Membership Access Available</td><td class="mono">pdf</td><td>Summer 2026 access calendar: graduate access deactivation, the no-new-members window, core programming and office-hours end dates, community and workshop windows, and SIFF Pitch Day placement</td></tr>
 <tr><td class="name">i-lab SOPs</td><td class="mono">md</td><td>The full SOP compendium: ~195 distinct procedures across Programs (91), Facilities (43), Finance (32), Events and Tours (28), Tech (24), MarComm (23) and HR (18), plus the library&rsquo;s own purpose, navigation and upkeep framework. <strong>Referenced throughout this dossier by heading; never reproduced.</strong> ~700K characters of prose plus 23 embedded images</td></tr>
 <tr><td class="name">i-lab AY26–27 planning tool</td><td class="mono">link</td><td>The planning board and communications planner described in 2.5. Documented here from the tools&rsquo; own interface and help text; the board contents render empty to an outside viewer and are not reproduced</td></tr>
+<tr><td class="name">Eligibility Review Summer 2026</td><td class="mono">md</td><td>The Alexa/Becca membership and PIC eligibility proposal, the agreed decision tree, the ALI and Loeb amendment, the HealthTech exception, Alumni &amp; Affiliate track expansion, and the 30 June meeting notes carrying the full expansion history</td></tr>
+<tr><td class="name">Foundational Eligibility Discussions</td><td class="mono">md</td><td>Feb 2026. The structural misalignment stated formally, and the three candidate axes — enrollment, career stage, institutional affiliation — with implications for each. Contains the unanswered qualifications checklist</td></tr>
+<tr><td class="name">Eligibility &times; 4</td><td class="mono">md</td><td>Working notes: the MIDAS review process and access limits, the status register, edge cases and precedent (March and May graduates, SIFF), the FAS Director of Postdoctoral Affairs meeting on job codes and titles, and postdoc-office contacts across four schools</td></tr>
+<tr><td class="name">i-lab &lt;&gt; DCE</td><td class="mono">md</td><td>The Extension School partnership: history since 2019, the named contact, the check cadence, the reviewer-in-SMA solution, and the exact HES decline language</td></tr>
+<tr><td class="name">SOP: How to Review DCE Eligibility in SMA</td><td class="mono">md</td><td>Written for the DCE reviewer — portal access, review dashboard, eligible/ineligible decision, downstream triggers</td></tr>
+<tr><td class="name">i-lab Badge Access Decision Tree</td><td class="mono">md</td><td>Four-scenario front-desk tree for graduation and bonus-semester access, with the quick-reference matrix and the exact wording for each outcome</td></tr>
+<tr><td class="name">Eligibility register</td><td class="mono">csv &times;2</td><td>Airtable exports. 59 programme and status rows with membership, PIC, funding and space decisions across 18 status classes; plus 35 specific fellowships with MIDAS notes and per-fund eligibility</td></tr>
+<tr><td class="name">Membership simplification</td><td class="mono">md</td><td>The full simplification project: the two-track member journey, the 13 June decisions including checking postdoc eligibility only at funding, conceptual map, workflow alignment, user stories, test cases, and the Office Hours summer experiment</td></tr>
+<tr><td class="name">Fall 2024 Launch</td><td class="mono">md</td><td>Launch-cycle working notes</td></tr>
+<tr><td class="name">PIC 2025 Judging Post Mortem</td><td class="mono">md</td><td>Judging retrospective: wins to keep, rubric evolution, and the track-fit and eligibility-clarity issues that surfaced the &ldquo;student-led&rdquo; definition question</td></tr>
+<tr><td class="name">Eligibility + workflow whiteboards</td><td class="mono">png &times;4</td><td>The eligibility decision tree with Tier 1 and Tier 2 lines and the two process proposals; the semester launch data and comms workflow; the funds workflow with responsible-party key and timings; the async new-member workflow</td></tr>
+<tr><td class="name">Event Push Request Ticket</td><td class="mono">json</td><td>Slack workflow export. Reaction-triggered promotional-push ticket: the form fields, the ten audience segments, the routing to a single named owner with a completion button, and the public close-out. Described in 2.6</td></tr>
 <tr><td class="name">Membership redesign whiteboard</td><td class="mono">link</td><td>ClickUp whiteboard supplied as additional context. <strong>Behind ClickUp authentication — could not be opened here.</strong> Contents not represented in this dossier</td></tr>
 </tbody>
 </table>
@@ -2588,9 +2825,11 @@ footer p{margin:0 0 8px}
 </section>
 
 <footer>
-  <p>Compiled 17 September 2026 from twenty-nine sources supplied by Alexa Barry, across three rounds. Every figure, name, date and procedure above traces to one of those sources; nothing has been inferred or filled in. Where two sources disagree, both readings are shown and flagged. One further source — a ClickUp whiteboard on the membership redesign — sits behind authentication and is not represented here.</p>
+  <p>Compiled 17 September 2026 from forty-four sources supplied by Alexa Barry, across five rounds. Every figure, name, date and procedure above traces to one of those sources; nothing has been inferred or filled in. Where two sources disagree, both readings are shown and flagged. One further source — a ClickUp whiteboard on the membership redesign — sits behind authentication and is not represented here.</p>
   <p>Items marked for verification are marked because the record is ambiguous, not because a judgement has been made about which reading is right.</p>
   <p><strong>Static export</strong> &mdash; generated 17 September 2026. This copy does not update, and carries no editing or recommendation layer.</p>
+
+  <p class="crumb">If you have read this far, Alexa owes you a homemade baked good.</p>
 </footer>
 
 </main>

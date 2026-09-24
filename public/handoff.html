@@ -25,151 +25,70 @@
 <script>
 const REFS = {
 
-  /* ---- President's Innovation Challenge ---------------------------------- */
-  "pic-onboarding":     { group:"PIC", title:"Program Onboarding Guide: Network Engagement & Judging",
-                          url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-190291", where:"ClickUp" },
-  "pic-operating":      { group:"PIC", title:"PIC operating model",
-                          url:"", where:"ClickUp doc 276yq-65871 / 276yq-158691" },
-  "pic-decisions":      { group:"PIC", title:"PIC decision rights / RACI",
-                          url:"", where:"ClickUp doc 276yq-111171 / 276yq-191011" },
-  "pic-learnings":      { group:"PIC", title:"PIC learnings and improvements",
-                          url:"", where:"ClickUp doc 276yq-70071 / 276yq-134311" },
-  "pic-comms-matrix":   { group:"PIC", title:"PIC comms matrix",
-                          url:"", where:"ClickUp doc 276yq-81151 / 276yq-158631" },
-  "pic-language-2026":  { group:"PIC", title:"ALL PIC LANGUAGE 2026",
-                          url:"", where:"SharePoint > President's Innovation Challenge > PIC 2026" },
-  "pic-yoy":            { group:"PIC", title:"PIC Student YoY Application Tracking workbook",
-                          url:"", where:"SharePoint > Harvard_Innovation_Labs" },
-  "pic-judging-2024":   { group:"PIC", title:"2024 PIC Online Semi-Finalist Judging Email Communications",
-                          url:"", where:"SharePoint" },
+  "pic-onboarding": { group:"PIC", title:"Program Onboarding Guide: Network Engagement & Judging", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-190291", where:"ClickUp" },
+  "pic-operating": { group:"PIC", title:"PIC operating model", url:"https://doc.clickup.com/2333655/d/h/276yq-78511/a98224edb7dae78", where:"ClickUp SOP collection root — not the specific doc" },
+  "pic-decisions": { group:"PIC", title:"PIC decision rights / RACI", url:"https://app.clickup.com/2333655/v/dc/276yq-111171", where:"ClickUp RACI collection root — not the specific doc" },
+  "pic-learnings": { group:"PIC", title:"PIC learnings and improvements", url:"https://app.clickup.com/2333655/docs/276yq-70071/276yq-134311", where:"ClickUp doc 276yq-70071 / 276yq-134311" },
+  "pic-comms-matrix": { group:"PIC", title:"PIC comms matrix", url:"https://app.clickup.com/2333655/v/dc/276yq-81151/276yq-158631", where:"ClickUp doc 276yq-81151 / 276yq-158631" },
+  "pic-language-2026": { group:"PIC", title:"ALL PIC LANGUAGE 2026", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/President%27s%20Innovation%20Challenge/PIC%202026/ALL%20PIC%20LANGUAGE%202026.docx?d=w6305fbf2b35743afb45f85bb3ac4e7c7&csf=1&web=1&e=lEyU8s", where:"SharePoint > President's Innovation Challenge > PIC 2026" },
+  "pic-yoy": { group:"PIC", title:"PIC Student YoY Application Tracking workbook", url:"https://hu.sharepoint.com/:x:/r/sites/sssc/Harvard_Innovation_Labs/_layouts/15/Doc.aspx?sourcedoc=%7BF5A5A752-97FD-4B83-9D58-98D8644B0F1F%7D&file=PIC%202026%20-%20Student%20YoY%20Application%20Tracking%20-%20Updated.xlsx&action=default&mobileredirect=true", where:"SharePoint > Harvard_Innovation_Labs" },
+  "pic-judging-2024": { group:"PIC", title:"2024 PIC Online Semi-Finalist Judging Email Communications", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/President%27s%20Innovation%20Challenge/PIC%202024/Judging/Round%202/2024%20PIC%20Online%20Semi-Finalist%20Judging%20Email%20Communications.docx?d=wae0bd6e0f0354048af03f9f6f1e87b0b&csf=1&web=1&e=8ueQke", where:"SharePoint" },
+  "siff-playbook": { group:"SIFF", title:"SIFF full playbook", url:"https://app.clickup.com/2333655/docs/276yq-103251/276yq-180451", where:"ClickUp doc 276yq-103251 / 276yq-180451" },
+  "siff-raci": { group:"SIFF", title:"SIFF RACI", url:"https://app.clickup.com/2333655/v/dc/276yq-111171", where:"ClickUp RACI collection root — not the specific doc" },
+  "siff-onboarding": { group:"SIFF", title:"SIFF Onboarding Guide", url:"https://app.clickup.com/2333655/docs/276yq-103251/276yq-180451", where:"Same URL as the SIFF playbook — confirm these are one document" },
+  "sop-verify-member": { group:"Membership", title:"SOP: Verifying Student Membership Status (Salesforce)", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-178491", where:"ClickUp" },
+  "sop-dce": { group:"Membership", title:"SOP: How to Review DCE Eligibility in SMA", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-149891", where:"ClickUp" },
+  "eligibility-found": { group:"Membership", title:"Foundational Eligibility Discussions", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-164571", where:"ClickUp" },
+  "eligibility-frame": { group:"Membership", title:"Eligibility framework", url:"https://app.clickup.com/2333655/v/dc/276yq-102331/276yq-178571", where:"ClickUp doc 276yq-93591 / 276yq-163811" },
+  "membership-redesign": { group:"Membership", title:"Membership Redesign design sprint", url:"https://app.clickup.com/2333655/v/dc/276yq-71791/276yq-136671", where:"ClickUp doc 276yq-71791 / 276yq-136691" },
+  "sma-use-cases": { group:"Membership", title:"SMA application use cases", url:"https://app.clickup.com/2333655/docs/276yq-71791/276yq-142511", where:"ClickUp doc 276yq-71791 / 276yq-142511" },
+  "orientation-guide": { group:"Membership", title:"Orientation guide and run of show", url:"https://app.clickup.com/2333655/v/dc/276yq-111151", where:"ClickUp collection root — not the specific doc" },
+  "mx-spec": { group:"MX & strategy", title:"Member Experience (MX) Team Spec", url:"https://doc.clickup.com/d/h/276yq-178331/773b6100d333571", where:"ClickUp" },
+  "mx-goals": { group:"MX & strategy", title:"MX goals, AY 26-27", url:"https://app.clickup.com/2333655/v/dc/276yq-95451/276yq-167971", where:"ClickUp doc 276yq-95451 / 276yq-180491" },
+  "kpi-metrics": { group:"MX & strategy", title:"i-lab Impact Metrics & KPIs", url:"https://doc.clickup.com/d/h/276yq-95751/183129103411089/276yq-167231", where:"ClickUp" },
+  "kpi-framework": { group:"MX & strategy", title:"i-lab KPI Framework", url:"https://doc.clickup.com/d/h/276yq-95751/183129103411089/276yq-172891", where:"ClickUp" },
+  "kpi-dashboard": { group:"MX & strategy", title:"KPI Dashboard: AY 2025-2026", url:"https://doc.clickup.com/d/h/276yq-95751/183129103411089/276yq-177911", where:"ClickUp" },
+  "debrief-system": { group:"MX & strategy", title:"Program Debrief System", url:"https://doc.clickup.com/d/h/276yq-178331/773b6100d333571", where:"Same URL as the MX Team Spec — confirm this is the right document" },
+  "pm-role-summary": { group:"MX & strategy", title:"Program Manager Role Summary", url:"https://doc.clickup.com/d/h/276yq-81811/6f6de466a832c66/276yq-147251", where:"ClickUp" },
+  "wayfinder-spec": { group:"Learning products", title:"Founder Wayfinder / Program Finder spec", url:"https://app.clickup.com/2333655/v/li/901113471984", where:"ClickUp doc 276yq-95711 / 276yq-167191" },
+  "wayfinder-code": { group:"Learning products", title:"Wayfinder codebase", url:"https://abarry25.github.io/summer_reference", where:"Personal GitHub -- move to i-lab hosting" },
+  "wayfinder-guide": { group:"Learning products", title:"Wayfinder decision-logic and update guide", url:"https://abarry25.github.io/way-finder/guide.html", where:"Personal GitHub -- move to i-lab hosting" },
+  "feedback-lab": { group:"Learning products", title:"Feedback Lab pilot", url:"https://app.clickup.com/2333655/v/li/901113400311", where:"ClickUp doc 276yq-102531 / 276yq-179351" },
+  "feedback-prototype": { group:"Learning products", title:"Feedback Lab visual prototype", url:"https://signal-progress.lovable.app/", where:"Lovable -- shared demo login" },
+  "sprint-landing": { group:"Learning products", title:"Customer Discovery Sprint landing page", url:"https://innovationlabs.harvard.edu/how-to/customer-discovery-sprint", where:"i-lab website" },
+  "cv-primer-landing": { group:"Learning products", title:"Customer Validation Primer landing page", url:"https://innovationlabs.harvard.edu/how-to/customer-validation", where:"i-lab website" },
+  "sprint-presurvey": { group:"Learning products", title:"Sprint pre-survey (Qualtrics)", url:"https://hbs.qualtrics.com/jfe/form/SV_0H78meuHB6ZlbX8", where:"Qualtrics" },
+  "sprint-postsurvey": { group:"Learning products", title:"Sprint post-survey (Qualtrics)", url:"https://hbs.qualtrics.com/jfe/form/SV_8GF2pguLIuuJi8S", where:"Qualtrics" },
+  "sprint-forms": { group:"Learning products", title:"Sprint artifact collection forms", url:"https://airtable.com/appL8XUeV7SUkeadN/pag7ezN4UaWWhr6Xx/edit?share=show", where:"Airtable" },
+  "vimeo-library": { group:"Learning products", title:"Vimeo library -- Customer Validation Arc", url:"https://vimeo.com/reviews/69e5e6ac-984c-46ca-919f-649f9c438184/users/114646502/folders/28828925", where:"Vimeo" },
+  "mom-test-sprint": { group:"Learning products", title:"The Mom Test Sprint content", url:"https://doc.clickup.com/2333655/d/h/276yq-95071/dbb57ddda4139f4", where:"ClickUp" },
+  "sf-mc-fieldmap": { group:"Comms", title:"Salesforce to Mailchimp field map", url:"https://app.clickup.com/2333655/docs/276yq-81151/276yq-190651", where:"In the uploaded Comms Strategy doc" },
+  "mc-sop": { group:"Comms", title:"SOP: Mailchimp audiences and dynamic content", url:"https://app.clickup.com/2333655/docs/276yq-81151/276yq-190671", where:"In the uploaded Comms Strategy doc" },
+  "weekly-digest": { group:"Comms", title:"Weekly Digest working framework", url:"https://app.clickup.com/2333655/v/dc/276yq-81151/276yq-190531", where:"In the uploaded Comms Strategy doc" },
+  "fall-cadence": { group:"Comms", title:"HiPo + FF Fall 2026 promotion cadence", url:"https://app.clickup.com/2333655/v/dc/276yq-81151/276yq-189831", where:"In the uploaded Comms Strategy doc" },
+  "post-pic-comms": { group:"Comms", title:"Post-Awards Ceremony Comms", url:"", where:"Adobe viewer shell URL supplied; needs the SharePoint file link" },
+  "funder-thankyou": { group:"Comms", title:"Template for Thank You to Funder", url:"", where:"Adobe viewer shell URL supplied; needs the SharePoint file link" },
+  "cs-mgmt-plan": { group:"Service & systems", title:"Customer Service Management Plan", url:"https://app.clickup.com/2333655/v/dc/276yq-70631/276yq-136451", where:"ClickUp doc 276yq-70631 / 276yq-136591" },
+  "cs-triage-board": { group:"Service & systems", title:"CS triage whiteboard (identity gate + intent)", url:"https://app.clickup.com/2333655/v/wb/276yq-107711", where:"ClickUp whiteboard" },
+  "cs-sop": { group:"Service & systems", title:"Customer service SOP", url:"https://doc.clickup.com/2333655/d/h/276yq-78511/a98224edb7dae78", where:"ClickUp SOP collection root — not the specific doc" },
+  "inbox-strategy": { group:"Service & systems", title:"Inbox management strategy", url:"https://app.clickup.com/2333655/v/dc/276yq-70631/276yq-135731", where:"ClickUp doc 276yq-70631 / 276yq-135731" },
+  "email-agent": { group:"Service & systems", title:"i-lab Email Agent build spec", url:"https://app.clickup.com/2333655/docs/276yq-107751/276yq-181431", where:"ClickUp doc 276yq-107751 / 276yq-181431" },
+  "tpops": { group:"Service & systems", title:"T-POPS / Programs-Tech meeting doc", url:"https://app.clickup.com/2333655/v/dc/276yq-2520/276yq-147871", where:"ClickUp doc 276yq-2520 / 276yq-147871" },
+  "program-calendar": { group:"Calendar & events", title:"Program Calendar View & Filters", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-156711", where:"ClickUp" },
+  "central-intake-sop": { group:"Calendar & events", title:"Sending Program Events to Central Intake", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-158991", where:"ClickUp" },
+  "eventbrite-sop": { group:"Calendar & events", title:"Creating an Eventbrite Event", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-159311", where:"ClickUp" },
+  "eventbrite-api": { group:"Calendar & events", title:"ClickUp to Eventbrite API mapping", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-160111", where:"ClickUp" },
+  "intake-form": { group:"Calendar & events", title:"Event Intake Form -- Central Intake", url:"https://forms.clickup.com/2333655/f/276yq-2338/8E3NE5NUQ2BOAM9ZFX", where:"ClickUp form" },
+  "llx-program": { group:"LLX & alumni", title:"Launch Lab X program doc", url:"NONE", where:"No document located — see the LLX team" },
+  "pitch-template": { group:"LLX & alumni", title:"Pitch Events Template -- Organizer", url:"https://hu.sharepoint.com/:x:/s/sssc/Harvard_Innovation_Labs/EfOgPVizlOpJqsSGs6d4xKwBGYJBKYcyHkE1VKoTtwrgSA", where:"SharePoint" },
+  "alumni-calendar": { group:"LLX & alumni", title:"Alumni Programming Calendar", url:"https://app.clickup.com/2333655/v/li/174001669", where:"ClickUp list" },
+  "speaker-agreement": { group:"LLX & alumni", title:"Speaker Agreement -- how to", url:"https://app.clickup.com/2333655/v/dc/276yq-42750/276yq-67490", where:"ClickUp" },
+  "feedback-intros": { group:"LLX & alumni", title:"Feedback + Intros email template", url:"https://app.clickup.com/2333655/v/dc/276yq-42750/276yq-78391", where:"ClickUp" },
+  "attendance-tracker": { group:"LLX & alumni", title:"Team Lead Attendance Tracker", url:"https://airtable.com/appnaoARd1NoHb3aL/tblskoPZRnnDRDk1O/viweyRUGBSZCv0kgm", where:"Airtable" },
+  "continuity-plan": { group:"Continuity", title:"Interim ownership plan / community continuity", url:"https://app.clickup.com/2333655/v/dc/276yq-66051", where:"ClickUp collection root — not the specific doc" },
+  "hipo-process": { group:"Continuity", title:"HiPo Process Support", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-189731", where:"ClickUp" },
+  "ashley-offboard": { group:"Continuity", title:"Ashley Olafsen offboarding doc", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/Community/Community%20Manager_Offboarding_2026.docx?d=w89a92df10f5b4912b0de578ec1e70f82&csf=1&web=1&e=pidq7I", where:"SharePoint" },
 
-  /* ---- Navab Social Impact Fellowship Fund ------------------------------- */
-  "siff-playbook":      { group:"SIFF", title:"SIFF full playbook",
-                          url:"", where:"ClickUp doc 276yq-103251 / 276yq-180451" },
-  "siff-raci":          { group:"SIFF", title:"SIFF RACI",
-                          url:"", where:"ClickUp doc 276yq-111171 / 276yq-191031" },
-  "siff-onboarding":    { group:"SIFF", title:"SIFF Onboarding Guide",
-                          url:"", where:"ClickUp -- names Lauren as Program Lead" },
-
-  /* ---- Membership, eligibility, orientation ------------------------------ */
-  "sop-verify-member":  { group:"Membership", title:"SOP: Verifying Student Membership Status (Salesforce)",
-                          url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-178491", where:"ClickUp" },
-  "sop-dce":            { group:"Membership", title:"SOP: How to Review DCE Eligibility in SMA",
-                          url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-149891", where:"ClickUp" },
-  "eligibility-found":  { group:"Membership", title:"Foundational Eligibility Discussions",
-                          url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-164571", where:"ClickUp" },
-  "eligibility-frame":  { group:"Membership", title:"Eligibility framework",
-                          url:"", where:"ClickUp doc 276yq-93591 / 276yq-163811" },
-  "membership-redesign":{ group:"Membership", title:"Membership Redesign design sprint",
-                          url:"", where:"ClickUp doc 276yq-71791 / 276yq-136691" },
-  "sma-use-cases":      { group:"Membership", title:"SMA application use cases",
-                          url:"", where:"ClickUp doc 276yq-71791 / 276yq-142511" },
-  "orientation-guide":  { group:"Membership", title:"Orientation guide and run of show",
-                          url:"", where:"ClickUp doc 276yq-111151 / 276yq-190931" },
-
-  /* ---- MX and strategy --------------------------------------------------- */
-  "mx-spec":            { group:"MX & strategy", title:"Member Experience (MX) Team Spec",
-                          url:"https://doc.clickup.com/d/h/276yq-178331/773b6100d333571", where:"ClickUp" },
-  "mx-goals":           { group:"MX & strategy", title:"MX goals, AY 26-27",
-                          url:"", where:"ClickUp doc 276yq-95451 / 276yq-180491" },
-  "kpi-metrics":        { group:"MX & strategy", title:"i-lab Impact Metrics & KPIs",
-                          url:"https://doc.clickup.com/d/h/276yq-95751/183129103411089/276yq-167231", where:"ClickUp" },
-  "kpi-framework":      { group:"MX & strategy", title:"i-lab KPI Framework",
-                          url:"https://doc.clickup.com/d/h/276yq-95751/183129103411089/276yq-172891", where:"ClickUp" },
-  "kpi-dashboard":      { group:"MX & strategy", title:"KPI Dashboard: AY 2025-2026",
-                          url:"https://doc.clickup.com/d/h/276yq-95751/183129103411089/276yq-177911", where:"ClickUp" },
-  "debrief-system":     { group:"MX & strategy", title:"Program Debrief System",
-                          url:"", where:"ClickUp doc 276yq-102531 / 276yq-179051" },
-  "pm-role-summary":    { group:"MX & strategy", title:"Program Manager Role Summary",
-                          url:"https://doc.clickup.com/d/h/276yq-81811/6f6de466a832c66/276yq-147251", where:"ClickUp" },
-
-  /* ---- Learning products ------------------------------------------------- */
-  "wayfinder-spec":     { group:"Learning products", title:"Founder Wayfinder / Program Finder spec",
-                          url:"", where:"ClickUp doc 276yq-95711 / 276yq-167191" },
-  "wayfinder-code":     { group:"Learning products", title:"Wayfinder codebase",
-                          url:"https://abarry25.github.io/summer_reference", where:"Personal GitHub -- move to i-lab hosting" },
-  "wayfinder-guide":    { group:"Learning products", title:"Wayfinder decision-logic and update guide",
-                          url:"https://abarry25.github.io/way-finder/guide.html", where:"Personal GitHub -- move to i-lab hosting" },
-  "feedback-lab":       { group:"Learning products", title:"Feedback Lab pilot",
-                          url:"", where:"ClickUp doc 276yq-102531 / 276yq-179351" },
-  "feedback-prototype": { group:"Learning products", title:"Feedback Lab visual prototype",
-                          url:"https://signal-progress.lovable.app/", where:"Lovable -- shared demo login" },
-  "sprint-landing":     { group:"Learning products", title:"Customer Discovery Sprint landing page",
-                          url:"https://innovationlabs.harvard.edu/how-to/customer-discovery-sprint", where:"i-lab website" },
-  "cv-primer-landing":  { group:"Learning products", title:"Customer Validation Primer landing page",
-                          url:"https://innovationlabs.harvard.edu/how-to/customer-validation", where:"i-lab website" },
-  "sprint-presurvey":   { group:"Learning products", title:"Sprint pre-survey (Qualtrics)",
-                          url:"https://hbs.qualtrics.com/jfe/form/SV_0H78meuHB6ZlbX8", where:"Qualtrics" },
-  "sprint-postsurvey":  { group:"Learning products", title:"Sprint post-survey (Qualtrics)",
-                          url:"https://hbs.qualtrics.com/jfe/form/SV_8GF2pguLIuuJi8S", where:"Qualtrics" },
-  "sprint-forms":       { group:"Learning products", title:"Sprint artifact collection forms",
-                          url:"https://airtable.com/appL8XUeV7SUkeadN/pag7ezN4UaWWhr6Xx/edit?share=show", where:"Airtable" },
-  "vimeo-library":      { group:"Learning products", title:"Vimeo library -- Customer Validation Arc",
-                          url:"https://vimeo.com/reviews/69e5e6ac-984c-46ca-919f-649f9c438184/users/114646502/folders/28828925", where:"Vimeo" },
-  "mom-test-sprint":    { group:"Learning products", title:"The Mom Test Sprint content",
-                          url:"https://doc.clickup.com/2333655/d/h/276yq-95071/dbb57ddda4139f4", where:"ClickUp" },
-
-  /* ---- Communications ---------------------------------------------------- */
-  "sf-mc-fieldmap":     { group:"Comms", title:"Salesforce to Mailchimp field map",
-                          url:"", where:"In the uploaded Comms Strategy doc" },
-  "mc-sop":             { group:"Comms", title:"SOP: Mailchimp audiences and dynamic content",
-                          url:"", where:"In the uploaded Comms Strategy doc" },
-  "weekly-digest":      { group:"Comms", title:"Weekly Digest working framework",
-                          url:"", where:"In the uploaded Comms Strategy doc" },
-  "fall-cadence":       { group:"Comms", title:"HiPo + FF Fall 2026 promotion cadence",
-                          url:"", where:"In the uploaded Comms Strategy doc" },
-  "post-pic-comms":     { group:"Comms", title:"Post-Awards Ceremony Comms",
-                          url:"", where:"SharePoint" },
-  "funder-thankyou":    { group:"Comms", title:"Template for Thank You to Funder",
-                          url:"", where:"SharePoint" },
-
-  /* ---- Service, systems, automation -------------------------------------- */
-  "cs-mgmt-plan":       { group:"Service & systems", title:"Customer Service Management Plan",
-                          url:"", where:"ClickUp doc 276yq-70631 / 276yq-136591" },
-  "cs-triage-board":    { group:"Service & systems", title:"CS triage whiteboard (identity gate + intent)",
-                          url:"https://app.clickup.com/2333655/v/wb/276yq-107711", where:"ClickUp whiteboard" },
-  "cs-sop":             { group:"Service & systems", title:"Customer service SOP",
-                          url:"", where:"ClickUp doc 276yq-70631 / 276yq-155291" },
-  "inbox-strategy":     { group:"Service & systems", title:"Inbox management strategy",
-                          url:"", where:"ClickUp doc 276yq-70631 / 276yq-135731" },
-  "email-agent":        { group:"Service & systems", title:"i-lab Email Agent build spec",
-                          url:"", where:"ClickUp doc 276yq-107751 / 276yq-181431" },
-  "tpops":              { group:"Service & systems", title:"T-POPS / Programs-Tech meeting doc",
-                          url:"", where:"ClickUp doc 276yq-2520 / 276yq-147871" },
-
-  /* ---- Calendar and events ----------------------------------------------- */
-  "program-calendar":   { group:"Calendar & events", title:"Program Calendar View & Filters",
-                          url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-156711", where:"ClickUp" },
-  "central-intake-sop": { group:"Calendar & events", title:"Sending Program Events to Central Intake",
-                          url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-158991", where:"ClickUp" },
-  "eventbrite-sop":     { group:"Calendar & events", title:"Creating an Eventbrite Event",
-                          url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-159311", where:"ClickUp" },
-  "eventbrite-api":     { group:"Calendar & events", title:"ClickUp to Eventbrite API mapping",
-                          url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-160111", where:"ClickUp" },
-  "intake-form":        { group:"Calendar & events", title:"Event Intake Form -- Central Intake",
-                          url:"https://forms.clickup.com/2333655/f/276yq-2338/8E3NE5NUQ2BOAM9ZFX", where:"ClickUp form" },
-
-  /* ---- LLX, alumni, pitch events ----------------------------------------- */
-  "llx-program":        { group:"LLX & alumni", title:"Launch Lab X program doc",
-                          url:"", where:"ClickUp doc 276yq-52951 / 276yq-102151" },
-  "pitch-template":     { group:"LLX & alumni", title:"Pitch Events Template -- Organizer",
-                          url:"https://hu.sharepoint.com/:x:/s/sssc/Harvard_Innovation_Labs/EfOgPVizlOpJqsSGs6d4xKwBGYJBKYcyHkE1VKoTtwrgSA", where:"SharePoint" },
-  "alumni-calendar":    { group:"LLX & alumni", title:"Alumni Programming Calendar",
-                          url:"https://app.clickup.com/2333655/v/li/174001669", where:"ClickUp list" },
-  "speaker-agreement":  { group:"LLX & alumni", title:"Speaker Agreement -- how to",
-                          url:"https://app.clickup.com/2333655/v/dc/276yq-42750/276yq-67490", where:"ClickUp" },
-  "feedback-intros":    { group:"LLX & alumni", title:"Feedback + Intros email template",
-                          url:"https://app.clickup.com/2333655/v/dc/276yq-42750/276yq-78391", where:"ClickUp" },
-  "attendance-tracker": { group:"LLX & alumni", title:"Team Lead Attendance Tracker",
-                          url:"https://airtable.com/appnaoARd1NoHb3aL/tblskoPZRnnDRDk1O/viweyRUGBSZCv0kgm", where:"Airtable" },
-
-  /* ---- Continuity -------------------------------------------------------- */
-  "continuity-plan":    { group:"Continuity", title:"Interim ownership plan / community continuity",
-                          url:"", where:"ClickUp doc 276yq-66051 / 276yq-190411" },
-  "hipo-process":       { group:"Continuity", title:"HiPo Process Support",
-                          url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-189731", where:"ClickUp" },
-  "ashley-offboard":    { group:"Continuity", title:"Ashley Olafsen offboarding doc",
-                          url:"", where:"SharePoint" },
 };
 </script>
 
@@ -1490,7 +1409,7 @@ td.refstatus{white-space:nowrap;width:1%}
 <ul>
   <li><strong>Empty stubs.</strong> <span class="mono">Email Journey.md</span> and <span class="mono">Customer Service Stand Ups.md</span> contain only titles. The Email Journey content survives in the PDF; the CS stand-ups content does not exist anywhere in the set.</li>
   <li><strong>Duplicate upload.</strong> Two byte-identical copies of the 4 August Functional Leads agenda.</li>
-  <li><strong>Most internal links are unusable to a reader.</strong> The transition document's ClickUp references render as &ldquo;Private&rdquo; — roughly forty of them. A successor without ClickUp access gets a bibliography of dead ends. Consider exporting the twenty most critical to a durable format.</li>
+  <li><strong>Internal links now resolve, but they require ClickUp access.</strong> The reference library (&sect;&nbsp;5.4) carries a working URL for sixty of the sixty-three documents this dossier names. A reader without a ClickUp or SharePoint account still reaches a login wall, so the underlying export question stands for anything a successor must read before their accounts are provisioned.</li>
   <li><strong>The MX cadence contradiction</strong> (weekly versus bi-weekly) is unresolved within a single document.</li>
   <li><strong>Sender-name inconsistencies in the PIC comms matrices</strong> — &ldquo;sent by Emmy&rdquo; against a row assigned to Ashley, &ldquo;from Alice to Teams&rdquo; against a row assigned to Alexa, an unexplained &ldquo;Leo&rdquo; action item. Each differs from the sender assigned in the same row.</li>
   <li><strong>The Riskiest Assumptions Primer is not in the transition document's initiative list</strong>, despite being a complete drafted spec. If it is live work, it belongs there; if it is shelved, that should be recorded.</li>
@@ -1548,11 +1467,12 @@ td.refstatus{white-space:nowrap;width:1%}
   <span class="big" id="reflib-done">—</span>
   <span class="cap">of <span id="reflib-total">—</span> documents linked</span>
   <span class="reflib-bar"><span id="reflib-fill" style="width:0%"></span></span>
+  <span class="cap" id="reflib-note" style="flex-basis:100%"></span>
 </div>
 
 <div class="callout teal">
-  <p class="callout-head">To add a link</p>
-  <p>Open the HTML file, find the <span class="mono">REFS</span> block at the top, paste the URL between the quotes on the matching entry, save. That document becomes a link here and everywhere it's mentioned in the text. Entries left empty stay visible as plain text with a dotted underline, so nothing disappears quietly.</p>
+  <p class="callout-head">To add or change a link</p>
+  <p>Open the HTML file, find the <span class="mono">REFS</span> block at the top, paste the URL between the quotes on the matching entry, save. That document becomes a link here and everywhere it's named in the text. An entry left empty stays visible as plain text with a dotted underline. An entry set to <span class="mono">NONE</span> is recorded as <em>Not available</em> — meaning no document was located, which is a different statement from not yet checked.</p>
 </div>
 
 <div id="reflib"></div>
@@ -1583,7 +1503,8 @@ td.refstatus{white-space:nowrap;width:1%}
   document.querySelectorAll("span.ref[data-ref]").forEach(function (el) {
     var entry = refs[el.getAttribute("data-ref")];
     var label = el.textContent;
-    if (entry && entry.url) {
+    var live = entry && entry.url && entry.url !== "NONE";
+    if (live) {
       var a = document.createElement("a");
       a.href = entry.url;
       a.target = "_blank";
@@ -1595,7 +1516,7 @@ td.refstatus{white-space:nowrap;width:1%}
     } else {
       el.className = "ref-missing";
       el.title = entry
-        ? entry.title + (entry.where ? " — " + entry.where : "") + " (no URL yet)"
+        ? entry.title + (entry.where ? " — " + entry.where : "")
         : "No reference entry for this document yet";
     }
   });
@@ -1607,13 +1528,15 @@ td.refstatus{white-space:nowrap;width:1%}
   var groups = {};
   var total = 0;
   var linked = 0;
+  var unavailable = 0;
 
   Object.keys(refs).forEach(function (key) {
     var e = refs[key];
     var g = e.group || "Other";
     (groups[g] = groups[g] || []).push({ key: key, entry: e });
     total += 1;
-    if (e.url) linked += 1;
+    if (e.url === "NONE") unavailable += 1;
+    else if (e.url) linked += 1;
   });
 
   var html = "";
@@ -1626,12 +1549,15 @@ td.refstatus{white-space:nowrap;width:1%}
     groups[g].forEach(function (row) {
       var e = row.entry;
       var title = esc(e.title || row.key);
-      var cell = e.url
+      var live = e.url && e.url !== "NONE";
+      var cell = live
         ? '<a href="' + esc(e.url) + '" target="_blank" rel="noopener noreferrer">' + title + "</a>"
         : title;
-      var status = e.url
+      var status = live
         ? '<span class="chip ok">Linked</span>'
-        : '<span class="chip open">Needs URL</span>';
+        : (e.url === "NONE"
+            ? '<span class="chip">Not available</span>'
+            : '<span class="chip open">Needs URL</span>');
       html += "<tr>";
       html += '<td class="name">' + cell + "</td>";
       html += '<td class="refstatus">' + status + "</td>";
@@ -1650,5 +1576,13 @@ td.refstatus{white-space:nowrap;width:1%}
   if (doneEl) doneEl.textContent = linked;
   if (totalEl) totalEl.textContent = total;
   if (fillEl && total) fillEl.style.width = Math.round((linked / total) * 100) + "%";
+  var noteEl = document.getElementById("reflib-note");
+  if (noteEl) {
+    var bits = [];
+    if (unavailable) bits.push(unavailable + " recorded as no document located");
+    var outstanding = total - linked - unavailable;
+    if (outstanding) bits.push(outstanding + " still outstanding");
+    noteEl.textContent = bits.length ? bits.join(" \u00b7 ") : "";
+  }
 })();
 </script>

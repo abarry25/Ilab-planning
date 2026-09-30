@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Student Programs &amp; Member Experience Handoff</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,31 +27,31 @@
 const REFS = {
 
   "pic-onboarding": { group:"PIC", title:"Program Onboarding Guide: Network Engagement & Judging", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-190291", where:"ClickUp" },
-  "pic-operating": { group:"PIC", title:"PIC operating model", url:"https://doc.clickup.com/2333655/d/h/276yq-78511/a98224edb7dae78", where:"ClickUp SOP collection root — not the specific doc" },
-  "pic-decisions": { group:"PIC", title:"PIC decision rights / RACI", url:"https://app.clickup.com/2333655/v/dc/276yq-111171", where:"ClickUp RACI collection root — not the specific doc" },
+  "pic-operating": { group:"PIC", title:"PIC operating model", url:"https://doc.clickup.com/2333655/d/h/276yq-78511/a98224edb7dae78", where:"ClickUp SOP collection root - not the specific doc" },
+  "pic-decisions": { group:"PIC", title:"PIC decision rights / RACI", url:"https://app.clickup.com/2333655/v/dc/276yq-111171", where:"ClickUp RACI collection root - not the specific doc" },
   "pic-learnings": { group:"PIC", title:"PIC learnings and improvements", url:"https://app.clickup.com/2333655/docs/276yq-70071/276yq-134311", where:"ClickUp doc 276yq-70071 / 276yq-134311" },
   "pic-comms-matrix": { group:"PIC", title:"PIC comms matrix", url:"https://app.clickup.com/2333655/v/dc/276yq-81151/276yq-158631", where:"ClickUp doc 276yq-81151 / 276yq-158631" },
   "pic-language-2026": { group:"PIC", title:"ALL PIC LANGUAGE 2026", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/President%27s%20Innovation%20Challenge/PIC%202026/ALL%20PIC%20LANGUAGE%202026.docx?d=w6305fbf2b35743afb45f85bb3ac4e7c7&csf=1&web=1&e=lEyU8s", where:"SharePoint > President's Innovation Challenge > PIC 2026" },
   "pic-yoy": { group:"PIC", title:"PIC Student YoY Application Tracking workbook", url:"https://hu.sharepoint.com/:x:/r/sites/sssc/Harvard_Innovation_Labs/_layouts/15/Doc.aspx?sourcedoc=%7BF5A5A752-97FD-4B83-9D58-98D8644B0F1F%7D&file=PIC%202026%20-%20Student%20YoY%20Application%20Tracking%20-%20Updated.xlsx&action=default&mobileredirect=true", where:"SharePoint > Harvard_Innovation_Labs" },
   "pic-judging-2024": { group:"PIC", title:"2024 PIC Online Semi-Finalist Judging Email Communications", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/President%27s%20Innovation%20Challenge/PIC%202024/Judging/Round%202/2024%20PIC%20Online%20Semi-Finalist%20Judging%20Email%20Communications.docx?d=wae0bd6e0f0354048af03f9f6f1e87b0b&csf=1&web=1&e=8ueQke", where:"SharePoint" },
   "siff-playbook": { group:"SIFF", title:"SIFF full playbook", url:"https://app.clickup.com/2333655/docs/276yq-103251/276yq-180451", where:"ClickUp doc 276yq-103251 / 276yq-180451" },
-  "siff-raci": { group:"SIFF", title:"SIFF RACI", url:"https://app.clickup.com/2333655/v/dc/276yq-111171", where:"ClickUp RACI collection root — not the specific doc" },
-  "siff-onboarding": { group:"SIFF", title:"SIFF Onboarding Guide", url:"https://app.clickup.com/2333655/docs/276yq-103251/276yq-180451", where:"Same URL as the SIFF playbook — confirm these are one document" },
+  "siff-raci": { group:"SIFF", title:"SIFF RACI", url:"https://app.clickup.com/2333655/v/dc/276yq-111171", where:"ClickUp RACI collection root - not the specific doc" },
+  "siff-onboarding": { group:"SIFF", title:"SIFF Onboarding Guide", url:"https://app.clickup.com/2333655/docs/276yq-103251/276yq-180451", where:"Same URL as the SIFF playbook - confirm these are one document" },
   "sop-verify-member": { group:"Membership", title:"SOP: Verifying Student Membership Status (Salesforce)", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-178491", where:"ClickUp" },
   "sop-dce": { group:"Membership", title:"SOP: How to Review DCE Eligibility in SMA", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-149891", where:"ClickUp" },
   "eligibility-found": { group:"Membership", title:"Foundational Eligibility Discussions", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-164571", where:"ClickUp" },
   "eligibility-frame": { group:"Membership", title:"Eligibility framework", url:"https://app.clickup.com/2333655/v/dc/276yq-102331/276yq-178571", where:"ClickUp doc 276yq-93591 / 276yq-163811" },
   "membership-redesign": { group:"Membership", title:"Membership Redesign design sprint", url:"https://app.clickup.com/2333655/v/dc/276yq-71791/276yq-136671", where:"ClickUp doc 276yq-71791 / 276yq-136691" },
   "sma-use-cases": { group:"Membership", title:"SMA application use cases", url:"https://app.clickup.com/2333655/docs/276yq-71791/276yq-142511", where:"ClickUp doc 276yq-71791 / 276yq-142511" },
-  "orientation-guide": { group:"Membership", title:"Orientation guide and run of show", url:"https://app.clickup.com/2333655/v/dc/276yq-111151", where:"ClickUp collection root — not the specific doc" },
-  "sop-student-slack": { group:"Membership", title:"SOP: Setting Up the Student Slack", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/Community/Misc.%20Community/SOP%20Creating%20and%20Closing%20the%20Annual%20Slack%20Workspace.docx?d=w19a04cd8be954754abb5f090f7282fcb&csf=1&web=1&e=RfLXh0", where:"SharePoint &gt; Community &gt; Misc. Community — creating and closing the annual workspace" },
+  "orientation-guide": { group:"Membership", title:"Orientation guide and run of show", url:"https://app.clickup.com/2333655/v/dc/276yq-111151", where:"ClickUp collection root - not the specific doc" },
+  "sop-student-slack": { group:"Membership", title:"SOP: Setting Up the Student Slack", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/Community/Misc.%20Community/SOP%20Creating%20and%20Closing%20the%20Annual%20Slack%20Workspace.docx?d=w19a04cd8be954754abb5f090f7282fcb&csf=1&web=1&e=RfLXh0", where:"SharePoint &gt; Community &gt; Misc. Community - creating and closing the annual workspace" },
   "sop-participation-letter": { group:"Membership", title:"Participation Letter template", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/Programs/Funds/AVF%20%26%20SIFF/Proof%20of%20Participation/Participation_Letter_TEMPLATE.docx?d=wf8602312038f4e3f89859cb169c9ac28&csf=1&web=1&e=Tfh2PS", where:"SharePoint &gt; Programs &gt; Funds &gt; AVF &amp; SIFF &gt; Proof of Participation" },
   "mx-spec": { group:"MX & strategy", title:"Member Experience (MX) Team Spec", url:"https://doc.clickup.com/d/h/276yq-178331/773b6100d333571", where:"ClickUp" },
   "mx-goals": { group:"MX & strategy", title:"MX goals, AY 26-27", url:"https://app.clickup.com/2333655/v/dc/276yq-95451/276yq-167971", where:"ClickUp doc 276yq-95451 / 276yq-180491" },
   "kpi-metrics": { group:"MX & strategy", title:"i-lab Impact Metrics & KPIs", url:"https://doc.clickup.com/d/h/276yq-95751/183129103411089/276yq-167231", where:"ClickUp" },
   "kpi-framework": { group:"MX & strategy", title:"i-lab KPI Framework", url:"https://doc.clickup.com/d/h/276yq-95751/183129103411089/276yq-172891", where:"ClickUp" },
   "kpi-dashboard": { group:"MX & strategy", title:"KPI Dashboard: AY 2025-2026", url:"https://doc.clickup.com/d/h/276yq-95751/183129103411089/276yq-177911", where:"ClickUp" },
-  "debrief-system": { group:"MX & strategy", title:"Program Debrief System", url:"https://doc.clickup.com/d/h/276yq-178331/773b6100d333571", where:"Same URL as the MX Team Spec — confirm this is the right document" },
+  "debrief-system": { group:"MX & strategy", title:"Program Debrief System", url:"https://doc.clickup.com/d/h/276yq-178331/773b6100d333571", where:"Same URL as the MX Team Spec - confirm this is the right document" },
   "pm-role-summary": { group:"MX & strategy", title:"Program Manager Role Summary", url:"https://doc.clickup.com/d/h/276yq-81811/6f6de466a832c66/276yq-147251", where:"ClickUp" },
   "wayfinder-spec": { group:"Learning products", title:"Founder Wayfinder / Program Finder spec", url:"https://app.clickup.com/2333655/v/li/901113471984", where:"ClickUp doc 276yq-95711 / 276yq-167191" },
   "wayfinder-code": { group:"Learning products", title:"Wayfinder codebase", url:"https://abarry25.github.io/summer_reference", where:"Personal GitHub -- move to i-lab hosting" },
@@ -72,7 +73,7 @@ const REFS = {
   "funder-thankyou": { group:"Comms", title:"Template for Thank You to Funder", url:"", where:"Adobe viewer shell URL supplied; needs the SharePoint file link" },
   "cs-mgmt-plan": { group:"Service & systems", title:"Customer Service Management Plan", url:"https://app.clickup.com/2333655/v/dc/276yq-70631/276yq-136451", where:"ClickUp doc 276yq-70631 / 276yq-136591" },
   "cs-triage-board": { group:"Service & systems", title:"CS triage whiteboard (identity gate + intent)", url:"https://app.clickup.com/2333655/v/wb/276yq-107711", where:"ClickUp whiteboard" },
-  "cs-sop": { group:"Service & systems", title:"Customer service SOP", url:"https://doc.clickup.com/2333655/d/h/276yq-78511/a98224edb7dae78", where:"ClickUp SOP collection root — not the specific doc" },
+  "cs-sop": { group:"Service & systems", title:"Customer service SOP", url:"https://doc.clickup.com/2333655/d/h/276yq-78511/a98224edb7dae78", where:"ClickUp SOP collection root - not the specific doc" },
   "inbox-strategy": { group:"Service & systems", title:"Inbox management strategy", url:"https://app.clickup.com/2333655/v/dc/276yq-70631/276yq-135731", where:"ClickUp doc 276yq-70631 / 276yq-135731" },
   "email-agent": { group:"Service & systems", title:"i-lab Email Agent build spec", url:"https://app.clickup.com/2333655/docs/276yq-107751/276yq-181431", where:"ClickUp doc 276yq-107751 / 276yq-181431" },
   "tpops": { group:"Service & systems", title:"T-POPS / Programs-Tech meeting doc", url:"https://app.clickup.com/2333655/v/dc/276yq-2520/276yq-147871", where:"ClickUp doc 276yq-2520 / 276yq-147871" },
@@ -81,15 +82,17 @@ const REFS = {
   "eventbrite-sop": { group:"Calendar & events", title:"Creating an Eventbrite Event", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-159311", where:"ClickUp" },
   "eventbrite-api": { group:"Calendar & events", title:"ClickUp to Eventbrite API mapping", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-160111", where:"ClickUp" },
   "intake-form": { group:"Calendar & events", title:"Event Intake Form -- Central Intake", url:"https://forms.clickup.com/2333655/f/276yq-2338/8E3NE5NUQ2BOAM9ZFX", where:"ClickUp form" },
-  "llx-program": { group:"LLX & alumni", title:"Launch Lab X program doc", url:"NONE", where:"No document located — see the LLX team" },
+  "event-list-main": { group:"Calendar & events", title:"Event tracking list (primary)", url:"https://app.clickup.com/2333655/v/li/168248660", where:"ClickUp list - registrations, attendees, event type" },
+  "event-list-alt": { group:"Calendar & events", title:"Event tracking list (secondary)", url:"https://app.clickup.com/2333655/v/li/901111840133", where:"ClickUp list - largely duplicates the primary list up to Fall 2025" },
+  "llx-program": { group:"LLX & alumni", title:"Launch Lab X program doc", url:"NONE", where:"No document located - see the LLX team" },
   "pitch-template": { group:"LLX & alumni", title:"Pitch Events Template -- Organizer", url:"https://hu.sharepoint.com/:x:/s/sssc/Harvard_Innovation_Labs/EfOgPVizlOpJqsSGs6d4xKwBGYJBKYcyHkE1VKoTtwrgSA", where:"SharePoint" },
   "alumni-calendar": { group:"LLX & alumni", title:"Alumni Programming Calendar", url:"https://app.clickup.com/2333655/v/li/174001669", where:"ClickUp list" },
   "speaker-agreement": { group:"LLX & alumni", title:"Speaker Agreement -- how to", url:"https://app.clickup.com/2333655/v/dc/276yq-42750/276yq-67490", where:"ClickUp" },
   "feedback-intros": { group:"LLX & alumni", title:"Feedback + Intros email template", url:"https://app.clickup.com/2333655/v/dc/276yq-42750/276yq-78391", where:"ClickUp" },
   "attendance-tracker": { group:"LLX & alumni", title:"Team Lead Attendance Tracker", url:"https://airtable.com/appnaoARd1NoHb3aL/tblskoPZRnnDRDk1O/viweyRUGBSZCv0kgm", where:"Airtable" },
-  "continuity-plan": { group:"Continuity", title:"Interim ownership plan / community continuity", url:"https://app.clickup.com/2333655/v/dc/276yq-66051", where:"ClickUp collection root — not the specific doc" },
+  "continuity-plan": { group:"Continuity", title:"Interim ownership plan / community continuity", url:"https://app.clickup.com/2333655/v/dc/276yq-66051", where:"ClickUp collection root - not the specific doc" },
   "hipo-process": { group:"Continuity", title:"HiPo Process Support", url:"https://doc.clickup.com/d/h/276yq-78511/a98224edb7dae78/276yq-189731", where:"ClickUp" },
-  "ashley-offboard": { group:"Continuity", title:"Ashley Olafsen offboarding doc", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/Community/Community%20Manager_Offboarding_2026.docx?d=w89a92df10f5b4912b0de578ec1e70f82&csf=1&web=1&e=pidq7I", where:"SharePoint" },
+  "cm-offboarding": { group:"Continuity", title:"Community Manager offboarding doc", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/Community/Community%20Manager_Offboarding_2026.docx?d=w89a92df10f5b4912b0de578ec1e70f82&csf=1&web=1&e=pidq7I", where:"SharePoint" },
 
 };
 </script>
@@ -186,11 +189,14 @@ h1{
   max-width:62ch;margin:0 0 34px;
 }
 .metagrid{
-  display:grid;gap:1px;background:var(--border);
+  display:grid;gap:0;background:var(--surface);
   grid-template-columns:repeat(auto-fit,minmax(168px,1fr));
   border:1px solid var(--border);
 }
-.metagrid div{background:var(--surface);padding:14px 16px}
+.metagrid div{
+  background:var(--surface);padding:14px 16px;
+  border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+}
 .metagrid dt{
   font-family:"IBM Plex Mono", monospace;font-size:10.5px;letter-spacing:.13em;
   text-transform:uppercase;color:var(--faint);margin:0 0 5px;
@@ -365,13 +371,20 @@ footer{
 }
 footer p{margin:0 0 8px}
 
+.flowfig{margin:26px 0 28px;padding:0;max-width:none}
+.flowfig svg{max-width:100%;height:auto;display:block;margin:0 auto}
+.flowfig figcaption{
+  font-size:13.5px;color:var(--muted);line-height:1.5;
+  max-width:62ch;margin:16px auto 0;text-align:center;
+}
+
 /* reference links */
 .ref-missing{
   border-bottom:1px dotted var(--border-strong);color:var(--muted);
   cursor:help;
 }
 .ref-missing::after{
-  content:"○";font-size:9px;vertical-align:super;color:var(--faint);
+  content:"\0025CB";font-size:9px;vertical-align:super;color:var(--faint);
   margin-left:2px;
 }
 a.ref-linked{text-decoration-color:var(--accent)}
@@ -411,10 +424,10 @@ td.refstatus{white-space:nowrap;width:1%}
 <header class="masthead">
   <p class="eyebrow">Role handoff dossier &middot; Harvard Innovation Labs</p>
   <h1>Student Programs &amp; Member&nbsp;Experience</h1>
-  <p class="standfirst">What this role owns, how each machine actually runs, who holds the other end of every handoff — and, at the back, what is not yet in the written record.</p>
+  <p class="standfirst">What this role owns, how each machine actually runs, who holds the other end of every handoff &#8212; and, at the back, what is not yet in the written record.</p>
   <dl class="metagrid">
     <div><dt>Role</dt><dd>Asst. Director, Student Programs &amp; Member Experience</dd></div>
-    <div><dt>Incumbent</dt><dd>Alexa Barry</dd></div>
+    <div><dt>Prepared by</dt><dd>Outgoing role holder</dd></div>
     <div><dt>Tenure in scope</dt><dd>August 2024 &ndash; present</dd></div>
     <div><dt>Compiled</dt><dd class="mono">17 Sep 2026</dd></div>
     <div><dt>Built from</dt><dd>16 uploaded source documents</dd></div>
@@ -445,8 +458,9 @@ td.refstatus{white-space:nowrap;width:1%}
     <li><a href="#s-comms">3.2 Comms engine</a></li>
     <li><a href="#s-cs">3.3 Service &amp; triage</a></li>
     <li><a href="#s-calendar">3.4 Calendar governance</a></li>
-    <li><a href="#s-cadence">3.5 Meeting cadences</a></li>
-    <li><a href="#s-people">3.6 People</a></li>
+    <li><a href="#s-attendance">3.5 Event attendance</a></li>
+    <li><a href="#s-cadence">3.6 Meeting cadences</a></li>
+    <li><a href="#s-people">3.7 People</a></li>
     <li class="toc-part">IV &middot; Fall 2026</li>
     <li><a href="#s-fall">4.1 Coverage without a CM</a></li>
     <li class="toc-part">V &middot; Unresolved</li>
@@ -469,13 +483,13 @@ td.refstatus{white-space:nowrap;width:1%}
 <section id="s-role">
 <h3><span class="num">1.1</span><span>What this role actually is</span></h3>
 
-<p>Across two years of records, the recurring pattern is <strong>converting a program or service into a repeatable operating system</strong> — a lifecycle, an ownership model, a calendar, a data flow, an SOP, a feedback loop. Nearly every artifact in the record is infrastructure rather than a one-off.</p>
+<p>Across two years of records, the recurring pattern is <strong>converting a program or service into a repeatable operating system</strong> &#8212; a lifecycle, an ownership model, a calendar, a data flow, an SOP, a feedback loop. Nearly every artifact in the record is infrastructure rather than a one-off.</p>
 
 <p>The clearest articulation of the division of labour comes from the PIC section of the transition document, and it generalises across the portfolio:</p>
 
 <div class="callout">
   <p class="callout-head">Division of labour, as stated in the transition document</p>
-  <p>Tom owns strategic oversight, venture-development point of view, and judge/network relationships. Becca contributes evaluation philosophy and ecosystem strategy. Advisors own substantive evaluation and founder preparation. <strong>This role owns the operating machine.</strong></p>
+  <p>The Director owns strategic oversight, venture-development point of view, and judge/network relationships. The Managing Director contributes evaluation philosophy and ecosystem strategy. Advisors own substantive evaluation and founder preparation. <strong>This role owns the operating machine.</strong></p>
 </div>
 
 <p>Three things this implies:</p>
@@ -498,7 +512,7 @@ td.refstatus{white-space:nowrap;width:1%}
   <div class="card">
     <p class="card-title">Navab Social Impact Fellowship Fund</p>
     <p class="card-sub">Funding &middot; ~$200K per year</p>
-    <p>Three pitch days annually, $5K&ndash;$20K per team. Program owner per RACI — but the onboarding guide names Lauren Koppelson as program lead. <span class="chip open">Ownership unresolved</span></p>
+    <p>Three pitch days annually, $5K&ndash;$20K per team. Program owner per RACI &#8212; but the onboarding guide names Operations / Program Support as program lead. <span class="chip open">Ownership unresolved</span></p>
   </div>
   <div class="card">
     <p class="card-title">Membership, onboarding &amp; orientation</p>
@@ -518,7 +532,7 @@ td.refstatus{white-space:nowrap;width:1%}
   <div class="card">
     <p class="card-title">Learning products</p>
     <p class="card-sub">Feedback Lab &middot; Sprints &middot; Primers</p>
-    <p>Async and hybrid founder-progress experiences, co-led with Rebekah Emanuel. Pilots launched April&ndash;July 2026. <span class="chip hold">Pilot</span></p>
+    <p>Async and hybrid founder-progress experiences, co-led with the Social Impact Advisor. Pilots launched April&ndash;July 2026. <span class="chip hold">Pilot</span></p>
   </div>
   <div class="card">
     <p class="card-title">HiPo / venture incubation support</p>
@@ -534,12 +548,12 @@ td.refstatus{white-space:nowrap;width:1%}
 
 <h4 class="tag">Strategic initiatives running alongside the portfolio</h4>
 <ul>
-  <li><strong>Membership Redesign</strong> — four-phase design sprint replacing overbuilt intake with self-service, track-based membership (Explore / Test / Propel / Join / Pilot).</li>
-  <li><strong>Founder Wayfinder / Program Finder</strong> — built and shipped; turns informal staff routing into explicit, testable logic.</li>
-  <li><strong>Eligibility Framework</strong> — links eligibility language, MIDAS data, funder constraints and SMA application logic.</li>
-  <li><strong>Impact measurement &amp; KPIs</strong> — Becca Xiong is primary author; this role owns the operational data and member-experience interpretation. Three-layer model: engagement &rarr; execution &rarr; outcome.</li>
-  <li><strong>Program Debrief System</strong> — standardises twice-yearly debriefs into keep / adjust / redesign / sunset decisions.</li>
-  <li><strong>Inbox management &amp; AI email agent</strong> — phased Copilot Studio build against the shared mailbox; Phase 0 complete.</li>
+  <li><strong>Membership Redesign</strong> &#8212; four-phase design sprint replacing overbuilt intake with self-service, track-based membership (Explore / Test / Propel / Join / Pilot).</li>
+  <li><strong>Founder Wayfinder / Program Finder</strong> &#8212; built and shipped; turns informal staff routing into explicit, testable logic.</li>
+  <li><strong>Eligibility Framework</strong> &#8212; links eligibility language, MIDAS data, funder constraints and SMA application logic.</li>
+  <li><strong>Impact measurement &amp; KPIs</strong> &#8212; the Managing Director is primary author; this role owns the operational data and member-experience interpretation. Three-layer model: engagement &rarr; execution &rarr; outcome.</li>
+  <li><strong>Program Debrief System</strong> &#8212; standardises twice-yearly debriefs into keep / adjust / redesign / sunset decisions.</li>
+  <li><strong>Inbox management &amp; AI email agent</strong> &#8212; phased Copilot Studio build against the shared mailbox; Phase 0 complete.</li>
 </ul>
 </section>
 
@@ -607,7 +621,7 @@ td.refstatus{white-space:nowrap;width:1%}
 
 <div class="callout">
   <p class="callout-head">Cycle attribution unconfirmed</p>
-  <p>The workbook is titled <span class="mono">PIC 2026 &mdash; Student YoY Application Tracking</span>, but the 2026 cycle concluded with an awards ceremony in May 2026. This snapshot is dated 17 September 2026 and shows 311 in-progress applications. Which cycle these 431 applications belong to is not established by the file itself. The live workbook sits behind SharePoint authentication and could not be opened here — only the exported snapshot tab was available.</p>
+  <p>The workbook is titled <span class="mono">PIC 2026 &mdash; Student YoY Application Tracking</span>, but the 2026 cycle concluded with an awards ceremony in May 2026. This snapshot is dated 17 September 2026 and shows 311 in-progress applications. Which cycle these 431 applications belong to is not established by the file itself. The live workbook sits behind SharePoint authentication and could not be opened here &#8212; only the exported snapshot tab was available.</p>
 </div>
 
 <div class="grid-2">
@@ -660,7 +674,7 @@ td.refstatus{white-space:nowrap;width:1%}
 
 <div class="callout amber">
   <p class="callout-head">How these sub-totals reconcile</p>
-  <p>These sub-totals do not add to 431, and they do not agree with each other — 252 school affiliations, 219 demographic responses, 153 track, 281 cohort, 282 stage. The workbook's own note explains why: each breakdown only counts applicants who have reached the form that asks that question. They therefore do not share a denominator with the 431 total, or with each other. Marketing receives the school and demographic tabs; Advisors receive the track, cohort and stage tabs.</p>
+  <p>These sub-totals do not add to 431, and they do not agree with each other &#8212; 252 school affiliations, 219 demographic responses, 153 track, 281 cohort, 282 stage. The workbook's own note explains why: each breakdown only counts applicants who have reached the form that asks that question. They therefore do not share a denominator with the 431 total, or with each other. Marketing receives the school and demographic tabs; Advisors receive the track, cohort and stage tabs.</p>
 </div>
 
 <h4 class="tag">Other live figures in the record</h4>
@@ -712,35 +726,35 @@ td.refstatus{white-space:nowrap;width:1%}
 </div>
 
 <h4>Judge operations</h4>
-<p>Tom's notes on the 2026 cycle describe a sequence that runs in order:</p>
+<p>The Director's notes on the 2026 cycle describe a sequence that runs in order:</p>
 <ol>
-  <li><strong>Clear last year's judging assignments</strong> — either delete the accounts or strip the old information for returning judges. Tanu owned checking this. Skipping it corrupts the new cycle's assignments.</li>
-  <li><strong>Expectation-setting email from Mailchimp</strong>, sent by Tom after RSVP confirmation: rubric, how to evaluate, the evaluation deadline, when applications appear — and an explicit warning that the next email comes from SMA at a different address.</li>
+  <li><strong>Clear last year's judging assignments</strong> &#8212; either delete the accounts or strip the old information for returning judges. Technology owned checking this. Skipping it corrupts the new cycle's assignments.</li>
+  <li><strong>Expectation-setting email from Mailchimp</strong>, sent by the Director after RSVP confirmation: rubric, how to evaluate, the evaluation deadline, when applications appear &#8212; and an explicit warning that the next email comes from SMA at a different address.</li>
   <li><strong>Upload confirmed judges</strong> (exported from Salesforce) into SMA with <em>notify via email</em> selected.</li>
   <li><strong>Notify when applications go live</strong> in judge accounts, from SMA.</li>
-  <li><strong>Monitor who has not logged in and nudge them</strong> — this is manual and is where no-shows are prevented.</li>
+  <li><strong>Monitor who has not logged in and nudge them</strong> &#8212; this is manual and is where no-shows are prevented.</li>
   <li><strong>Deadline reminder</strong>, then individual extension offers and scoring-exception follow-ups for incomplete or outlying reviews.</li>
 </ol>
 
 <p>The full judge comms arc is specified as thirteen sends: three RSVP reminders, orientation, platform-access readiness, pre-launch follow-up, judging launch, mid-cycle reminder, final deadline reminder, post-deadline extension offer, scoring exception handling, judging close and appreciation, feedback collection, finalist announcement, and event re-engagement.</p>
 
 <div class="callout teal">
-  <p class="callout-head">Open technical questions carried to Tanu</p>
+  <p class="callout-head">Open technical questions carried to Technology</p>
   <p>Can SMA rules make judge assignment easier? Can the <em>teams</em> concept be used to simplify it? Can custom fields create tags that align with student tags, or should groupings be built as teams instead? None of these were resolved in the record.</p>
 </div>
 
 <h4>Student comms, 2025&ndash;26 cycle</h4>
-<p>The comms matrix is organised into five phases — R2, pre-announcement, post-announcement, after media day, before final judging, post-ceremony — with a named sender, platform and dependency on every row. Structural notes:</p>
+<p>The comms matrix is organised into five phases &#8212; R2, pre-announcement, post-announcement, after media day, before final judging, post-ceremony &#8212; with a named sender, platform and dependency on every row. Structural notes:</p>
 <ul>
   <li><strong>Senders are split deliberately.</strong> SMA-automated for anything tied to application state; Mailchimp for scheduled broadcast; Outlook or Slack for personal and logistical messages; personal &ldquo;stealth mode&rdquo; email for attendance chasing.</li>
-  <li><strong>Semifinalist written feedback goes out by Outlook mail merge</strong> from an SMA Excel export against a Word template — this role sent it on 3 April.</li>
+  <li><strong>Semifinalist written feedback goes out by Outlook mail merge</strong> from an SMA Excel export against a Word template &#8212; this role sent it on 3 April.</li>
   <li><strong>Marketing depends on a CSV of team-lead contacts</strong> from Programs for every broadcast send. Pending-CSV was the most common blocker in the 2025 matrix.</li>
-  <li><strong>The Ingenuity audience is tracked as a separate parallel column</strong> at every stage — congratulations, next steps, winners.</li>
+  <li><strong>The Ingenuity audience is tracked as a separate parallel column</strong> at every stage &#8212; congratulations, next steps, winners.</li>
 </ul>
 
 <div class="callout">
   <p class="callout-head">PIC and Ingenuity communications</p>
-  <p>PIC and Ingenuity finalist communications sat with the Community Manager. With that role vacant, the Fall 2026 proposal assigns member communications to MX &ldquo;in compliance with the Marketing communications plan&rdquo; — and records that the plan itself is <strong>TBD</strong>. An interim liaison still needs naming.</p>
+  <p>PIC and Ingenuity finalist communications sat with the Community Manager. With that role vacant, the Fall 2026 proposal assigns member communications to MX &ldquo;in compliance with the Marketing communications plan&rdquo; &#8212; and records that the plan itself is <strong>TBD</strong>. An interim liaison still needs naming.</p>
 </div>
 </section>
 
@@ -754,10 +768,10 @@ td.refstatus{white-space:nowrap;width:1%}
 
 <div class="callout open">
   <p class="callout-head">Ownership conflict in the source record</p>
-  <p>The RACI names this role as <strong>Program Owner</strong>. The SIFF Onboarding Guide names <strong>Lauren Koppelson as Program Lead</strong> for administration and process. Whether this is an architecture-versus-administration split or reflects a transition already underway is not stated. No SIFF process documentation was included in the source set.</p>
+  <p>The RACI names this role as <strong>Program Owner</strong>. The SIFF Onboarding Guide names <strong>Operations / Program Support as Program Lead</strong> for administration and process. Whether this is an architecture-versus-administration split or reflects a transition already underway is not stated. No SIFF process documentation was included in the source set.</p>
 </div>
 
-<p>Financial handoff runs through Shuntaro Shirota in Operations, who owns grant disbursement and the SIFF financial-forms workflow.</p>
+<p>Financial handoff runs through Operations / Facilities, which owns grant disbursement and the SIFF financial-forms workflow.</p>
 </section>
 
 <section id="s-membership">
@@ -769,7 +783,7 @@ td.refstatus{white-space:nowrap;width:1%}
 <ul>
   <li>Application intake launches, priority deadlines, pauses and reopens, and term logic</li>
   <li>SMA form configuration, eligibility and affiliation questions, and testing</li>
-  <li>Application review and routing — including DCE, HES and fellow edge cases, plus MIDAS checks</li>
+  <li>Application review and routing &#8212; including DCE, HES and fellow edge cases, plus MIDAS checks</li>
   <li>Acceptance, decline and enrolment communications</li>
   <li>Salesforce term-enrolment and member-record accuracy</li>
   <li>Routing members onward to orientation, Slack, events, office hours</li>
@@ -798,7 +812,7 @@ td.refstatus{white-space:nowrap;width:1%}
 <p>Every row in phases 1&ndash;3 is marked &ldquo;needs workflow clarification&rdquo; or &ldquo;needs copy&rdquo;, and phases 4&ndash;6 have neither a platform nor a trigger decided. <strong>The launch date on record is 17 September.</strong></p>
 
 <h4>Orientation</h4>
-<p>This role is Host/MC and holds R/A. Covers Explorer/Joiner and Venture sessions, registration and reminders, the staff run-through, and post-event follow-up. Tom delivers &ldquo;What is the i-lab&rdquo;; Becca delivers &ldquo;Your Journey&rdquo;; Lauren Koppelson provides Zoom support.</p>
+<p>This role is Host/MC and holds R/A. Covers Explorer/Joiner and Venture sessions, registration and reminders, the staff run-through, and post-event follow-up. The Director delivers &ldquo;What is the i-lab&rdquo;; the Managing Director delivers &ldquo;Your Journey&rdquo;; Operations / Program Support provides Zoom support.</p>
 <p>A September 2026 working note records the intent to <strong>split orientation into two separate events</strong> with separate Eventbrite pages, plus a pre-orientation welcome email on 17 September and a follow-up on 22 September, with the automation starting that Friday. Whether the split happened is not recorded.</p>
 
 <h4>Participation verification requests</h4>
@@ -812,7 +826,7 @@ td.refstatus{white-space:nowrap;width:1%}
 
 <h4>Known edge cases</h4>
 <ul>
-  <li><strong>DCE eligibility in SMA</strong> has <span class="ref" data-ref="sop-dce">its own SOP</span> — review it before touching intake.</li>
+  <li><strong>DCE eligibility in SMA</strong> has <span class="ref" data-ref="sop-dce">its own SOP</span> &#8212; review it before touching intake.</li>
   <li><strong>HES applicants</strong> require verified-candidate status, checked after a further-review step rather than at submission.</li>
   <li><strong>Verifying student membership status</strong> runs through Salesforce and has <span class="ref" data-ref="sop-verify-member">a dedicated SOP</span>.</li>
   <li><strong>MIDAS</strong> is the identity and eligibility verification source, and it constrains what the eligibility language can promise.</li>
@@ -826,7 +840,7 @@ td.refstatus{white-space:nowrap;width:1%}
 
 <p>On the workshops: <strong>this role creates the experience layer; advisors deliver the content.</strong> That split is the reason event descriptions, registration flows, reminder cadences and follow-up sequences are all documented here while curriculum is not.</p>
 
-<p>Ownership of the recurring community events was the Community Manager's, and transfers to Ashley Olafsen's team on paper — the Fall 2026 proposal confirms Events and MX collaborate to design and host community events, with the caveat that <strong>admin support for virtual and in-person events will be limited this fall</strong>.</p>
+<p>Ownership of the recurring community events was the Community Manager's, and transfers to the Community team on paper &#8212; the Fall 2026 proposal confirms Events and MX collaborate to design and host community events, with the caveat that <strong>admin support for virtual and in-person events will be limited this fall</strong>.</p>
 </section>
 
 <section id="s-llx">
@@ -844,10 +858,10 @@ td.refstatus{white-space:nowrap;width:1%}
   <ul>
     <li>Create the Zoom link</li>
     <li>Survey founders for availability</li>
-    <li>Recruit two support staff plus Becca Xiong and Matt Segneri</li>
+    <li>Recruit two support staff plus the Managing Director and a senior leadership attendee</li>
     <li>Run a roles and run-of-show meeting with support staff</li>
     <li>Copy the Pitch Event Details template and populate it</li>
-    <li>Confirm with Thara what judges have been sent, and the feedback-survey status</li>
+    <li>Confirm with Alumni Engagement what judges have been sent, and the feedback-survey status</li>
     <li>Outlook holds: 30-minute slots per team, plus one long hold for staff and judges</li>
     <li>Check Central Intake for correct event details; loop in Operations</li>
   </ul>
@@ -879,14 +893,14 @@ td.refstatus{white-space:nowrap;width:1%}
 
 <div class="callout teal">
   <p class="callout-head">Note in the source document</p>
-  <p>&ldquo;Connect with Kim Willette about running Pitch Events, she is a master of Pitch Events.&rdquo; Reference recordings are held in Vimeo and are confidential — venture information; the link is not to be shared.</p>
+  <p>The checklist directs whoever runs a pitch event to consult the most experienced pitch-event organiser on the Alumni Engagement team first. Reference recordings are held in Vimeo and are confidential &#8212; venture information; the link is not to be shared.</p>
 </div>
 </section>
 
 <section id="s-learning">
 <h3><span class="num">2.6</span><span>Learning products &mdash; Feedback Lab, Sprints, Primers</span></h3>
 
-<p>Co-led with Rebekah Emanuel. Three products share one architecture: <em>teach first, ask last</em>, with an editable content layer kept separate from the delivery logic.</p>
+<p>Co-led with the Social Impact Advisor. Three products share one architecture: <em>teach first, ask last</em>, with an editable content layer kept separate from the delivery logic.</p>
 
 <h4>Feedback Lab</h4>
 <p>A learning map that converts PIC semifinalist judge feedback into an action step. Formatted feedback from ~9 judges to all semifinalists, both constructive and strength-based, summarised into macro themes with time-bound actions, applicable i-lab events, and on-demand resources.</p>
@@ -906,17 +920,17 @@ td.refstatus{white-space:nowrap;width:1%}
 </table>
 </div>
 
-<p>Each theme carries a routing table of actions, i-lab activities and on-demand resources — the same lookup-table shape used in the Wayfinder.</p>
+<p>Each theme carries a routing table of actions, i-lab activities and on-demand resources &#8212; the same lookup-table shape used in the Wayfinder.</p>
 
 <h4 class="tag">Feedback Lab retrospective, 7 April 2026</h4>
 <div class="grid-2">
 <div class="card">
   <p class="card-title">Worked</p>
-  <p>Rebekah shared already-curated learning content, opened office hours, and provided sequencing suggestions. Alexandra Stephens supported MVP landing pages and drip campaigns during a hectic period and with Mailchimp partly down.</p>
+  <p>The Social Impact Advisor shared already-curated learning content, opened office hours, and provided sequencing suggestions. Marketing &amp; Communications supported MVP landing pages and drip campaigns during a hectic period and with Mailchimp partly down.</p>
 </div>
 <div class="card">
   <p class="card-title">Didn&rsquo;t</p>
-  <p>Time and capacity, in a busy season. Building piecemeal was instructive but laborious — <strong>the recommendation is to outline the full curricular journey and collect every asset in final format before launching</strong>, especially if the product is to be handed to another team.</p>
+  <p>Time and capacity, in a busy season. Building piecemeal was instructive but laborious &#8212; <strong>the recommendation is to outline the full curricular journey and collect every asset in final format before launching</strong>, especially if the product is to be handed to another team.</p>
 </div>
 <div class="card">
   <p class="card-title">Next</p>
@@ -925,7 +939,7 @@ td.refstatus{white-space:nowrap;width:1%}
 </div>
 
 <h4>Customer Discovery Sprint</h4>
-<p>A three-week hybrid experience: one required in-person kickoff workshop, then interviews and validation between sessions, virtual group office hours, synthesis, and a final discussion. Hosted by Phil Green and Peter Gladstone. Recommended goal: 5&ndash;10 customer interviews per participant.</p>
+<p>A three-week hybrid experience: one required in-person kickoff workshop, then interviews and validation between sessions, virtual group office hours, synthesis, and a final discussion. Hosted by the Open Track Advisor and a program facilitator. Recommended goal: 5&ndash;10 customer interviews per participant.</p>
 
 <div class="tablewrap">
 <table>
@@ -969,7 +983,7 @@ td.refstatus{white-space:nowrap;width:1%}
 </table>
 </div>
 
-<p>Explicitly excluded: founders already in a structured cohort with an assigned advisor — SVP, Life Lab, accelerator cohorts — because the conversation already happens live and the sequence would be noise. Availability gating applies throughout: a category never surfaces a program that is not currently open. No &ldquo;next term&rdquo; placeholders.</p>
+<p>Explicitly excluded: founders already in a structured cohort with an assigned advisor &#8212; SVP, Life Lab, accelerator cohorts &#8212; because the conversation already happens live and the sequence would be noise. Availability gating applies throughout: a category never surfaces a program that is not currently open. No &ldquo;next term&rdquo; placeholders.</p>
 
 <h4 class="tag">Shared metric targets across all three learning products</h4>
 <div class="tablewrap">
@@ -993,7 +1007,7 @@ td.refstatus{white-space:nowrap;width:1%}
 
 <h4>Founder Wayfinder / Program Finder</h4>
 <p>Built solo over summer 2026. The design question was deliberately not &ldquo;what quiz should we build&rdquo; but <em>what are the actual questions we ask a founder when we're trying to figure out where to point them?</em></p>
-<p>Five inputs — stage, goal, time commitment, sector, format preference. Stage, goal and time combine through a scoring model to produce a persona; sector modifies what appears within a persona but never changes the persona itself. Two personas are hard overrides rather than scored: <strong>Social Impact sector always routes to Impact Founder; light time commitment always routes to Community First.</strong></p>
+<p>Five inputs &#8212; stage, goal, time commitment, sector, format preference. Stage, goal and time combine through a scoring model to produce a persona; sector modifies what appears within a persona but never changes the persona itself. Two personas are hard overrides rather than scored: <strong>Social Impact sector always routes to Impact Founder; light time commitment always routes to Community First.</strong></p>
 
 <div class="tablewrap">
 <table>
@@ -1016,7 +1030,7 @@ td.refstatus{white-space:nowrap;width:1%}
   <li>Two files. <span class="mono">founder_xp_generator.html</span> holds the quiz, scoring and renderer and <strong>changes only if the program model changes</strong>. <span class="mono">ilab-data.js</span> holds all content and <strong>is the only file touched each semester</strong>.</li>
   <li>Every signup URL lives in one named table at the top of the data file. A semester update is one line, one value.</li>
   <li>Events and office hours carry <span class="mono">active: false</span> to hide without deleting, preserving history.</li>
-  <li>Format mismatches are <em>flagged, not hidden</em> — hiding would create gaps in recommendations.</li>
+  <li>Format mismatches are <em>flagged, not hidden</em> &#8212; hiding would create gaps in recommendations.</li>
   <li>No program directory, by decision. Maximum four events, three steps, a handful of office hours. A starting point, not a catalogue.</li>
   <li>Supporting infrastructure: a four-tab Google Sheet (Links, Events, Office Hours, Steps) as the human editing interface, a README documenting every column and valid value for a non-technical editor, and a <span class="ref" data-ref="wayfinder-guide">standalone decision-logic page</span> documenting the routing.</li>
 </ul>
@@ -1041,8 +1055,8 @@ td.refstatus{white-space:nowrap;width:1%}
 <h3><span class="num">2.7</span><span>HiPo / venture incubation support</span></h3>
 
 <p>A monthly process designed from the outset to be delegated after training: first-pass eligibility review, applicant communications, interview logistics, notes, Airtable maintenance, and backup staffing. Seasonal pauses in August, January and May.</p>
-<p>Fall 2026 interview dates: 8 Sep, 6 Oct, 3 Nov, 1 Dec. The promotion cadence is built backwards from these — email at T&minus;14, weekly digest at T&minus;7, Slack last call at T&minus;2.</p>
-<p>Whether the delegation to Lauren Koppelson has actually happened is an open handoff question.</p>
+<p>Fall 2026 interview dates: 8 Sep, 6 Oct, 3 Nov, 1 Dec. The promotion cadence is built backwards from these &#8212; email at T&minus;14, weekly digest at T&minus;7, Slack last call at T&minus;2.</p>
+<p>Whether the delegation to Operations / Program Support has actually happened is an open handoff question.</p>
 </section>
 
 <section id="s-mx">
@@ -1054,7 +1068,7 @@ td.refstatus{white-space:nowrap;width:1%}
 <div class="card">
   <p class="card-title">Four MX functions</p>
   <ol>
-    <li>Understand members — interviews, surveys, data, observation</li>
+    <li>Understand members &#8212; interviews, surveys, data, observation</li>
     <li>Design and steward the end-to-end journey and navigation</li>
     <li>Operationalise programs in a member-centred way</li>
     <li>Measure and improve experience</li>
@@ -1062,12 +1076,12 @@ td.refstatus{white-space:nowrap;width:1%}
 </div>
 <div class="card">
   <p class="card-title">Team</p>
-  <p>Joanna Furgiuele &middot; Lauren Koppelson &middot; Community Manager <em>(vacant)</em> &middot; Caroline Arzoo (YU intern) &middot; Emma Sikora &middot; Allegra Thomas &middot; Joy Masicotte</p>
+  <p>Alumni / LLX Programs &middot; Operations / Program Support &middot; Community Manager <em>(vacant)</em> &middot; Network Engagement intern &middot; three further program and support staff whose functions the source does not specify</p>
   <p class="card-sub" style="margin-top:12px;margin-bottom:0">AY 26&ndash;27 goals organise around progress, belonging, coherent ecosystem, member insight, organisational alignment</p>
 </div>
 </div>
 
-<p>Leadership approach as stated: coordination, synthesis, standards, and decision clarity — keeping the full journey coherent while distributing subject-area responsibility across the team.</p>
+<p>Leadership approach as stated: coordination, synthesis, standards, and decision clarity &#8212; keeping the full journey coherent while distributing subject-area responsibility across the team.</p>
 
 <div class="callout amber">
   <p class="callout-head">Contradiction in the source record</p>
@@ -1133,44 +1147,44 @@ td.refstatus{white-space:nowrap;width:1%}
 </tbody>
 </table>
 </div>
-<p>Personalisation fields: First Name, Last Name, Title, Organization, Venture Name. Per-person link fields: Expert URL, Judge Link — these let one send work for everyone who gets it.</p>
+<p>Personalisation fields: First Name, Last Name, Title, Organization, Venture Name. Per-person link fields: Expert URL, Judge Link &#8212; these let one send work for everyone who gets it.</p>
 
 <div class="callout">
   <p class="callout-head">Five constraints, stated in the SOP</p>
   <ol>
     <li><strong>Never use a contact tag in a conditional block.</strong> Conditional merge tags read fields and groups only. A tag holds no value, so it cannot be printed.</li>
-    <li><strong>Never put conditional logic in a subject line.</strong> It is not supported — and this is the single deciding factor for whether something is one email or separate sends.</li>
+    <li><strong>Never put conditional logic in a subject line.</strong> It is not supported &#8212; and this is the single deciding factor for whether something is one email or separate sends.</li>
     <li><strong>Never segment or personalise on an unsynced field.</strong> It is empty for every contact, so the segment selects nobody and fails silently. Currently empty: <span class="mono">Feedback - Improvement</span>, <span class="mono">Feedback - Strengths</span>, <span class="mono">Ingenuity Award Idea</span>, <span class="mono">Sign up</span>, <span class="mono">lastname</span>.</li>
-    <li><strong>Never reference</strong> <span class="mono">lastname</span> — it duplicates Last Name, is unmapped, and is flagged for deletion.</li>
+    <li><strong>Never reference</strong> <span class="mono">lastname</span> &#8212; it duplicates Last Name, is unmapped, and is flagged for deletion.</li>
     <li><strong>Never assume a picklist value.</strong> Confirm the exact string in Salesforce first: <span class="mono">Founder</span> and <span class="mono">Student Founder</span> are different audiences.</li>
   </ol>
 </div>
 
-<p>The word &ldquo;tag&rdquo; means three unrelated things in Mailchimp — a merge field's placeholder, a contact label, and (loosely) a segment. The SOP exists mostly to keep those apart. Segments re-run as people change; tags must be reapplied by hand and go stale. Use a tag only where the distinction exists nowhere in Salesforce, and record why.</p>
+<p>The word &ldquo;tag&rdquo; means three unrelated things in Mailchimp &#8212; a merge field's placeholder, a contact label, and (loosely) a segment. The SOP exists mostly to keep those apart. Segments re-run as people change; tags must be reapplied by hand and go stale. Use a tag only where the distinction exists nowhere in Salesforce, and record why.</p>
 
 <div class="callout open">
   <p class="callout-head">Seven field requests blocking planned work</p>
-  <p>These automations are designed and cannot be built until Tech syncs the fields: membership start date (joins-membership automation) &middot; application status and interview cycle (submitted / accepted / declined) &middot; event registration and attendance (RSVP, attended, no-show) &middot; office hours booked and completed dates &middot; last engagement date (inactivity nudge) &middot; program enrolment in FF / HiPo / Accelerator / Life Lab — <strong>Tom's entire fall cadence splits on this and no field carries it</strong> &middot; mentor program membership, targeted on four fall sends.</p>
+  <p>These automations are designed and cannot be built until Tech syncs the fields: membership start date (joins-membership automation) &middot; application status and interview cycle (submitted / accepted / declined) &middot; event registration and attendance (RSVP, attended, no-show) &middot; office hours booked and completed dates &middot; last engagement date (inactivity nudge) &middot; program enrolment in FF / HiPo / Accelerator / Life Lab &#8212; <strong>the Director's entire fall cadence splits on this and no field carries it</strong> &middot; mentor program membership, targeted on four fall sends.</p>
 </div>
 
 <h4>Weekly Digest</h4>
 <p>The test it is designed against: <em>if the Weekly Digest were the only thing a member engaged with, they would still know exactly what to do and when, to get the most out of their membership.</em></p>
 <ul>
-  <li><strong>Actionable</strong> — every item is one click from sign up, register, indicate interest, learn more, or access on demand. If it is not actionable, it goes in the newsletter instead.</li>
-  <li><strong>Brief</strong> — maximum one to two scrolls; two to three sentences per paragraph.</li>
-  <li><strong>Time-bound</strong> — Mondays, with the covered date range stated. Evergreens are the exception.</li>
-  <li><strong>Relevant</strong> — dynamic to member profile, not a static calendar dump.</li>
+  <li><strong>Actionable</strong> &#8212; every item is one click from sign up, register, indicate interest, learn more, or access on demand. If it is not actionable, it goes in the newsletter instead.</li>
+  <li><strong>Brief</strong> &#8212; maximum one to two scrolls; two to three sentences per paragraph.</li>
+  <li><strong>Time-bound</strong> &#8212; Mondays, with the covered date range stated. Evergreens are the exception.</li>
+  <li><strong>Relevant</strong> &#8212; dynamic to member profile, not a static calendar dump.</li>
 </ul>
 <p>Structure: optional announcements &rarr; blocks and highlights &rarr; evergreens &rarr; footer. Reference point is an <em>Inshorts</em> or NYT-digest style: short bullets up top, depth below. Nothing two or more weeks out unless it is actionable. First two issues built for 21 and 28 September, 8am.</p>
 
 <h4>Fall 2026 promotion cadence &mdash; HiPo + Founder Fundamentals</h4>
 <div class="callout teal">
   <p class="callout-head">Weekly send cap</p>
-  <p>Maximum <strong>one broad email plus two broad Slack posts per week</strong>. Segmented sends — coaches, HiPo-only — do not count against the cap. One conditional email counts as a single broad touch; four separate sends to four segments in one week count as four, and breach it.</p>
+  <p>Maximum <strong>one broad email plus two broad Slack posts per week</strong>. Segmented sends &#8212; coaches, HiPo-only &#8212; do not count against the cap. One conditional email counts as a single broad touch; four separate sends to four segments in one week count as four, and breach it.</p>
 </div>
-<p>Channel roles: email carries lead time at T&minus;10 to T&minus;14 before major moments; Slack carries immediacy via a Monday &ldquo;This Week at the i-lab&rdquo; digest plus a same-day reminder for the biggest open event; newsletter is a monthly forward-looking anchor (30 Sep, 28 Oct, 30 Nov, 16 Dec); website holds evergreen placement with an always-current next date per program page. Ashley owns email, Slack and both newsletters.</p>
+<p>Channel roles: email carries lead time at T&minus;10 to T&minus;14 before major moments; Slack carries immediacy via a Monday &ldquo;This Week at the i-lab&rdquo; digest plus a same-day reminder for the biggest open event; newsletter is a monthly forward-looking anchor (30 Sep, 28 Oct, 30 Nov, 16 Dec); website holds evergreen placement with an always-current next date per program page. Community owns email, Slack and both newsletters.</p>
 <p>The monthly block repeats Sep&ndash;Dec: HiPo application push in weeks 3&ndash;4 of the prior month, FF open-programming spotlight in weeks 1&ndash;2, newsletter at month end. Special arcs are Founder Talk 7 Oct, Hackathon 23 Oct, Meet the Angels 4 Nov, last sprint 18 Nov, semester wrap 16 Dec seeding spring applications.</p>
-<p>Roughly 45 individual sends are mapped August through December. <strong>Nearly all are still marked &ldquo;Planned&rdquo;</strong> — status is meant to progress Planned &rarr; Scheduled &rarr; Sent, and the record does not show that happening. New calendar dates go into the weekly digest first before earning a standalone send.</p>
+<p>Roughly 45 individual sends are mapped August through December. <strong>Nearly all are still marked &ldquo;Planned&rdquo;</strong> &#8212; status is meant to progress Planned &rarr; Scheduled &rarr; Sent, and the record does not show that happening. New calendar dates go into the weekly digest first before earning a standalone send.</p>
 </section>
 
 <section id="s-cs">
@@ -1179,18 +1193,18 @@ td.refstatus{white-space:nowrap;width:1%}
 <p>Manual flow: receive &rarr; tag &rarr; acknowledge &rarr; clarify internally &rarr; route or respond &rarr; archive. Three tech-escalation tiers: <strong>Tech 1</strong> POPS can solve it; <strong>Tech 2</strong> needs clarification with Tech; <strong>Tech 3</strong> backend escalation.</p>
 
 <h4>The triage map</h4>
-<p>The whiteboard map has two layers. An <strong>identity gate</strong> first — Harvard student, alumnus, product vendor, expert or VC, partnership inquiry — then an <strong>intent layer</strong> beneath it: how do I get started (route to Wayfinder), alumni resources (route to alumni email), questions about a specific offering, membership issues (kicked out of the application, can't find the application, how to update a profile, how to add team members), and an &ldquo;other&rdquo; email form catch-all. Vendors get a decline template; experts and VCs and partnership inquiries both route to the expert intake form.</p>
+<p>The whiteboard map has two layers. An <strong>identity gate</strong> first &#8212; Harvard student, alumnus, product vendor, expert or VC, partnership inquiry &#8212; then an <strong>intent layer</strong> beneath it: how do I get started (route to Wayfinder), alumni resources (route to alumni email), questions about a specific offering, membership issues (kicked out of the application, can't find the application, how to update a profile, how to add team members), and an &ldquo;other&rdquo; email form catch-all. Vendors get a decline template; experts and VCs and partnership inquiries both route to the expert intake form.</p>
 
 <h4>The email agent build</h4>
-<p>Copilot Studio workflows against the shared mailbox, specced for Jill, Tom, Viv and Becca. The pain point is precise: identity is looked up by hand in Salesforce for nearly every message; canned language is scattered across saved replies and personal docs so the same question gets three different answers; and program details are hand-copied into whichever template mentions them, so a changed deadline has to be hunted across a dozen files.</p>
+<p>Copilot Studio workflows against the shared mailbox, specced for i-lab leadership. The pain point is precise: identity is looked up by hand in Salesforce for nearly every message; canned language is scattered across saved replies and personal docs so the same question gets three different answers; and program details are hand-copied into whichever template mentions them, so a changed deadline has to be hunted across a dozen files.</p>
 
 <div class="callout">
   <p class="callout-head">The two decisions that determine whether it is trustworthy</p>
-  <p><strong>Identity.</strong> Self-report is acceptable for routing tone and content, but a Salesforce match must be required before the bot ever confirms membership status or unlocks anything member-restricted. The bot should never assert someone's status back to them — only staff-facing tools see the confirmed answer.</p>
+  <p><strong>Identity.</strong> Self-report is acceptable for routing tone and content, but a Salesforce match must be required before the bot ever confirms membership status or unlocks anything member-restricted. The bot should never assert someone's status back to them &#8212; only staff-facing tools see the confirmed answer.</p>
   <p><strong>Answer source.</strong> Start with <span class="ref" data-ref="email-agent">a curated FAQ</span>, maintained the same way <span class="mono">ilab-data.js</span> is: one owner, semester-swappable, versioned. Live website scraping inherits every typo and outdated date already live. Revisit scraping later only for genuinely static reference pages.</p>
 </div>
 
-<p>Architecture: inbound email &rarr; classify who and why &rarr; three routes. Known identity with a simple ask gets a template reply; a program question gets an AI draft grounded strictly in the curated FAQ; a membership issue or anything unclear goes to the staff inbox with no bot reply. <strong>Every AI-touched reply passes a human before sending</strong> through Phases 1 and 2 — a badly drafted email is worse than a slow one.</p>
+<p>Architecture: inbound email &rarr; classify who and why &rarr; three routes. Known identity with a simple ask gets a template reply; a program question gets an AI draft grounded strictly in the curated FAQ; a membership issue or anything unclear goes to the staff inbox with no bot reply. <strong>Every AI-touched reply passes a human before sending</strong> through Phases 1 and 2 &#8212; a badly drafted email is worse than a slow one.</p>
 
 <div class="tablewrap">
 <table>
@@ -1205,11 +1219,11 @@ td.refstatus{white-space:nowrap;width:1%}
 </table>
 </div>
 
-<p>The canned-response migration is a six-step project of its own: inventory every saved or reused reply, consolidate near-duplicates, tag against the existing taxonomy, rewrite into tone-guide format (warm demander, concise, one clear redirect) flagging every hardcoded detail that should pull from the sync, get subject-matter sign-off — proposed reviewer Becca — then load and retire the old sheets.</p>
+<p>The canned-response migration is a six-step project of its own: inventory every saved or reused reply, consolidate near-duplicates, tag against the existing taxonomy, rewrite into tone-guide format (warm demander, concise, one clear redirect) flagging every hardcoded detail that should pull from the sync, get subject-matter sign-off &#8212; proposed reviewer is the Managing Director &#8212; then load and retire the old sheets.</p>
 
 <div class="callout teal">
   <p class="callout-head">Permanent human-handled categories</p>
-  <p>Phase 3 relaxes review category by category, starting with alumni resources as the simplest and lowest-stakes. <strong>Membership issues and anything touching account status stay human-handled permanently</strong> — these carry real consequences for someone's summer and should not be automated away.</p>
+  <p>Phase 3 relaxes review category by category, starting with alumni resources as the simplest and lowest-stakes. <strong>Membership issues and anything touching account status stay human-handled permanently</strong> &#8212; these carry real consequences for someone's summer and should not be automated away.</p>
 </div>
 
 <p>Success metrics: share of messages matched confidently by the rule engine; change in time-to-first-response; staff hours reclaimed from triage and drafting; reduction in &ldquo;fix this everywhere&rdquo; edits; and human override rate tracked <em>as a quality signal, not a failure metric</em>.</p>
@@ -1223,15 +1237,199 @@ td.refstatus{white-space:nowrap;width:1%}
 <p>This role is the operational owner of the organisation-wide program calendar, maintained by the Program Assistant Director, with three filters: workshops and events; milestone tasks; and ecosystem or external constraints.</p>
 
 <h4>Event intake and publication path</h4>
-<p>Event drafting &rarr; date validation &rarr; program review and finalisation &rarr; approval notification to Marketing and Operations &rarr; Central Intake &rarr; Eventbrite and website publication. There are SOPs for <span class="ref" data-ref="eventbrite-sop">creating an Eventbrite event</span>, for the <span class="ref" data-ref="eventbrite-api">ClickUp&nbsp;&rarr;&nbsp;Eventbrite API field mapping</span>, and for <span class="ref" data-ref="central-intake-sop">sending program events to Central Intake</span>.</p>
+<p>Two distinct workflows run here: one that takes an event from an idea to a public listing before the term starts, and a separate one for changing an event once it is already live. The pre-cycle path is event drafting &rarr; date validation &rarr; program review and finalisation &rarr; push to Central Intake &rarr; Operations review &rarr; approval notification &rarr; copy review by Marketing &rarr; Eventbrite API push &rarr; manual updates &rarr; website events launch. There are SOPs for <span class="ref" data-ref="eventbrite-sop">creating an Eventbrite event</span>, for the <span class="ref" data-ref="eventbrite-api">ClickUp&nbsp;&rarr;&nbsp;Eventbrite API field mapping</span>, and for <span class="ref" data-ref="central-intake-sop">sending program events to Central Intake</span>.</p>
+
+<h4>Pre-cycle planning and launch</h4>
+<figure class="flowfig">
+<svg viewBox="0 0 760 748" role="img" xmlns="http://www.w3.org/2000/svg"
+     aria-label="The pre-cycle event workflow runs in ten stages across three phases. Program owns event drafting, date validation, and program review and finalisation. Intake and approval covers the push to Central Intake, Operations review, and the approval notification. Publication covers copy review by Marketing, the Eventbrite API push, manual updates, and the website events launch.">
+  <g fill="currentColor" opacity="0.04">
+    <rect x="156" y="20"  width="364" height="204" rx="3"/>
+    <rect x="156" y="230" width="364" height="204" rx="3"/>
+    <rect x="156" y="440" width="364" height="274" rx="3"/>
+  </g>
+  <g fill="none" stroke="currentColor" stroke-width="1.5">
+    <rect x="196" y="30" width="304" height="44" rx="2"/>
+    <rect x="196" y="100" width="304" height="44" rx="2"/>
+    <rect x="196" y="170" width="304" height="44" rx="2"/>
+    <rect x="196" y="240" width="304" height="44" rx="2"/>
+    <rect x="196" y="310" width="304" height="44" rx="2"/>
+    <rect x="196" y="380" width="304" height="44" rx="2"/>
+    <rect x="196" y="450" width="304" height="44" rx="2"/>
+    <rect x="196" y="520" width="304" height="44" rx="2"/>
+    <rect x="196" y="590" width="304" height="44" rx="2"/>
+    <rect x="196" y="660" width="304" height="44" rx="2" stroke="var(--accent)"/>
+  </g>
+  <g stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ev-arw)">
+    <line x1="348" y1="74" x2="348" y2="96"/>
+    <line x1="348" y1="144" x2="348" y2="166"/>
+    <line x1="348" y1="214" x2="348" y2="236"/>
+    <line x1="348" y1="284" x2="348" y2="306"/>
+    <line x1="348" y1="354" x2="348" y2="376"/>
+    <line x1="348" y1="424" x2="348" y2="446"/>
+    <line x1="348" y1="494" x2="348" y2="516"/>
+    <line x1="348" y1="564" x2="348" y2="586"/>
+    <line x1="348" y1="634" x2="348" y2="656"/>
+  </g>
+  <defs>
+    <marker id="ev-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <g font-family="IBM Plex Sans, sans-serif" font-size="13" text-anchor="middle">
+    <text x="348" y="58" fill="currentColor">Event drafting</text>
+    <text x="348" y="128" fill="currentColor">Date validation</text>
+    <text x="348" y="198" fill="currentColor">Program review and finalisation</text>
+    <text x="348" y="268" fill="currentColor">Push to Central Intake</text>
+    <text x="348" y="338" fill="currentColor">Operations review</text>
+    <text x="348" y="408" fill="currentColor">Approval notification</text>
+    <text x="348" y="478" fill="currentColor">Copy review by Marketing</text>
+    <text x="348" y="548" fill="currentColor">Eventbrite API push</text>
+    <text x="348" y="618" fill="currentColor">Manual updates</text>
+    <text x="348" y="688" fill="var(--accent)">Website events launch</text>
+  </g>
+  <g fill="currentColor" font-family="IBM Plex Mono, monospace" font-size="10.5" text-anchor="end" opacity="0.45">
+    <text x="186" y="58">1</text>
+    <text x="186" y="128">2</text>
+    <text x="186" y="198">3</text>
+    <text x="186" y="268">4</text>
+    <text x="186" y="338">5</text>
+    <text x="186" y="408">6</text>
+    <text x="186" y="478">7</text>
+    <text x="186" y="548">8</text>
+    <text x="186" y="618">9</text>
+    <text x="186" y="688">10</text>
+  </g>
+  <g fill="currentColor" font-family="IBM Plex Sans, sans-serif" font-size="11" opacity="0.62">
+    <text x="512" y="89">proposed dates</text>
+    <text x="512" y="159">cleared against the program calendar</text>
+    <text x="512" y="229">marked confirmed, not draft</text>
+    <text x="512" y="299">task created in ClickUp</text>
+    <text x="512" y="369">space, media and catering checked</text>
+    <text x="512" y="439">Marketing and Operations notified</text>
+    <text x="512" y="509">copy approved</text>
+    <text x="512" y="579">page created from ClickUp fields</text>
+    <text x="512" y="649">Zoom link, tickets and images set by hand</text>
+  </g>
+  <g fill="currentColor" font-family="IBM Plex Mono, monospace" font-size="10.5" text-anchor="end"
+     letter-spacing="1.2" opacity="0.75">
+    <text x="140" y="126">PROGRAM</text>
+    <text x="140" y="328">INTAKE AND</text>
+    <text x="140" y="344">APPROVAL</text>
+    <text x="140" y="581">PUBLICATION</text>
+  </g>
+</svg>
+<figcaption>Central Intake is entered before approval, not after &#8212; Operations reviews the task there, and only then does the approval notification go out. Nothing reaches the website until copy has cleared Marketing and the fields the API does not set have been filled in by hand.</figcaption>
+</figure>
+
+<h4>Mid-cycle changes</h4>
+<p>Once an event is live, a change does not re-enter the pipeline above. It starts with a Slack post, and three things then have to happen in parallel.</p>
+<figure class="flowfig">
+<svg viewBox="0 0 760 336" role="img" xmlns="http://www.w3.org/2000/svg"
+     aria-label="When a live event needs changing, the Event Lead posts in the workshopcrew Slack channel. Three things then happen in parallel: Operations is flagged for space, media and catering changes, Marketing is flagged for Eventbrite updates, and the change is recorded in ClickUp.">
+  <g fill="none" stroke="currentColor" stroke-width="1.5">
+    <rect x="16"  y="142" width="150" height="52" rx="2"/>
+    <rect x="504" y="34"  width="240" height="56" rx="2"/>
+    <rect x="504" y="140" width="240" height="56" rx="2"/>
+    <rect x="504" y="246" width="240" height="56" rx="2"/>
+  </g>
+  <rect x="210" y="130" width="230" height="76" rx="2" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+  <g stroke="currentColor" stroke-width="1.5" fill="none">
+    <line x1="166" y1="168" x2="206" y2="168" marker-end="url(#mc-arw)"/>
+    <line x1="472" y1="62"  x2="472" y2="274"/>
+    <line x1="440" y1="168" x2="472" y2="168"/>
+    <line x1="472" y1="62"  x2="500" y2="62"  marker-end="url(#mc-arw)"/>
+    <line x1="472" y1="168" x2="500" y2="168" marker-end="url(#mc-arw)"/>
+    <line x1="472" y1="274" x2="500" y2="274" marker-end="url(#mc-arw)"/>
+  </g>
+  <defs>
+    <marker id="mc-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <g font-family="IBM Plex Sans, sans-serif" font-size="13" text-anchor="middle">
+    <text x="91" y="173" fill="currentColor">Change needed</text>
+    <text x="325" y="160" fill="var(--accent)">Event Lead posts in</text>
+    <text x="325" y="180" fill="var(--accent)">#workshopcrew</text>
+  </g>
+  <g font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="600" fill="currentColor" text-anchor="middle">
+    <text x="624" y="58">Operations</text>
+    <text x="624" y="164">Marketing</text>
+    <text x="624" y="270">ClickUp</text>
+  </g>
+  <g font-family="IBM Plex Sans, sans-serif" font-size="11" fill="currentColor" opacity="0.66" text-anchor="middle">
+    <text x="624" y="76">flagged for space, media, catering</text>
+    <text x="624" y="182">flagged for Eventbrite updates</text>
+    <text x="624" y="288">updated to record the change</text>
+  </g>
+  <text x="484" y="326" font-family="IBM Plex Mono, monospace" font-size="10.5"
+        fill="currentColor" opacity="0.6" text-anchor="middle">all three, in parallel</text>
+</svg>
+<figcaption>The Slack post is the single trigger. Skipping it is what leaves the Eventbrite page, the room booking and the ClickUp record disagreeing with each other.</figcaption>
+</figure>
 
 <h4>The functional-leads review</h4>
 <p>Run 4 August 2026 with a 60-minute agenda: walk the calendar structure and how to read it; confirm requirements and guardrails; surface the biggest gaps and assign an owner and a decision deadline to each; review overlapping dates and high-pressure weeks and decide what moves or gets de-scoped; then confirm owners and deadlines for filling gaps, converting drafts, and approving the final version.</p>
-<p>A <strong>conflict-flagging feature</strong> was planned for the calendar tool, to highlight overlaps and crunch periods. Whether it shipped is not recorded. Feedback on the planning tool was to be captured in a three-column table — feedback, what it impacts, ideas for solve — which arrived empty.</p>
+<p>A <strong>conflict-flagging feature</strong> was planned for the calendar tool, to highlight overlaps and crunch periods. Whether it shipped is not recorded. Feedback on the planning tool was to be captured in a three-column table &#8212; feedback, what it impacts, ideas for solve &#8212; which arrived empty.</p>
+</section>
+
+<section id="s-attendance">
+<h3><span class="num">3.5</span><span>Event attendance &mdash; capture and benchmarks</span></h3>
+
+<p>Attendance is the closing step of the event workflow described above, and the input that makes the next term's planning possible. Two ClickUp lists carry registrations, actual attendees and event type: the <span class="ref" data-ref="event-list-main">primary event list</span> and a <span class="ref" data-ref="event-list-alt">secondary list</span>.</p>
+
+<h4>How the number gets recorded</h4>
+<ol>
+  <li>Pull the attendance count after the event &mdash; from Eventbrite check-in, the Zoom participant report, or a manual headcount for walk-in formats.</li>
+  <li>Open the event's Central Intake task in ClickUp and update the <strong>Attended Number</strong> field. This step also appears in the pitch-event checklist (&sect;&nbsp;2.5).</li>
+  <li>Leave the <strong>Expected Attendance</strong> field as set at planning time, so the forecast can be compared against the actual afterwards.</li>
+</ol>
+
+<h4>The planning rule</h4>
+<div class="callout">
+  <p class="callout-head">Registrations &times; 0.4</p>
+  <p>Across roughly 157 events from Fall 2023 to September 2026 that recorded both registration and attendance, median yield was about <strong>40% of registrants</strong>. Event size does not change this &mdash; workshops with 50, 80 and 120+ registrations all land between 40% and 44%. Coffee &amp; Connections and virtual orientations are the two formats that beat it substantially.</p>
+</div>
+
+<h4>Benchmarks by event type</h4>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Event type</th><th class="num">Typical registrations</th><th class="num">Typical attendees</th><th>Median yield</th></tr></thead>
+<tbody>
+<tr><td class="name">Skills workshops <span class="mono">(94 events)</span></td><td class="num">~80</td><td class="num">~32</td><td>~41% &middot; middle half 33&ndash;49%</td></tr>
+<tr><td class="name">Virtual orientations <span class="mono">(Explore/Test, PIC semifinalist)</span></td><td class="num">100&ndash;450</td><td class="num">75&ndash;308</td><td>~60&ndash;85%</td></tr>
+<tr><td class="name">In-person orientations / Meet the i-lab</td><td class="num">40&ndash;180</td><td class="num">25&ndash;60</td><td>~30&ndash;40% &middot; smaller ones do better</td></tr>
+<tr><td class="name">Large mixers and socials <span class="mono">(welcome parties, V@H, Founders + Joiners)</span></td><td class="num">~160</td><td class="num">~65</td><td>~43% &middot; cross-school mixers fall to 27&ndash;32%</td></tr>
+<tr><td class="name">Info sessions, funder insights, application Q&amp;As</td><td class="num">~48</td><td class="num">~28</td><td>~48%</td></tr>
+<tr><td class="name">Small community <span class="mono">(Founder Circle, firesides, brunches)</span></td><td class="num">~45</td><td class="num">~22</td><td>~46% &middot; swings widely, 4 to 50 people</td></tr>
+<tr><td class="name">Coffee &amp; Connections</td><td class="num">~33</td><td class="num">~25</td><td>90%+ &middot; walk-ins make up the difference</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>Patterns in the data</h4>
+<ul>
+  <li><strong>In-person workshop yield rose.</strong> Median went from about 37% in AY23&ndash;24 to about 49% in AY25&ndash;26, while virtual stayed flat at about 40%. Median registrations fell from 92 to 73 over the same period, but median attendance rose from 30 to 35.</li>
+  <li><strong>Size does not predict yield.</strong> Multiply registrations by 0.4 regardless of how large the event is.</li>
+  <li><strong>Practical topics draw best.</strong> Product-market fit, B2B sales, MVP and AI coding, and fundraising sessions reached 60&ndash;75%. The lowest figures on record are all 2023&ndash;24 in-person workshops: pitch deck (7 of 84), the Rob Snyder B2B session (8 of 88), stakeholder interviews (10 of 70).</li>
+  <li><strong>The Expected Attendance field runs low for workshops.</strong> Leads typically enter 20&ndash;30 and then see 40&ndash;90 people. Registrations &times; 0.4 is the closer estimate.</li>
+</ul>
+
+<div class="callout amber">
+  <p class="callout-head">Known problems in the source lists</p>
+  <p>These figures come from a filtered subset. Anything republished from these lists needs the same exclusions applied, or the averages move.</p>
+  <ul>
+    <li><strong>Climate Venture Class sessions excluded</strong> &mdash; every session shows 112 registered and 112 attended.</li>
+    <li><strong>Placeholder rows excluded</strong> &mdash; several entries record 20 registered and 20 attended.</li>
+    <li><strong>Fall 2025 welcome parties excluded</strong> &mdash; 499 and 553 registrations sit beside attendance figures that exactly match the spring numbers.</li>
+    <li><strong>The two lists disagree.</strong> The secondary list largely duplicates the primary one up to Fall 2025. Gong-a-Thon shows 50 attended in one and 4 in the other; Pizza and Pitch shows 40 in one and 0 in the other.</li>
+    <li><strong>Summer 2026 is incomplete</strong> &mdash; many events have no attendance recorded yet.</li>
+  </ul>
+</div>
 </section>
 
 <section id="s-cadence">
-<h3><span class="num">3.5</span><span>Meeting cadences &amp; operational rhythm</span></h3>
+<h3><span class="num">3.6</span><span>Meeting cadences &amp; operational rhythm</span></h3>
 
 <div class="tablewrap">
 <table>
@@ -1251,36 +1449,36 @@ td.refstatus{white-space:nowrap;width:1%}
 </section>
 
 <section id="s-people">
-<h3><span class="num">3.6</span><span>People &mdash; who holds the other end</span></h3>
+<h3><span class="num">3.7</span><span>People &mdash; who holds the other end</span></h3>
 
-<p>The transition document includes a successor cheat sheet pairing each relationship with its single most important handoff step. Prioritised order for first-fortnight 30-minute intros: <strong>Tom, Becca, Lauren, Shweta, Caroline</strong> — they touch the most active workflows.</p>
+<p>The transition document includes a successor cheat sheet pairing each relationship with its single most important handoff step. Prioritised order for first-fortnight 30-minute intros: <strong>Director, Managing Director, Operations / Program Support, Technology, Network Engagement</strong> &#8212; they touch the most active workflows.</p>
 
 <div class="tablewrap">
 <table>
-<thead><tr><th>Person</th><th>Role</th><th>The handoff step that matters</th></tr></thead>
+<thead><tr><th>Role / function</th><th>The handoff step that matters</th></tr></thead>
 <tbody>
-<tr><td class="name">Tom Samph</td><td>Director</td><td>Align on PIC strategy, judge relationships, and which institutional decisions need his sign-off versus yours</td></tr>
-<tr><td class="name">Becca Xiong</td><td>Managing Director</td><td>Review the KPI/impact framework and confirm who maintains the dashboard and translates metrics into program changes</td></tr>
-<tr><td class="name">Jill Kravetz</td><td>Leadership</td><td>Brief on MX scope, priorities, and pending organisational-alignment decisions needing approval</td></tr>
-<tr><td class="name">Rebekah Emanuel</td><td>Social Impact Advisor</td><td>Walk the SIFF selection/coaching cycle and the Customer Discovery pilot; she co-leads SI content and judge recommendations</td></tr>
-<tr><td class="name">Phil Green</td><td>Open Track Advisor</td><td>Align on Open track review, rubric calibration, and Founder Fundamentals delivery expectations</td></tr>
-<tr><td class="name">Julien Pham &amp; Jorge Cortell</td><td>HCLS Advisors</td><td>Confirm HCLS judging logistics, judge pipeline contacts, pathway-specific eligibility nuances</td></tr>
-<tr><td class="name">Joanna Furgiuele</td><td>Alumni / LLX Programs</td><td>Hand over the alumni programming calendar, LLX comms templates, in-progress alumni event plans</td></tr>
-<tr><td class="name">Rym Baouendi</td><td>Venture Acceleration</td><td>Sync on cross-portfolio journey touchpoints and accelerator-to-PIC handoff logistics</td></tr>
-<tr><td class="name">Caroline Arzoo</td><td>Network Engagement</td><td>Clarify the MX/NE boundary for office hours, expert promotion and judge recruitment; transfer shared Airtable and OnceHub admin</td></tr>
-<tr><td class="name">Ashley Olafsen</td><td>Community</td><td>Transfer Slack admin, recurring event ownership, and the community-manager backfill plan</td></tr>
-<tr><td class="name">Lauren Koppelson</td><td>Operations / Program Support</td><td>Resolve the SIFF ownership split, confirm HiPo first-pass delegation, transfer orientation Zoom host credentials</td></tr>
-<tr><td class="name">Cassie Coravos</td><td>Operations</td><td>Share the event-logistics playbook, Zoom and facilities booking, and the calendar-review cadence</td></tr>
-<tr><td class="name">Shuntaro Shirota</td><td>Operations / Facilities</td><td>Hand over the security-list update process, the SIFF financial-forms workflow, pending access requests</td></tr>
-<tr><td class="name">Alexandra Stephens</td><td>Marketing &amp; Comms</td><td>Transfer the drafting/review split, Mailchimp audience ownership, website publication approval flow</td></tr>
-<tr><td class="name">Shweta Bhaskara</td><td>Technology</td><td>Walk SMA admin access, Salesforce push schedules, MIDAS checks, Eventbrite API setup, and the Tech 1/2/3 path</td></tr>
-<tr><td class="name">Tanu Niwas</td><td>Technology</td><td>Confirm ongoing ownership of SMA/Salesforce integrations and in-flight automation or API work</td></tr>
-<tr><td class="name">Michaella Estevez</td><td>Program Support</td><td>Brief on shared operational tasks, event support rotations, customer-service coverage</td></tr>
+<tr><td class="name">Director</td><td>Align on PIC strategy, judge relationships, and which institutional decisions need their sign-off versus yours</td></tr>
+<tr><td class="name">Managing Director</td><td>Review the KPI/impact framework and confirm who maintains the dashboard and translates metrics into program changes</td></tr>
+<tr><td class="name">i-lab Leadership</td><td>Brief on MX scope, priorities, and pending organisational-alignment decisions needing approval</td></tr>
+<tr><td class="name">Social Impact Advisor</td><td>Walk the SIFF selection and coaching cycle and the Customer Discovery pilot; this function co-leads SI content and judge recommendations</td></tr>
+<tr><td class="name">Open Track Advisor</td><td>Align on Open track review, rubric calibration, and Founder Fundamentals delivery expectations</td></tr>
+<tr><td class="name">HCLS Advisors</td><td>Confirm HCLS judging logistics, judge pipeline contacts, and pathway-specific eligibility nuances</td></tr>
+<tr><td class="name">Alumni / LLX Programs</td><td>Hand over the alumni programming calendar, LLX comms templates, and in-progress alumni event plans</td></tr>
+<tr><td class="name">Venture Acceleration</td><td>Sync on cross-portfolio journey touchpoints and accelerator-to-PIC handoff logistics</td></tr>
+<tr><td class="name">Network Engagement</td><td>Clarify the MX / NE boundary for office hours, expert promotion and judge recruitment; transfer shared Airtable and OnceHub admin</td></tr>
+<tr><td class="name">Community</td><td>Transfer Slack admin, recurring event ownership, and the community-manager backfill plan</td></tr>
+<tr><td class="name">Operations &mdash; program support</td><td>Resolve the SIFF ownership split, confirm HiPo first-pass delegation, and transfer orientation Zoom host credentials</td></tr>
+<tr><td class="name">Operations &mdash; event logistics</td><td>Share the event-logistics playbook, Zoom and facilities booking, and the calendar-review cadence</td></tr>
+<tr><td class="name">Operations &mdash; facilities &amp; finance</td><td>Hand over the security-list update process, the SIFF financial-forms workflow, and pending access requests</td></tr>
+<tr><td class="name">Marketing &amp; Communications</td><td>Transfer the drafting and review split, Mailchimp audience ownership, and the website publication approval flow</td></tr>
+<tr><td class="name">Technology &mdash; SMA &amp; Salesforce</td><td>Walk SMA admin access, Salesforce push schedules, MIDAS checks, Eventbrite API setup, and the Tech 1/2/3 escalation path</td></tr>
+<tr><td class="name">Technology &mdash; integrations</td><td>Confirm ongoing ownership of SMA and Salesforce integrations, and any in-flight automation or API work</td></tr>
+<tr><td class="name">Program Support</td><td>Brief on shared operational tasks, event support rotations, and customer-service coverage</td></tr>
 </tbody>
 </table>
 </div>
 
-<p>Also named across the operational documents, without a defined relationship in the transition record: <strong>Peter Gladstone</strong> (co-hosts the Customer Discovery Sprint), <strong>Kim Willette</strong> (the pitch-events expert), <strong>Thara</strong> (judge communications for pitch events), <strong>Jen Noon</strong> (Operations, event support), <strong>Mary Rose</strong> (space use for experts), <strong>Ella</strong> (front-desk training for office-hours routing), <strong>Viv</strong> (email agent stakeholder), <strong>Matt Segneri</strong> (pitch event support), <strong>Noah Ferreira</strong> and <strong>Alice Foster McCallum</strong> (PIC finalist comms senders).</p>
+<p>The operational documents reference further functions that the transition record does not place in a defined relationship: a Customer Discovery Sprint co-facilitator, the most experienced pitch-event organiser on the Alumni Engagement team, judge communications for pitch events, Operations event support, a facilities contact for expert space use, front-desk training for office-hours routing, a leadership stakeholder on the email agent, and two senders of PIC finalist communications sitting in Marketing and Community.</p>
 </section>
 
 <!-- ============ PART IV ============ -->
@@ -1304,7 +1502,7 @@ td.refstatus{white-space:nowrap;width:1%}
 <table>
 <thead><tr><th>Team</th><th>Area</th><th>Status</th><th>Proposed approach</th></tr></thead>
 <tbody>
-<tr><td class="name">Operations</td><td>Space use + communications</td><td><span class="chip hold">Recommended</span></td><td>Ops (Shuntaro) flags when a change must reach the membership; MX handles the communication itself</td></tr>
+<tr><td class="name">Operations</td><td>Space use + communications</td><td><span class="chip hold">Recommended</span></td><td>Operations flags when a change must reach the membership; MX handles the communication itself</td></tr>
 <tr><td class="name">Operations</td><td>Community standards</td><td><span class="chip hold">Recommended</span></td><td>Ops and MX align on standards and communicate regularly, including handling cases where they are not met</td></tr>
 <tr><td class="name">Events</td><td>Community events</td><td><span class="chip ok">Confirmed</span></td><td>Events and MX collaborate to design and host community events through the fall</td></tr>
 <tr><td class="name">Events</td><td>Programmatic events</td><td><span class="chip ok">Confirmed</span></td><td>Events and MX collaborate on planning and execution. Admin support for virtual and in-person events will be limited</td></tr>
@@ -1316,14 +1514,14 @@ td.refstatus{white-space:nowrap;width:1%}
 <tr><td class="name">Advising</td><td>Community pulse checks</td><td><span class="chip open">Paused</span></td><td>No proposed owner. Needs an owner or an explicit decision to pause for the fall</td></tr>
 <tr><td class="name">Network Eng.</td><td>Experts with fall availability</td><td><span class="chip hold">Recommended</span></td><td>Network Engagement handles promotions</td></tr>
 <tr><td class="name">Network Eng.</td><td>Systematised promotions</td><td><span class="chip">Possible</span></td><td>A process dynamically updated in newsletter or Slack rather than rebuilt each time</td></tr>
-<tr><td class="name">Network Eng.</td><td>External partners</td><td><span class="chip hold">Recommended</span></td><td>Becca handles external and ecosystem partnerships and communicates needs and priorities to MX</td></tr>
+<tr><td class="name">Network Eng.</td><td>External partners</td><td><span class="chip hold">Recommended</span></td><td>The Managing Director handles external and ecosystem partnerships and communicates needs and priorities to MX</td></tr>
 <tr><td class="name">Network Eng.</td><td>CS routing</td><td><span class="chip hold">Recommended</span></td><td>All office-hours and expert emails forward to the expert inbox with a canned front-desk response. Cancellations and reschedules are highly time-sensitive</td></tr>
 <tr><td class="name">Network Eng.</td><td>CS training</td><td><span class="chip hold">Recommended</span></td><td>Network Engagement trains front-desk support on in-person office-hours needs</td></tr>
-<tr><td class="name">Network Eng.</td><td>Wayfinding</td><td><span class="chip">Possible</span></td><td>With the Wayfinder in development, a weekly Airtable data dump could go a long way. In development with Caroline</td></tr>
+<tr><td class="name">Network Eng.</td><td>Wayfinding</td><td><span class="chip">Possible</span></td><td>With the Wayfinder in development, a weekly Airtable data dump could go a long way. In development with Network Engagement</td></tr>
 <tr><td class="name">Marketing</td><td>Program / member comms</td><td><span class="chip ok">Confirmed</span></td><td>With Marketing, MX develops the comms plan, automations and structure for reaching the community broadly and by segment. Plan in progress</td></tr>
 <tr><td class="name">Marketing</td><td>Voice of the membership</td><td><span class="chip ok">Confirmed</span></td><td>MX remains the voice of the membership</td></tr>
 <tr><td class="name">Marketing</td><td>Program events support</td><td><span class="chip ok">Confirmed</span></td><td>MX continues to support creation, maintenance and monitoring of event registration pages and the ClickUp event workflow</td></tr>
-<tr><td class="name">Ambassadors</td><td>Student ambassadors</td><td><span class="chip open">Paused</span></td><td>Micha oversees light recruitment only, until a new Community Manager is in role</td></tr>
+<tr><td class="name">Ambassadors</td><td>Student ambassadors</td><td><span class="chip open">Paused</span></td><td>Program Support oversees light recruitment only, until a new Community Manager is in role</td></tr>
 <tr><td class="name">PIC</td><td>PIC / Ingenuity finalist teams</td><td><span class="chip ok">Confirmed</span></td><td>MX handles member communications, in compliance with the Marketing comms plan. Plan TBD</td></tr>
 </tbody>
 </table>
@@ -1331,8 +1529,8 @@ td.refstatus{white-space:nowrap;width:1%}
 
 <div class="callout open">
   <p class="callout-head">The two things flagged for decision alongside the table</p>
-  <p><strong>First</strong> — three proposals depend on intern or temp support that is not yet in place: the weekly registrations post, front-desk canned responses, and office-hours routing. If that support does not materialise, those three items need a different answer.</p>
-  <p><strong>Second</strong> — two of Advising's three interaction types have no proposed owner. Named now rather than surfacing in October.</p>
+  <p><strong>First</strong> &#8212; three proposals depend on intern or temp support that is not yet in place: the weekly registrations post, front-desk canned responses, and office-hours routing. If that support does not materialise, those three items need a different answer.</p>
+  <p><strong>Second</strong> &#8212; two of Advising's three interaction types have no proposed owner. Named now rather than surfacing in October.</p>
 </div>
 </section>
 
@@ -1347,12 +1545,12 @@ td.refstatus{white-space:nowrap;width:1%}
 <h3><span class="num">5.1</span><span>Open decisions for handoff</span></h3>
 
 <ul class="deck">
-  <li><span class="q"><span>1. SIFF ownership split</span><span class="chip open">Highest value</span></span><span class="a">RACI says Program Owner; the SIFF Onboarding Guide says Lauren is Program Lead. Architecture-versus-administration split, or a transition already in progress?</span></li>
+  <li><span class="q"><span>1. SIFF ownership split</span><span class="chip open">Highest value</span></span><span class="a">RACI says Program Owner; the SIFF Onboarding Guide says Operations / Program Support is Program Lead. Architecture-versus-administration split, or a transition already in progress?</span></li>
   <li><span class="q">2. PIC / Ingenuity communications</span><span class="a">The largest unowned block left by the community-manager gap. Name the interim liaison, and finish the Marketing comms plan it is meant to comply with.</span></li>
   <li><span class="q">3. Membership data authority</span><span class="a">Who approves field changes, term logic, and data definitions? The continuity recommendation is Tech owns architecture, MX owns communications.</span></li>
   <li><span class="q">4. Orientation recurring staffing</span><span class="a">Confirm the roster and the post-event owner. Also confirm whether the two-event split actually happened for September 2026.</span></li>
   <li><span class="q">5. Impact / KPI maintenance</span><span class="a">Who maintains the dashboard, validates metrics, and turns findings into program changes?</span></li>
-  <li><span class="q">6. Student ambassadors</span><span class="a">Needs an interim owner or a formal deferral. Currently light recruitment only, via Micha.</span></li>
+  <li><span class="q">6. Student ambassadors</span><span class="a">Needs an interim owner or a formal deferral. Currently light recruitment only, via Program Support.</span></li>
   <li><span class="q">7. Calendar governance permissions</span><span class="a">Who resolves conflicts when dates collide across programs?</span></li>
   <li><span class="q">8. Systems-of-record map</span><span class="a">A successor should maintain a one-page map per lifecycle: membership, PIC, SIFF, events. Does not exist yet.</span></li>
   <li><span class="q">9. Email agent &mdash; partnership routing</span><span class="a">Does &ldquo;I want to partner with the i-lab&rdquo; really belong on the same path as &ldquo;I'm an expert or VC,&rdquo; or was that a whiteboard shortcut?</span></li>
@@ -1394,13 +1592,13 @@ td.refstatus{white-space:nowrap;width:1%}
 
 <h4 class="tag">Referenced initiatives with no document in the set</h4>
 <ul>
-  <li><strong>Membership Redesign</strong> — the Explore / Test / Propel / Join / Pilot track model is named but the four-phase sprint document is not here. This shapes everything downstream in intake.</li>
-  <li><strong>Impact metrics &amp; KPI framework</strong>, plus the AY 2025&ndash;26 KPI dashboard — three referenced documents, none attached. No actual KPI values appear anywhere in the record.</li>
-  <li><strong>Program Debrief System</strong> — the standard that creates institutional memory is itself undocumented here.</li>
-  <li><strong>HiPo Process Support</strong> — the delegation-ready process document.</li>
-  <li><strong>Customer Service Management Plan</strong> — the subject buckets and tagging/routing table that the email agent is built to operationalise. The uploaded <span class="mono">Customer Service Stand Ups</span> file is an <strong>empty stub</strong> containing only its title.</li>
+  <li><strong>Membership Redesign</strong> &#8212; the Explore / Test / Propel / Join / Pilot track model is named but the four-phase sprint document is not here. This shapes everything downstream in intake.</li>
+  <li><strong>Impact metrics &amp; KPI framework</strong>, plus the AY 2025&ndash;26 KPI dashboard &#8212; three referenced documents, none attached. No actual KPI values appear anywhere in the record.</li>
+  <li><strong>Program Debrief System</strong> &#8212; the standard that creates institutional memory is itself undocumented here.</li>
+  <li><strong>HiPo Process Support</strong> &#8212; the delegation-ready process document.</li>
+  <li><strong>Customer Service Management Plan</strong> &#8212; the subject buckets and tagging/routing table that the email agent is built to operationalise. The uploaded <span class="mono">Customer Service Stand Ups</span> file is an <strong>empty stub</strong> containing only its title.</li>
   <li><strong>Program Calendar View &amp; Filters</strong>, and whether the conflict-flagging feature shipped.</li>
-  <li><strong>LLX program documentation</strong> — only the alumni pitch-events checklist came through for a 48-task, ~20&ndash;25-event annual program.</li>
+  <li><strong>LLX program documentation</strong> &#8212; only the alumni pitch-events checklist came through for a 48-task, ~20&ndash;25-event annual program.</li>
   <li><strong>Member Experience Team Spec</strong> and the AY 26&ndash;27 MX goals document.</li>
 </ul>
 
@@ -1422,17 +1620,17 @@ td.refstatus{white-space:nowrap;width:1%}
   <li><strong>Duplicate upload.</strong> Two byte-identical copies of the 4 August Functional Leads agenda.</li>
   <li><strong>Internal links now resolve, but they require ClickUp access.</strong> The reference library (&sect;&nbsp;5.4) carries a working URL for sixty of the sixty-three documents this dossier names. A reader without a ClickUp or SharePoint account still reaches a login wall, so the underlying export question stands for anything a successor must read before their accounts are provisioned.</li>
   <li><strong>The MX cadence contradiction</strong> (weekly versus bi-weekly) is unresolved within a single document.</li>
-  <li><strong>Sender-name inconsistencies in the PIC comms matrices</strong> — &ldquo;sent by Emmy&rdquo; against a row assigned to Ashley, &ldquo;from Alice to Teams&rdquo; against a row assigned to Alexa, an unexplained &ldquo;Leo&rdquo; action item. Each differs from the sender assigned in the same row.</li>
+  <li><strong>Sender inconsistencies in the PIC comms matrices.</strong> On several rows the summary text names a different sender than the one assigned in the sender column, and one action item names a sender who appears nowhere else in the matrix. Reconcile before working from these tables.</li>
   <li><strong>The Riskiest Assumptions Primer is not in the transition document's initiative list</strong>, despite being a complete drafted spec. If it is live work, it belongs there; if it is shelved, that should be recorded.</li>
 </ul>
 
 <h4>Documents not in the set</h4>
 <ol>
   <li>The SIFF playbook and the RACI that resolves its ownership</li>
-  <li>An access and credentials inventory — one table, who holds admin on what</li>
+  <li>An access and credentials inventory &#8212; one table, who holds admin on what</li>
   <li>The PIC operating model, decision-rights doc, and rubric/calibration materials</li>
   <li>The orientation run of show, and confirmation of the September two-event split</li>
-  <li>The eligibility SOPs — DCE, HES, Salesforce membership verification, MIDAS</li>
+  <li>The eligibility SOPs &#8212; DCE, HES, Salesforce membership verification, MIDAS</li>
   <li>The KPI framework and the AY 2025&ndash;26 dashboard with actual values</li>
   <li>The Customer Service Management Plan and the current Logic / Config / Templates workbook</li>
   <li>The Membership Redesign sprint document</li>
@@ -1448,10 +1646,10 @@ td.refstatus{white-space:nowrap;width:1%}
 <thead><tr><th>Source</th><th>Type</th><th>What it carries</th></tr></thead>
 <tbody>
 <tr><td class="name">Transition Document</td><td class="mono">md</td><td>The spine: role summary, eight programs, MX leadership, six strategic initiatives, five processes, systems table, cadences, stakeholder map, contacts cheat sheet, seasonal rhythm, eight open questions, document index. Generated from 520+ tasks and 30+ documents; last updated 16 Sep 2026</td></tr>
-<tr><td class="name">Comms Strategy</td><td class="mono">md</td><td>Membership comms outline, 2024&ndash;25 and 2025&ndash;26 PIC student comms matrices, 2025&ndash;26 judge comms outline plus Tom's operational notes, Fall 2026 HiPo+FF promotion cadence, Weekly Digest framework, Salesforce&rarr;Mailchimp field map, Mailchimp audiences SOP</td></tr>
+<tr><td class="name">Comms Strategy</td><td class="mono">md</td><td>Membership comms outline, 2024&ndash;25 and 2025&ndash;26 PIC student comms matrices, 2025&ndash;26 judge comms outline plus the Director's operational notes, Fall 2026 HiPo+FF promotion cadence, Weekly Digest framework, Salesforce&rarr;Mailchimp field map, Mailchimp audiences SOP</td></tr>
 <tr><td class="name">Sprint</td><td class="mono">md</td><td>Sprint concept, Customer Discovery Sprint full program spec, event descriptions, pre/post survey templates, facilitator resources, Value Prop MadLib, interview worksheet, user journey, landing page copy, full email drip with copy</td></tr>
 <tr><td class="name">Pilot Model &mdash; Feedback Lab</td><td class="mono">md</td><td>Mailchimp primer-drip build guide, Feedback Lab purpose and journey, 2026 PIC semifinalist feedback synthesis with judge quotes by track, metric targets, theme routing tables, 7 Apr retrospective</td></tr>
-<tr><td class="name">i-lab Email Agent Spec</td><td class="mono">md</td><td>Triage-map build spec, the two trust decisions, architecture, full project spec for Jill/Tom/Viv/Becca, technical requirements, canned-response migration, ownership table, phased rollout, success metrics, three build phases, open questions</td></tr>
+<tr><td class="name">i-lab Email Agent Spec</td><td class="mono">md</td><td>Triage-map build spec, the two trust decisions, architecture, full project spec for i-lab leadership, technical requirements, canned-response migration, ownership table, phased rollout, success metrics, three build phases, open questions</td></tr>
 <tr><td class="name">Founder Wayfinder</td><td class="mono">md</td><td>Full case study: problem framing, variable mapping, six personas, three-layer results logic, build architecture, design decisions, supporting infrastructure, the gap map, three-phase roadmap</td></tr>
 <tr><td class="name">Primer</td><td class="mono">pdf</td><td>Ideation and CV email journeys with full email copy, Customer Validation Primer program spec, <strong>Riskiest Assumptions Primer spec</strong> with routing table, metrics</td></tr>
 <tr><td class="name">Cross-Team Handoff Proposal</td><td class="mono">docx</td><td>Fall 2026 coverage across six teams, 19 areas with status and proposed approach, two decisions flagged, dated 17 Aug 2026</td></tr>
@@ -1472,25 +1670,25 @@ td.refstatus{white-space:nowrap;width:1%}
 <section id="s-reflib">
 <h3><span class="num">5.4</span><span>Reference library</span></h3>
 
-<p>Every document this dossier names, in one table. Links live in a single editable block at the top of the HTML file — the same pattern as <span class="mono">ilab-data.js</span> in the Program Finder, where the logic is stable and the links are perishable.</p>
+<p>Every document this dossier names, in one table. Links live in a single editable block at the top of the HTML file &#8212; the same pattern as <span class="mono">ilab-data.js</span> in the Program Finder, where the logic is stable and the links are perishable.</p>
 
 <div class="reflib-meter">
-  <span class="big" id="reflib-done">—</span>
-  <span class="cap">of <span id="reflib-total">—</span> documents linked</span>
+  <span class="big" id="reflib-done">&#8212;</span>
+  <span class="cap">of <span id="reflib-total">&#8212;</span> documents linked</span>
   <span class="reflib-bar"><span id="reflib-fill" style="width:0%"></span></span>
   <span class="cap" id="reflib-note" style="flex-basis:100%"></span>
 </div>
 
 <div class="callout teal">
   <p class="callout-head">To add or change a link</p>
-  <p>Open the HTML file, find the <span class="mono">REFS</span> block at the top, paste the URL between the quotes on the matching entry, save. That document becomes a link here and everywhere it's named in the text. An entry left empty stays visible as plain text with a dotted underline. An entry set to <span class="mono">NONE</span> is recorded as <em>Not available</em> — meaning no document was located, which is a different statement from not yet checked.</p>
+  <p>Open the HTML file, find the <span class="mono">REFS</span> block at the top, paste the URL between the quotes on the matching entry, save. That document becomes a link here and everywhere it's named in the text. An entry left empty stays visible as plain text with a dotted underline. An entry set to <span class="mono">NONE</span> is recorded as <em>Not available</em> &#8212; meaning no document was located, which is a different statement from not yet checked.</p>
 </div>
 
 <div id="reflib"></div>
 </section>
 
 <footer>
-  <p>Compiled 17 September 2026 from sixteen source documents supplied by Alexa Barry. Every figure, name, date and procedure above traces to one of those sources; nothing has been inferred or filled in. Where two sources disagree, both readings are shown and flagged.</p>
+  <p>Compiled 17 September 2026 from sixteen source documents supplied by the outgoing role holder. Every figure, name, date and procedure above traces to one of those sources; nothing has been inferred or filled in. Where two sources disagree, both readings are shown and flagged.</p>
   <p>Items marked for verification are marked because the record is ambiguous, not because a judgement has been made about which reading is right.</p>
 </footer>
 
@@ -1527,7 +1725,7 @@ td.refstatus{white-space:nowrap;width:1%}
     } else {
       el.className = "ref-missing";
       el.title = entry
-        ? entry.title + (entry.where ? " — " + entry.where : "")
+        ? entry.title + (entry.where ? " - " + entry.where : "")
         : "No reference entry for this document yet";
     }
   });

@@ -44,8 +44,8 @@ const REFS = {
   "membership-redesign": { group:"Membership", title:"Membership Redesign design sprint", url:"https://app.clickup.com/2333655/v/dc/276yq-71791/276yq-136671", where:"ClickUp doc 276yq-71791 / 276yq-136691" },
   "sma-use-cases": { group:"Membership", title:"SMA application use cases", url:"https://app.clickup.com/2333655/docs/276yq-71791/276yq-142511", where:"ClickUp doc 276yq-71791 / 276yq-142511" },
   "orientation-guide": { group:"Membership", title:"Orientation guide and run of show", url:"https://app.clickup.com/2333655/v/dc/276yq-111151", where:"ClickUp collection root - not the specific doc" },
-  "sop-student-slack": { group:"Membership", title:"SOP: Setting Up the Student Slack", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/Community/Misc.%20Community/SOP%20Creating%20and%20Closing%20the%20Annual%20Slack%20Workspace.docx?d=w19a04cd8be954754abb5f090f7282fcb&csf=1&web=1&e=RfLXh0", where:"SharePoint &gt; Community &gt; Misc. Community - creating and closing the annual workspace" },
-  "sop-participation-letter": { group:"Membership", title:"Participation Letter template", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/Programs/Funds/AVF%20%26%20SIFF/Proof%20of%20Participation/Participation_Letter_TEMPLATE.docx?d=wf8602312038f4e3f89859cb169c9ac28&csf=1&web=1&e=Tfh2PS", where:"SharePoint &gt; Programs &gt; Funds &gt; AVF &amp; SIFF &gt; Proof of Participation" },
+  "sop-student-slack": { group:"Membership", title:"SOP: Setting Up the Student Slack", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/Community/Misc.%20Community/SOP%20Creating%20and%20Closing%20the%20Annual%20Slack%20Workspace.docx?d=w19a04cd8be954754abb5f090f7282fcb&csf=1&web=1&e=RfLXh0", where:"SharePoint > Community > Misc. Community - creating and closing the annual workspace" },
+  "sop-participation-letter": { group:"Membership", title:"Participation Letter template", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/Shared%20Documents/Programs/Funds/AVF%20%26%20SIFF/Proof%20of%20Participation/Participation_Letter_TEMPLATE.docx?d=wf8602312038f4e3f89859cb169c9ac28&csf=1&web=1&e=Tfh2PS", where:"SharePoint > Programs > Funds > AVF & SIFF > Proof of Participation" },
   "mx-spec": { group:"MX & strategy", title:"Member Experience (MX) Team Spec", url:"https://doc.clickup.com/d/h/276yq-178331/773b6100d333571", where:"ClickUp" },
   "mx-goals": { group:"MX & strategy", title:"MX goals, AY 26-27", url:"https://app.clickup.com/2333655/v/dc/276yq-95451/276yq-167971", where:"ClickUp doc 276yq-95451 / 276yq-180491" },
   "kpi-metrics": { group:"MX & strategy", title:"i-lab Impact Metrics & KPIs", url:"https://doc.clickup.com/d/h/276yq-95751/183129103411089/276yq-167231", where:"ClickUp" },
@@ -406,6 +406,11 @@ h5{
 }
 .bucketnav a{color:var(--muted);text-decoration-color:var(--border-strong)}
 .bucketnav a:hover,.bucketnav a:focus-visible{color:var(--accent)}
+
+h5.subtle{font-weight:600;font-size:13.5px;color:var(--muted);margin:22px 0 6px;
+  font-family:"IBM Plex Sans",sans-serif;letter-spacing:.01em}
+.pattern{font-size:14px;color:var(--ink-2);line-height:1.9;max-width:68ch;
+  border-left:2px solid var(--border-strong);padding-left:16px}
 
 /* reference links */
 .ref-missing{
@@ -1144,14 +1149,55 @@ td.refstatus{white-space:nowrap;width:1%}
 <div class="card">
   <p class="card-title">Additional checklist &#8212; Gong-a-Thon</p>
   <ul>
-    <li>Open community award nominations well in advance and chase them. The awards segment depends entirely on nominations arriving.</li>
-    <li>Decide the award categories and confirm who announces each.</li>
+    <li>Open nominations to staff early in the semester, not late. Staff need to have been watching for contributions all term for the list to be any good.</li>
+    <li>Chase nominations. The awards segment depends entirely on them arriving.</li>
+    <li>Invent each award name and write its one-line citation to be read aloud.</li>
+    <li>Confirm who announces each award.</li>
+    <li>Email every recipient before the event so the award works as an attendance hook.</li>
+    <li>Keep the nominations roster in SharePoint and off shared decks &#8212; it holds student names and email addresses.</li>
     <li>Confirm the gong is in place and the mallet is accounted for.</li>
     <li>Seed the sharing segment. Line up two or three members in advance so the first person to speak is not asked to volunteer cold.</li>
     <li>Print questions for the networking tables.</li>
     <li>Invite alumni and the expert network &#8212; this is one of the few events where all three audiences are in the room.</li>
     <li>Brief staff on the gong ceremony script below, in case a spontaneous milestone comes up.</li>
   </ul>
+</div>
+
+<h5>Community awards</h5>
+<p>The awards segment of Gong-a-Thon is a distinct process with its own timeline, and it is the part that makes the event feel like recognition rather than a party. Roughly fifteen awards are given per semester.</p>
+
+<div class="callout">
+  <p class="callout-head">The design decision that makes it work</p>
+  <p><strong>Nominations come from i-lab staff, not from peers</strong>, and they recognise <strong>contribution to the community rather than progress on a venture</strong>. Almost none of the awards on record are about traction, funding or product. They are about showing up, helping other founders, being present in the space, and persisting. That means the nomination list is only as good as how closely staff have been watching all semester &#8212; it cannot be assembled in the week before the event.</p>
+</div>
+
+<h5 class="subtle">How an award is built</h5>
+<ol>
+  <li><strong>Invent the award for the person.</strong> There is no fixed category list. Each award is named after the specific behaviour being recognised, and the tone is deliberately playful.</li>
+  <li><strong>Write a one-line citation</strong> naming what the person actually did. These are read aloud at the ceremony, so they are written to be said, not filed.</li>
+  <li><strong>Email recipients in advance</strong> telling them they have been nominated and inviting them to the event. The award is the hook that gets them in the room &#8212; the notification goes out before Gong-a-Thon, not after.</li>
+  <li><strong>Announce and ring the gong</strong> during the 5:15&#8211;5:25 segment.</li>
+</ol>
+
+<p>Conventions visible in the record: one person can receive more than one award; awards can be joint, to two people who did something together; and staff are eligible alongside members.</p>
+
+<h5 class="subtle">Award names used previously</h5>
+<p>Kept as a pattern library rather than a menu &#8212; the point is that each is invented to fit a person, but these show the register.</p>
+<p class="pattern">Late Night Expert &middot; Best Community Builder &middot; Beta Influencer &middot; Best Dressed &middot; The Mountain Climber &middot; From Venture to Venture &middot; Slack Superstar &middot; Coffee and Connections MVP &middot; Most Dedicated &middot; Office Hours MVP &middot; Persistence and Pitch &middot; Rising Star &middot; Quiet Hero &middot; Tenacious &middot; Practice Pioneer &middot; Lean In</p>
+
+<h5 class="subtle">Notification email, as sent</h5>
+<div class="card">
+  <p class="card-sub">Subject: You Won an i-lab Community Award! Celebrate with Us on [date]</p>
+  <p>Hi [name],</p>
+  <p>Congratulations! You've been nominated for a Community Award by an i-lab team member.</p>
+  <p>We invite you to join us for Gong-a-Thon, a special celebration of wins and milestones. At this event, we'll announce your award details, ring the gong to celebrate your success, and provide an opportunity to connect with fellow innovators.</p>
+  <p>[Date &middot; time &middot; location]</p>
+  <p>Learn more and RSVP here. We can't wait to celebrate you and all that you've accomplished.</p>
+</div>
+
+<div class="callout amber">
+  <p class="callout-head">Handling the nominations document</p>
+  <p>The nominations file is a working roster: it pairs each nominee's name with their Harvard email address and their citation. <strong>It is student personal data and should not be pasted into shared documents, decks or this dossier.</strong> Keep it in the SharePoint Community folder, share it by link to named colleagues rather than by attachment, and clear it down once the semester's awards have been given.</p>
 </div>
 
 <h5>The gong ceremony</h5>

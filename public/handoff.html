@@ -84,6 +84,15 @@ const REFS = {
   "intake-form": { group:"Calendar & events", title:"Event Intake Form -- Central Intake", url:"https://forms.clickup.com/2333655/f/276yq-2338/8E3NE5NUQ2BOAM9ZFX", where:"ClickUp form" },
   "event-list-main": { group:"Calendar & events", title:"Event tracking list (primary)", url:"https://app.clickup.com/2333655/v/li/168248660", where:"ClickUp list - registrations, attendees, event type" },
   "event-list-alt": { group:"Calendar & events", title:"Event tracking list (secondary)", url:"https://app.clickup.com/2333655/v/li/901111840133", where:"ClickUp list - largely duplicates the primary list up to Fall 2025" },
+  "attendance-view": { group:"Calendar & events", title:"Events awaiting attendance numbers (ClickUp view)", url:"https://app.clickup.com/2333655/v/gr/276yq-112291", where:"ClickUp grouped view - filters to events with no attendance recorded" },
+  "founder-circle-ros": { group:"Community", title:"Founder Circle Run of Show", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/_layouts/15/Doc.aspx?sourcedoc=%7BB5366C78-39BF-4A18-90C0-6E44CC02E655%7D&file=Founder%20Circle%20Run%20of%20Show.docx&action=default&mobileredirect=true&DefaultItemOpen=1", where:"SharePoint - Harvard_Innovation_Labs" }},
+  "gongathon-ros": { group:"Community", title:"End of Term Gong-a-Thon Run of Show", url:"https://hu-my.sharepoint.com/:w:/r/personal/alexa_barry_harvard_edu/Documents/End%20of%20Term%20Gong-a-thon%20Run%20of%20Show.docx?d=w852446be975f4cf086bb24c466980a92&csf=1&web=1&e=6FfjUx", where:"PERSONAL OneDrive - will be lost at account deprovisioning; move to the team site" }},
+  "gong-nominations": { group:"Community", title:"Gong-a-Thon Community Award Nominations", url:"https://hu.sharepoint.com/:w:/r/sites/sssc/Harvard_Innovation_Labs/_layouts/15/Doc.aspx?sourcedoc=%7BD46DEE0E-8AF7-4AAD-9390-7C48494EDE69%7D&file=Gong-a-Thon%20Community%20Nominations.docx&action=default&mobileredirect=true", where:"SharePoint - Harvard_Innovation_Labs" }},
+  "community-strategy": { group:"Community", title:"Community Experience Strategy", url:"", where:"Uploaded to the dossier; no SharePoint link recorded" },
+  "founder-circle-strategy": { group:"Community", title:"Founder Circle Strategy", url:"", where:"Uploaded to the dossier; no SharePoint link recorded" },
+  "semester-event-strategy": { group:"Community", title:"Semester Community Event Strategy", url:"", where:"Uploaded to the dossier; no SharePoint link recorded" },
+  "cm-job-description": { group:"Community", title:"Community Engagement Specialist job description", url:"", where:"Uploaded to the dossier; dated 11 Aug 2026" },
+  "community-strategy-2020": { group:"Community", title:"Community Strategy decks, 2020-21", url:"", where:"Uploaded to the dossier; largely section headers, body content did not survive" },
   "llx-program": { group:"LLX & alumni", title:"Launch Lab X program doc", url:"NONE", where:"No document located - see the LLX team" },
   "pitch-template": { group:"LLX & alumni", title:"Pitch Events Template -- Organizer", url:"https://hu.sharepoint.com/:x:/s/sssc/Harvard_Innovation_Labs/EfOgPVizlOpJqsSGs6d4xKwBGYJBKYcyHkE1VKoTtwrgSA", where:"SharePoint" },
   "alumni-calendar": { group:"LLX & alumni", title:"Alumni Programming Calendar", url:"https://app.clickup.com/2333655/v/li/174001669", where:"ClickUp list" },
@@ -378,6 +387,26 @@ footer p{margin:0 0 8px}
   max-width:62ch;margin:16px auto 0;text-align:center;
 }
 
+/* community buckets */
+h4.bucket{
+  font-family:Spectral,Georgia,serif;font-weight:600;
+  font-size:clamp(18px,2.1vw,22px);letter-spacing:-.005em;
+  margin:clamp(40px,5vw,56px) 0 4px;padding-top:16px;
+  border-top:1px solid var(--border-strong);color:var(--accent);
+  display:block;
+}
+h5{
+  font-family:"IBM Plex Sans",sans-serif;font-weight:600;font-size:15px;
+  letter-spacing:.005em;margin:28px 0 8px;color:var(--ink);
+}
+.bucketnav{
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.04em;
+  color:var(--muted);border-left:2px solid var(--border-strong);
+  padding:6px 0 6px 14px;margin:22px 0 0;
+}
+.bucketnav a{color:var(--muted);text-decoration-color:var(--border-strong)}
+.bucketnav a:hover,.bucketnav a:focus-visible{color:var(--accent)}
+
 /* reference links */
 .ref-missing{
   border-bottom:1px dotted var(--border-strong);color:var(--muted);
@@ -430,7 +459,7 @@ td.refstatus{white-space:nowrap;width:1%}
     <div><dt>Prepared by</dt><dd>Outgoing role holder</dd></div>
     <div><dt>Tenure in scope</dt><dd>August 2024 &ndash; present</dd></div>
     <div><dt>Compiled</dt><dd class="mono">17 Sep 2026</dd></div>
-    <div><dt>Built from</dt><dd>16 uploaded source documents</dd></div>
+    <div><dt>Built from</dt><dd>23 uploaded source documents</dd></div>
   </dl>
 </header>
 
@@ -448,7 +477,7 @@ td.refstatus{white-space:nowrap;width:1%}
     <li><a href="#s-pic">2.1 PIC</a></li>
     <li><a href="#s-siff">2.2 SIFF</a></li>
     <li><a href="#s-membership">2.3 Membership</a></li>
-    <li><a href="#s-community">2.4 Community programming</a></li>
+    <li><a href="#s-community">2.4 Community strategy</a></li>
     <li><a href="#s-llx">2.5 LLX &amp; pitch events</a></li>
     <li><a href="#s-learning">2.6 Learning products</a></li>
     <li><a href="#s-hipo">2.7 HiPo</a></li>
@@ -834,13 +863,360 @@ td.refstatus{white-space:nowrap;width:1%}
 </section>
 
 <section id="s-community">
-<h3><span class="num">2.4</span><span>Community events &amp; recurring programming</span></h3>
+<h3><span class="num">2.4</span><span>Community &#8212; strategy and programming</span></h3>
 
-<p>Coffee &amp; Connections (weekly, Thursdays) &middot; Founder Circle &middot; Gong-a-thon &middot; Pizza &amp; Pitch &middot; Meet the i-lab and Meet the i-lab Online &middot; Community Kick Off &middot; Blitzy &middot; Founder Fundamentals workshops, primers and clinics.</p>
+<p>Recurring formats: Coffee &amp; Connections (weekly, Thursdays) &middot; Founder Circle &middot; Gong-a-Thon &middot; Pizza &amp; Pitch &middot; Meet the i-lab and Meet the i-lab Online &middot; Community Kick Off &middot; Blitzy &middot; Founder Fundamentals workshops, primers and clinics. Roughly 30 to 40 events across an academic year.</p>
 
 <p>On the workshops: <strong>this role creates the experience layer; advisors deliver the content.</strong> That split is the reason event descriptions, registration flows, reminder cadences and follow-up sequences are all documented here while curriculum is not.</p>
 
-<p>Ownership of the recurring community events was the Community Manager's, and transfers to the Community team on paper &#8212; the Fall 2026 proposal confirms Events and MX collaborate to design and host community events, with the caveat that <strong>admin support for virtual and in-person events will be limited this fall</strong>.</p>
+<p>Ownership of the recurring community events was the Community Manager's, and transfers to the Community team on paper &#8212; the Fall 2026 proposal confirms Events and MX collaborate to design and host community events, with the caveat that <strong>admin support for virtual and in-person events will be limited this fall</strong>. With the role vacant, what follows is the record of how community was built.</p>
+
+<p class="bucketnav">This section follows the ClickUp structure: <a href="#c-strategy">Strategy</a> &middot; <a href="#c-goals">Goals + measurement</a> &middot; <a href="#c-events">Events</a> &middot; <a href="#c-marketing">Marketing</a> &middot; <a href="#c-slack">Slack</a></p>
+
+<!-- ======================= 1 STRATEGY ======================= -->
+<h4 class="bucket" id="c-strategy">Strategy</h4>
+
+<h5>The promise</h5>
+<div class="callout">
+  <p class="callout-head">Stated in the community strategy</p>
+  <p>We open the door to Harvard's most inspiring, inclusive, and authentic community of innovators &#8212; humble builders and ambitious dreamers from all 13 schools &#8212; where you feel safe to explore, supported to grow, and energized by serendipitous connections that spark real momentum.</p>
+</div>
+
+<p>The earlier 2020&#8211;21 strategy states the same idea as a theory of the function: community is the foundational touch point for every member in or interested in the venture program, and it exists to provide clear resource access points, opportunities for human connection, deliberate guidance for growth, and support in developing an entrepreneurship identity and a sense of belonging.</p>
+
+<h5>Six characteristics of a successful community</h5>
+<p>The standard programming is judged against: self-sustaining, safe, accessible, exciting, inspiring, and something members are proud to be part of.</p>
+
+<h5>Member pain points the role was built around</h5>
+<ul>
+  <li>Finding co-founders and team members.</li>
+  <li>Overwhelming onboarding &#8212; many members feel lost in the resources when they first join.</li>
+  <li>A large share of members are international students navigating visa and relocation challenges.</li>
+</ul>
+
+<!-- ======================= 2 GOALS ======================= -->
+<h4 class="bucket" id="c-goals">Goals + measurement</h4>
+
+<h5>Activation goals and how they are measured</h5>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Goal</th><th>Measured by</th></tr></thead>
+<tbody>
+<tr><td class="name">Drive consistent Harvard student awareness and early engagement</td><td>% of all Harvard students who join the i-lab &middot; % who are members &middot; LLX, SIFF and Climate Circle applications and acceptance rate &middot; Slack joins &middot; whether a member attended any event at all</td></tr>
+<tr><td class="name">Drive community-driven relationship formation</td><td>% of founders who find co-founders, team members or informal mentors within the community &middot; number of community-based events &middot; % of attendees who say they want to follow up with someone they met</td></tr>
+<tr><td class="name">Drive engagement through Harvard tenure and into alumni years</td><td>% continuous membership renewal until graduation &middot; return rates &middot; members sharing peers' stories</td></tr>
+</tbody>
+</table>
+</div>
+
+<h5>The persona-based approach</h5>
+<p>The strategy's central recommendation is that events be designed around member personas rather than generic formats, on the finding that members skip events that lack immediate value for their stage. Nine personas are defined, each with needs and the programming that answers them.</p>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>Persona</th><th>What they need</th><th>Programming that maps to it</th></tr></thead>
+<tbody>
+<tr><td class="name">Mission-Driven Social Innovator</td><td>Introductions to impact investors, family offices and philanthropic funders; peer support; pro bono legal and accounting hours; connections to corporate social responsibility leads; stories that highlight impact metrics</td><td>Speed networking with impact investors &middot; Impact Founders Circle &middot; continued Expert Office Hours</td></tr>
+<tr><td class="name">Health Care + Life Sciences Visionary</td><td>Tours of Life Lab and medical school facilities; ecosystem mapping; pitch coaching for clinical and scientific audiences; regulatory guidance; hospital innovation contacts; different funding routes</td><td>HLS Ecosystem Event &middot; Life Lab tour &middot; Pitch Night &middot; Healthcare MBA Mixer &middot; talks by successful HLS founders</td></tr>
+<tr><td class="name">Deep Tech Pioneer</td><td>Makerspace access; team members; introduction to The Grid; tech investor network; demo sessions for feedback; manufacturing and prototyping guidance</td><td>Deep Tech Demo Day &middot; Makerspace orientation &middot; grant writing workshop &middot; Founder/Joiner events &middot; ecosystem event with The Grid</td></tr>
+<tr><td class="name">The Scaler</td><td>Advanced pitch practice; peers facing the same problems; reverse mentorship; seed investor intros and readiness assessment; PR and marketing strategy; recruiting pipeline; accelerator application support</td><td>Founder Circle for Propel teams only &middot; PR/Marketing open house with Marketing &middot; Career Fair &middot; introductions to fundraisers &middot; ecosystem event with accelerators</td></tr>
+<tr><td class="name">Motivated First-Time Founder</td><td>Structured onboarding; a first-time founder peer cohort; beta testing feedback; advisor access; founder fundamentals across legal, finance, product and marketing; co-founder matching</td><td>Scavenger Hunt + Orientation Social &middot; First-Time Founders Lunch Series &middot; Beta Testing Night &middot; Mentor Match &middot; Alumni Breakout Sessions</td></tr>
+<tr><td class="name">Curious Window Shopper</td><td>Low-pressure exploration events; founder stories that demystify entrepreneurship; a sense of what roles exist on startups; inspiration from relatable founders</td><td>Meet the i-lab &middot; Coffee &amp; Connections &middot; Founder/Joiner events &middot; Founder Story Hour, informal fireside format</td></tr>
+<tr><td class="name">Global Changemaker</td><td>Peer support for visa challenges; immigration guidance; cultural celebration and acknowledgement; international market expansion resources</td><td>Global Founders Circle &middot; immigration lawyer workshops &middot; cultural celebration events</td></tr>
+<tr><td class="name">Remote Worker</td><td>Educational resources and advisor access; a feeling of inclusion; a searchable member directory</td><td>Meet the i-lab Online &middot; 1:1 coffee matching via Slack &middot; hybrid events with a real virtual component &middot; more marketing of digital resources</td></tr>
+<tr><td class="name">Subject Matter Expert</td><td>A network of other experts; entrepreneurship programming; a sense that the space is for people like them</td><td>Founder Fundamentals</td></tr>
+</tbody>
+</table>
+</div>
+
+<h5>What members said in research</h5>
+<div class="grid-2">
+<div class="card">
+  <p class="card-title">Most valued resources</p>
+  <ul>
+    <li><strong>Working space</strong> &#8212; desk monitors, conference rooms, food and drink all matter.</li>
+    <li><strong>Advisory support</strong> &#8212; advisors, EiRs and expert advisors described as trajectory-changing.</li>
+    <li><strong>Perks program</strong> &#8212; high utility (AWS, legal, banking) but major awareness gaps.</li>
+    <li><strong>Community Slack</strong> &#8212; universally known and valued for staying informed.</li>
+  </ul>
+</div>
+<div class="card">
+  <p class="card-title">Workshops</p>
+  <ul>
+    <li>Time constraints dominate; students rarely seek recordings after missing a session.</li>
+    <li>Consensus length: <strong>45 minutes to one hour maximum</strong>.</li>
+    <li>Presenter expertise and topic relevance drive attendance more than logistics.</li>
+    <li>Best slot: <strong>3&#8211;5pm</strong>, between classes and dinner.</li>
+  </ul>
+</div>
+<div class="card">
+  <p class="card-title">Channels</p>
+  <ul>
+    <li>Members reliably open the Community Manager's emails &#8212; a personal credibility factor worth protecting.</li>
+    <li>Event reminders are highly valued.</li>
+    <li>Email is most reliable for formal comms; Slack complements it but some members miss notifications.</li>
+    <li>WhatsApp runs friend groups and class coordination &#8212; a complement, not a replacement.</li>
+    <li>The i-lab website was <strong>not mentioned once</strong>.</li>
+  </ul>
+</div>
+<div class="card">
+  <p class="card-title">Content</p>
+  <ul>
+    <li>Strong resistance to video. Members skim at 2&times;, run it through AI tools, and dislike recorded Q&amp;A.</li>
+    <li>Tolerance: 10&#8211;20 minutes, or 10 if not directly relevant.</li>
+    <li>Searchability is the priority &#8212; members want to Ctrl+F everything.</li>
+    <li>Preferred formats in order: transcripts, Notion-friendly pages, annotated slides, subtitled content.</li>
+    <li>The website resource library is seen as hard to navigate.</li>
+  </ul>
+</div>
+</div>
+
+<p>One space finding worth carrying: HBS students sometimes avoid the i-lab when it is crowded and loud.</p>
+
+<!-- ======================= 3 EVENTS ======================= -->
+<h4 class="bucket" id="c-events">Events</h4>
+
+<h5>The semester event mix</h5>
+<p>Each event is classified as <em>reach</em> (breadth of awareness) or <em>impact</em> (depth of relationship), with a per-semester count and a budget priority.</p>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Event</th><th>Audience</th><th>Reach or impact</th><th class="num">Per semester</th><th>Budget priority</th></tr></thead>
+<tbody>
+<tr><td class="name">In-person orientation</td><td>All student members</td><td>Reach</td><td class="num">2</td><td>High</td></tr>
+<tr><td class="name">Coffee and Connections</td><td>All student members, LLX, experts</td><td>Reach</td><td class="num">4</td><td>High</td></tr>
+<tr><td class="name">Founder Circle</td><td>All student members</td><td>Impact</td><td class="num">3</td><td>Medium</td></tr>
+<tr><td class="name">Founder happy / coffee hours</td><td>Curated students</td><td>Impact</td><td class="num">4</td><td>High</td></tr>
+<tr><td class="name">Gong-a-Thon</td><td>All student members, alumni, expert network</td><td>Both</td><td class="num">1</td><td>High</td></tr>
+<tr><td class="name">Venturing@Harvard</td><td>All student members + Harvard partners</td><td>Reach</td><td class="num">1</td><td>High</td></tr>
+<tr><td class="name">Industry networking with the expert network</td><td>All student members, LLX, experts</td><td>Reach</td><td class="num">1</td><td>Medium</td></tr>
+<tr><td class="name">Innovators of X networking night</td><td>Relevant student members + LLX</td><td>Impact</td><td class="num">1</td><td>Medium</td></tr>
+<tr><td class="name">Breakouts with alumni founders</td><td>All student members, LLX as speakers</td><td>Impact</td><td class="num">1</td><td>Low</td></tr>
+<tr><td class="name">Founders and Joiners: MIT and Harvard</td><td>All student members, LLX + MIT</td><td>Reach</td><td class="num">1</td><td>Low</td></tr>
+<tr><td class="name">Cross-university innovation mixer</td><td>All student members + local colleges</td><td>Reach</td><td class="num">1 or fewer</td><td>Medium</td></tr>
+</tbody>
+</table>
+</div>
+
+<h5>Event formats, as run</h5>
+<ul>
+  <li><strong>Build Together: Founders &amp; Joiners Matching</strong> &#8212; connects founders who are building with people curious about joining. Pitch session first (founders share vision and open roles; joiners share skills), then open networking. Attendees bring a 60-second pitch.</li>
+  <li><strong>Alumni Breakouts: Choose Your Industry Expert</strong> &#8212; alumni founders from different industries open with short introductions, then attendees pick the breakout most relevant to them. Attendees bring questions and specific challenges.</li>
+  <li><strong>Founder Circle: Pizza and Problem-Solving</strong> &#8212; pizza and mingling, then a problem-solving circle, then continued conversation and contact exchange. Attendees bring their most pressing challenge.</li>
+  <li><strong>Industry Insights</strong> &#8212; table-based networking by industry (AI, healthcare, fintech, climate, consumer products). Check in and pick a table, discuss with experts and peers, switching encouraged, then cross-industry mingling.</li>
+  <li><strong>Venturing@Harvard</strong> &#8212; run in collaboration with The Grid and the Rock Center.</li>
+</ul>
+
+<h5>Core operational checklist &#8212; every community event</h5>
+<p>This applies to all formats. The per-event sections below carry only what is additional.</p>
+
+<div class="grid-2">
+<div class="card">
+  <p class="card-title">Before</p>
+  <p class="card-sub">T&minus;4 weeks to T&minus;1 day</p>
+  <ul>
+    <li>Define the purpose and name the persona it serves. Persona first, format second.</li>
+    <li>Validate the date against the program calendar. No new events in September.</li>
+    <li>Run the intake workflow in &sect;&nbsp;3.4: draft, Central Intake, Operations review, approval notification, Marketing copy review, Eventbrite API push, manual updates, website launch.</li>
+    <li>Book space with Operations and specify the room format. Pods for community events.</li>
+    <li>Order catering, including healthier options.</li>
+    <li>Set <strong>Expected Attendance</strong> as registrations &times; 0.4 (&sect;&nbsp;3.5), not a guess.</li>
+    <li>Confirm staffing, assign roles, and walk the run of show with everyone working the event.</li>
+    <li>For hybrid or online: create the Zoom link, assign host and co-host, test in the room.</li>
+    <li>Promotion: email at T&minus;10 to T&minus;14, Monday Slack digest, same-day reminder for the biggest open events. Respect the weekly cap of one broad email and two broad Slack posts (&sect;&nbsp;3.2).</li>
+    <li>Prepare materials: signage, name badges, swag, table questions, QR codes.</li>
+  </ul>
+</div>
+<div class="card">
+  <p class="card-title">Day of</p>
+  <p class="card-sub">Setup through close</p>
+  <ul>
+    <li>Arrive early and set the room. Fill pods one at a time as people filter in.</li>
+    <li>Put the swag table <em>inside</em> the space, not at the entrance, to avoid a bottleneck.</li>
+    <li>Run check-in. This is the attendance source &#8212; Eventbrite check-in, Zoom participant report, or a manual headcount for walk-in formats.</li>
+    <li>Assign a timekeeper if there is a run of show.</li>
+    <li>Expect late arrivals and plan the agenda so a late arrival can still join usefully.</li>
+    <li>If a change is needed on the day, post in <span class="mono">#workshopcrew</span> and close the Operations, Marketing and ClickUp loop (&sect;&nbsp;3.4).</li>
+  </ul>
+</div>
+<div class="card">
+  <p class="card-title">After</p>
+  <p class="card-sub">Within the week</p>
+  <ul>
+    <li>Record the attendance number against the Central Intake task, working from the ClickUp queue of events awaiting numbers (&sect;&nbsp;3.5).</li>
+    <li>Send the follow-up: thank you, any resources referenced, and the next relevant event.</li>
+    <li>Collect feedback &#8212; a survey, or a quick pulse check for smaller formats.</li>
+    <li>Note what worked and what did not, for the twice-yearly program debrief.</li>
+    <li>Return borrowed equipment and confirm the space is reset with Operations.</li>
+  </ul>
+</div>
+</div>
+
+<h5>Meet the i-lab</h5>
+<p>The open-door format and the lowest-commitment entry point into the community. It maps directly to the Curious Window Shopper persona, and the online variant serves the Remote Worker. Runs in-person and as <strong>Meet the i-lab Online</strong>.</p>
+
+<p><strong>Structure:</strong> welcome and networking &rarr; i-lab overview covering resources, programs and staff introductions &rarr; Q&amp;A &rarr; tour of the space. A 15-minute tour script exists for the final segment.</p>
+
+<p><strong>What to expect:</strong> 40 to 180 registrations and 25 to 60 attendees, at roughly 30&#8211;40% yield. Smaller sessions convert better than large ones, so two moderate sessions outperform one large one. Budgeted as high priority, twice per semester.</p>
+
+<div class="card">
+  <p class="card-title">Additional checklist &#8212; Meet the i-lab</p>
+  <ul>
+    <li>Confirm the tour route and who is guiding; have the 15-minute script to hand.</li>
+    <li>Agree which staff introduce themselves and in what order.</li>
+    <li>Set tall booths around the lobby perimeter. This defines the event space and keeps attention on whoever is speaking.</li>
+    <li>Open with a video. It quiets the room more reliably than asking for quiet.</li>
+    <li>Set up industry-based networking tables.</li>
+    <li>Put QR codes on screen so attendees can tag the i-lab on social. Suggested, not yet tested.</li>
+    <li>For the online variant: confirm the virtual component is substantive rather than a camera pointed at the room.</li>
+  </ul>
+</div>
+
+<div class="callout amber">
+  <p class="callout-head">Unresolved in the source documents</p>
+  <p><strong>Whether Meet the i-lab and new-member orientation are the same event is not stated.</strong> The transition document lists Meet the i-lab among community events while orientation sits under membership (&sect;&nbsp;2.3), where this role is Host/MC. The attendance data groups them together as one category. The offboarding document describes a single &ldquo;Welcome to i-lab: New Member Orientation&rdquo; with the structure above. Confirm whether these are one format or two before scheduling a term, because the audiences differ: orientation serves people who have already joined, and Meet the i-lab serves people deciding whether to.</p>
+  <p>A related open question from the orientation notes: how to go deeper for returning members versus new ones. The proposed answer is a &ldquo;next steps&rdquo; document per track &#8212; Explore, Test, Propel.</p>
+</div>
+
+<h5>Coffee &amp; Connections</h5>
+<p>Weekly casual meetup, Thursdays, hosted by the Community Manager. Coffee, seasonal snacks, open networking, welcoming both long-standing members and first-time visitors. Four per semester are budgeted as high priority; in practice it runs weekly.</p>
+<p><strong>What to expect:</strong> around 33 registrations and 25 attendees, at <strong>90%+ yield</strong> &#8212; the highest of any format, because walk-ins make up the difference between registration and attendance.</p>
+<div class="card">
+  <p class="card-title">Additional checklist &#8212; Coffee &amp; Connections</p>
+  <ul>
+    <li>Standing weekly booking rather than event-by-event space requests.</li>
+    <li>Coffee and seasonal snacks confirmed with Operations on a recurring order.</li>
+    <li><strong>Count heads manually.</strong> Registration badly understates this format, so an Eventbrite figure alone will misreport it.</li>
+    <li>No run of show. The host's job is to introduce people to each other, not to run an agenda.</li>
+  </ul>
+</div>
+
+<h5>Founder Circle</h5>
+<p>Opt-in groups of ten founders meeting for 90 minutes, four times. Open to founders at any stage, ideas included. Two circles were piloted, one virtual and one in person, with an application step used to signal that commitment matters. Virtual attendees must keep camera on throughout; in-person attendees must stay for the whole session.</p>
+<p>Run of show: <span class="ref" data-ref="founder-circle-ros">Founder Circle Run of Show</span>.</p>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>Time</th><th>Segment</th></tr></thead>
+<tbody>
+<tr><td class="name mono">0:00&#8211;0:15</td><td>Members gather. Icebreaker: what is something you are proud of, and something you are challenged by. Facilitator shares why the group exists, sets intentions (be present, phones on do-not-disturb) and walks the agenda.</td></tr>
+<tr><td class="name mono">0:15&#8211;0:30</td><td>Go-around. Each member gives a one-minute snapshot of where they are in their venture.</td></tr>
+<tr><td class="name mono">0:30&#8211;1:20</td><td>Hot seat. Three founders each receive group coaching.</td></tr>
+<tr><td class="name mono">1:20&#8211;1:30</td><td>Pair up with the person next to you: goals and accountability for next time.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout teal">
+  <p class="callout-head">The rationale stated for Founder Circles</p>
+  <p>93% of founders show signs of mental health strain and 76% report feeling lonely. 87% say having peers to learn from has a positive impact on their performance. Connection is the stated intervention.</p>
+</div>
+
+<div class="card">
+  <p class="card-title">Additional checklist &#8212; Founder Circle</p>
+  <ul>
+    <li>Open and close applications. The application is not a filter so much as a commitment signal, so keep it short.</li>
+    <li>Cap each circle at ten and assign members to circles; decide the virtual / in-person split.</li>
+    <li>Communicate the two rules at acceptance, not on the day: camera on for the whole virtual session, present for the whole in-person session.</li>
+    <li>Confirm the facilitator for all four sessions. Continuity is the point of a circle.</li>
+    <li>Choose the three hot-seat founders ahead of each session and tell them.</li>
+    <li>Book the same room and time for all four meetings in one request.</li>
+    <li>Order pizza for the in-person format.</li>
+    <li>After each session, note who committed to what, so the next go-around can pick it up.</li>
+  </ul>
+</div>
+
+<h5>Gong-a-Thon</h5>
+<p>End-of-semester tradition where members strike the gong to mark wins big and small, followed by community appreciation from staff and open networking. Once per semester, high budget priority, open to members, alumni and the expert network.</p>
+<p>Reference documents: <span class="ref" data-ref="gongathon-ros">End of Term Gong-a-Thon Run of Show</span> and <span class="ref" data-ref="gong-nominations">Community Award Nominations</span>.</p>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>Time</th><th>Segment</th></tr></thead>
+<tbody>
+<tr><td class="name mono">5:00&#8211;5:15</td><td>Mingling</td></tr>
+<tr><td class="name mono">5:15&#8211;5:25</td><td>Community awards, led by the Community Manager</td></tr>
+<tr><td class="name mono">5:25&#8211;5:45</td><td>Members share wins, milestones and failures, and strike the gong</td></tr>
+<tr><td class="name mono">5:45&#8211;7:00</td><td>Networking, with questions placed on the tables</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="card">
+  <p class="card-title">Additional checklist &#8212; Gong-a-Thon</p>
+  <ul>
+    <li>Open community award nominations well in advance and chase them. The awards segment depends entirely on nominations arriving.</li>
+    <li>Decide the award categories and confirm who announces each.</li>
+    <li>Confirm the gong is in place and the mallet is accounted for.</li>
+    <li>Seed the sharing segment. Line up two or three members in advance so the first person to speak is not asked to volunteer cold.</li>
+    <li>Print questions for the networking tables.</li>
+    <li>Invite alumni and the expert network &#8212; this is one of the few events where all three audiences are in the room.</li>
+    <li>Brief staff on the gong ceremony script below, in case a spontaneous milestone comes up.</li>
+  </ul>
+</div>
+
+<h5>The gong ceremony</h5>
+<p>A standing ritual for individual milestones, run on demand rather than scheduled. A member tells a staff member about a milestone; staff ask the Community Manager or a Programs team member to facilitate.</p>
+<ol>
+  <li>Announce over the microphone that a member has reached a milestone and invite people to gather near the entrance for five minutes.</li>
+  <li><strong>Take the mallet and hold onto it</strong>, so the member does not strike the gong before the ceremony.</li>
+  <li>Once people gather, ask two questions: what is the milestone, and what were the failures or learnings that led here.</li>
+  <li>Read the tradition aloud &#8212; the gong originates in ancient Chinese culture as a symbol of inviting new beginnings, clearing obstacles and opening the way to new opportunity; striking it honours the achievement.</li>
+  <li>Hand over the mallet and let them strike it.</li>
+</ol>
+
+<h5>Operating notes from the source</h5>
+<ul>
+  <li><strong>Room format.</strong> Pods are the most useful layout for community events &#8212; fill one pod at a time as people filter in.</li>
+  <li><strong>Catering.</strong> Repeated requests for healthier food options.</li>
+  <li><strong>Timing.</strong> Members run on &ldquo;Harvard time&rdquo;; some will always arrive very late, occasionally minutes before the end. Plan for it rather than against it.</li>
+</ul>
+
+<!-- ======================= 4 MARKETING ======================= -->
+<h4 class="bucket" id="c-marketing">Marketing</h4>
+
+<h5>Marketing to members</h5>
+<p>The daily routine: check Eventbrite first for upcoming events, registrations and what needs promotion, then check Expert Office Hours for experts with availability and no bookings. Marketing effort follows those two signals rather than a fixed calendar.</p>
+
+<h5>The office hours promotion workflow</h5>
+<p>A core recurring task:</p>
+<ol>
+  <li>Identify which experts have open office hours in the next two weeks.</li>
+  <li>Search Salesforce by industry for active members in industries relevant to that expert.</li>
+  <li>Email those members with the expert's bio, what they can help with, and the booking link.</li>
+  <li>Cross-promote a relevant event in the same message where it fits.</li>
+</ol>
+<p>Three Mailchimp templates are used for new campaigns: a general template, a full i-lab general template, and a sprint/primer reminder template. Sent campaigns are kept as reference examples, including a summer-focused format members preferred.</p>
+
+<div class="callout">
+  <p class="callout-head">The stated marketing philosophy</p>
+  <p>Marketing to members is need-based and moment-based: the right information to the right persona at the right time, rather than everything to everyone. Members open these emails because of a personal credibility factor, and that trust is protected by keeping messages focused and genuinely useful.</p>
+</div>
+
+<!-- ======================= 5 SLACK ======================= -->
+<h4 class="bucket" id="c-slack">Slack</h4>
+
+<h5>The community Slack</h5>
+<p>The workspace is closed and re-created annually, per <span class="ref" data-ref="sop-student-slack">its own SOP</span>. The channel structure used when setting it up:</p>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Channel</th><th>Description used at setup</th></tr></thead>
+<tbody>
+<tr><td class="name">Start Here</td><td>Your guide to all things i-lab. Discover how to make the most of our resources and navigate Slack.</td></tr>
+<tr><td class="name">i-lab Announcements</td><td>Upcoming events, facility updates and other important announcements.</td></tr>
+<tr><td class="name">Introductions</td><td>Introduce yourself and connect with other members.</td></tr>
+<tr><td class="name">Pitch Feedback</td><td>Share a pitch and get insights.</td></tr>
+<tr><td class="name">Fundraising Support</td><td>Questions about fundraising.</td></tr>
+<tr><td class="name">Customer Discovery Help</td><td>Market research assistance; share surveys for community support.</td></tr>
+<tr><td class="name">Explorer Office Hours</td><td>A space for explorers to connect, share insights and ask questions.</td></tr>
+<tr><td class="name">Resource Recommendations</td><td>Which business tools to use, and other resource questions.</td></tr>
+<tr><td class="name">Request for Intros</td><td>Requests for specific introductions.</td></tr>
+<tr><td class="name">Events and Opportunities</td><td>Share relevant events and opportunities.</td></tr>
+<tr><td class="name">Join My Team / Looking for a Team</td><td>Founders and joiners pitch themselves or their company.</td></tr>
+<tr><td class="name">i-lab Questions</td><td>Any i-lab-related question.</td></tr>
+</tbody>
+</table>
+</div>
+<p>Members frequently ask for help promoting opportunities, job postings and internships. The standing offer is promotion via the community Slack, on receipt of a short blurb.</p>
 </section>
 
 <section id="s-llx">
@@ -1380,9 +1756,11 @@ td.refstatus{white-space:nowrap;width:1%}
 
 <h4>How the number gets recorded</h4>
 <ol>
-  <li>Pull the attendance count after the event &mdash; from Eventbrite check-in, the Zoom participant report, or a manual headcount for walk-in formats.</li>
-  <li>Open the event's Central Intake task in ClickUp and update the <strong>Attended Number</strong> field. This step also appears in the pitch-event checklist (&sect;&nbsp;2.5).</li>
+  <li>Open the <span class="ref" data-ref="attendance-view">ClickUp view of events awaiting attendance numbers</span>. This is the working queue &#8212; it filters to events where no figure has been entered yet, so nothing has to be tracked by memory.</li>
+  <li>Pull the attendance count for each &#8212; from Eventbrite check-in, the Zoom participant report, or a manual headcount for walk-in formats.</li>
+  <li>Open the event's Central Intake task and update the <strong>Attended Number</strong> field. This step also appears in the pitch-event checklist (&sect;&nbsp;2.5).</li>
   <li>Leave the <strong>Expected Attendance</strong> field as set at planning time, so the forecast can be compared against the actual afterwards.</li>
+  <li>Work the queue to empty on a regular cadence. Events that sit unrecorded are what produce the Summer 2026 gap noted below.</li>
 </ol>
 
 <h4>The planning rule</h4>
@@ -1564,7 +1942,7 @@ td.refstatus{white-space:nowrap;width:1%}
 <section id="s-gaps">
 <h3><span class="num">5.2</span><span>Gaps in this record</span></h3>
 
-<p>This dossier is built from sixteen uploaded documents. The comms engine, the learning products, the Wayfinder and the Fall 2026 coverage plan are documented in full within that set. What follows is what the set does <em>not</em> contain.</p>
+<p>This dossier is built from twenty-three uploaded documents. The comms engine, the learning products, the Wayfinder and the Fall 2026 coverage plan are documented in full within that set. What follows is what the set does <em>not</em> contain.</p>
 
 <h4 class="tag">Programs with no primary document in the set</h4>
 <div class="grid-2">
@@ -1661,6 +2039,12 @@ td.refstatus{white-space:nowrap;width:1%}
 <tr><td class="name">Email Journey</td><td class="mono">md</td><td><strong>Empty stub</strong> &mdash; title only</td></tr>
 <tr><td class="name">Customer Service Stand Ups</td><td class="mono">md</td><td><strong>Empty stub</strong> &mdash; title only</td></tr>
 <tr><td class="name">Email Journey</td><td class="mono">pdf</td><td>Title page only; content lives in the Primer PDF</td></tr>
+<tr><td class="name">Community Manager offboarding doc</td><td class="mono">docx</td><td>Institutional knowledge and how-to-do-the-job in two parts: role goals, community strategy and vision, nine personas, member research findings, event portfolio with run-of-shows, marketing workflow, the gong ceremony, Slack channel structure, PIC and Ingenuity notes</td></tr>
+<tr><td class="name">Community Experience Strategy</td><td class="mono">docx</td><td>The promise, six characteristics, activation goals and metrics, and the nine personas with needs and programming ideas</td></tr>
+<tr><td class="name">Semester Community Event Strategy</td><td class="mono">docx</td><td>Event mix by audience, reach-versus-impact classification, per-semester counts and budget priority</td></tr>
+<tr><td class="name">Founder Circle Strategy</td><td class="mono">docx</td><td>Format, group size, commitment rules, 90-minute run of show, and the founder-wellbeing rationale</td></tr>
+<tr><td class="name">Community Engagement Specialist job description</td><td class="mono">docx</td><td>Dated 11 Aug 2026. Role split 50% community and program management, 40% marketing and comms, 10% other; reports to this role; covers 3000+ active members and ~30&#8211;40 events a year</td></tr>
+<tr><td class="name">Community Strategy decks, 2020-21</td><td class="mono">pptx &times;2</td><td>Community theory statement and four workflow buckets with guiding questions. Body content did not survive the file &#8212; largely section headers</td></tr>
 <tr><td class="name">PIC YoY Tracking workbook</td><td class="mono">link</td><td>Behind SharePoint authentication &mdash; could not be opened. Only the exported snapshot tab was available</td></tr>
 </tbody>
 </table>
@@ -1688,7 +2072,7 @@ td.refstatus{white-space:nowrap;width:1%}
 </section>
 
 <footer>
-  <p>Compiled 17 September 2026 from sixteen source documents supplied by the outgoing role holder. Every figure, name, date and procedure above traces to one of those sources; nothing has been inferred or filled in. Where two sources disagree, both readings are shown and flagged.</p>
+  <p>Compiled 17 September 2026 from twenty-three source documents supplied by the outgoing role holder. Every figure, name, date and procedure above traces to one of those sources; nothing has been inferred or filled in. Where two sources disagree, both readings are shown and flagged.</p>
   <p>Items marked for verification are marked because the record is ambiguous, not because a judgement has been made about which reading is right.</p>
 </footer>
 
